@@ -1,0 +1,57 @@
+generated: '2026-09-01'
+method: searched
+source: >-
+  https://docs.nerve.cloud/versions/ , https://docs.nerve.cloud/changelog/ ,
+  https://docs.nerve.cloud/licenses/ , https://www.tttech-industrial.com/sla/nerve ,
+  openapi/tttech-nerve-management-system-openapi.yml , openapi/tttech-nerve-node-openapi.yml
+versioning:
+  scheme: uri-path
+  current: v3 (Management System resources) / API document 3.1.0
+  node_api_version: 2.10.0
+  docs: https://docs.nerve.cloud/versions/
+  detail: >-
+    The API document version tracks the Nerve product release, and the Management System runs multiple
+    resource generations concurrently (/nerve/workloads, /nerve/v2/..., /nerve/v3/...). Documentation for
+    every prior release from 2.0.0 to 3.1.0 stays online at https://docs.nerve.cloud/<version>/, which is
+    an unusually complete version archive for a platform of this size.
+  archived_versions: ['2.0.0', '2.1.2', '2.2.0', '2.3.0', '2.4.0', '2.5.0', '2.6.0', '2.7.0', '2.8.1', '2.9.0', '2.10.0', '3.0.0', '3.0.1', '3.1.0']
+deprecation:
+  policy_url: null
+  sunset_header: false
+  detail: >-
+    TTTech publishes no API deprecation policy and neither contract sends Sunset or Deprecation headers
+    (RFC 8594) — a search of both documents for "sunset" returns zero matches. Deprecation is
+    communicated in prose in the release notes and in the device guide, and it is real: the MFN 100 and
+    the Siemens SIMATIC IPC427E are both marked "Deprecated, do not use for new designs", the XEN
+    hypervisor images were deprecated in 2.8.1, and the PDF build of the documentation was deprecated in
+    2023. At the contract level exactly one operation carries deprecated: true.
+  announcement_channel: https://docs.nerve.cloud/changelog/
+deprecated_operations:
+- openapi/tttech-nerve-node-openapi.yml#get_node_secure_id_deprecated
+- note: >-
+    GET /api/setup/configurations/secureId, superseded by GET /api/setup/configurations/secure-id. It is
+    the only operation flagged deprecated across the 228 operations in the two contracts.
+sla:
+  url: https://www.tttech-industrial.com/sla/nerve
+  document: https://nerve.cloud/sites/default/files/documents/2025-11-Nerve%20SLA_4.0_without_signature.pdf
+  version: '4.0'
+  dated: '2025-11'
+  uptime_target: not published on the web page — stated in the SLA PDF, which is a contract document
+  detail: >-
+    The Nerve Management System Service Level Agreement applies when TTTech hosts the Management System.
+    It is published as an unsigned PDF (SLA 4.0, November 2025) and is referenced from
+    https://docs.nerve.cloud/licenses/. Self-managed Management Systems are the customer's operational
+    responsibility — see https://docs.nerve.cloud/security/guidelines/.
+license_terms:
+  url: https://www.tttech-industrial.com/slt/nerve
+  document: https://nerve.cloud/sites/default/files/documents/2025-11-Nerve%20Software%20License%20Terms_1.8_without_signature.pdf
+  version: '1.8'
+status_page: null
+status_page_note: >-
+  No status page was found. Probes of status.nerve.cloud and the nerve.cloud / tttech.com navigation
+  found no uptime or incident page, and none is referenced from the documentation, the SLA reference or
+  the support portal. Incidents are handled through the TTTech Industrial support portal
+  (https://tttech-industrial.xurrent.com/). No StatusPage pointer is emitted.
+support:
+  portal: https://tttech-industrial.xurrent.com/
+  security_reports: https://docs.nerve.cloud/security/contact/

@@ -1,0 +1,48 @@
+generated: '2026-09-01'
+method: searched
+source: >-
+  https://docs.nerve.cloud/developer_guide/ms-api/ ,
+  https://docs.nerve.cloud/developer_guide/ms-api/api-pointers/ ,
+  https://docs.nerve.cloud/getting_started/
+self_serve: false
+test_mode_separation: false
+note: >-
+  Nerve publishes a try-it surface but it is gated, and there are no test credentials, magic values or
+  fixture tokens anywhere in the documentation. The OpenAPI documents name trynerve1.nerve.cloud as the
+  server, and the Swagger UI embedded in the docs points at it, but the docs state plainly that using
+  "Try it out" requires an account on that Management System, obtained by requesting a free trial or by
+  raising an issue on the TTTech Industrial support portal. Against any other Management System the
+  browser Try-it feature does not work at all, because CORS is deliberately disabled and a Nerve service
+  technician has to configure the system first. There is no test-vs-live key prefix, no sandbox mode
+  flag, and no published test data — this is a device-control platform, so the closest analogue to test
+  data is a real node. Nothing has been invented here; every value below is quoted from the docs.
+surfaces:
+- name: trynerve1.nerve.cloud
+  kind: hosted trial Management System
+  url: https://trynerve1.nerve.cloud
+  access: request a free trial, or contact support through the TTTech Industrial support portal
+  gated: true
+  note: >-
+    The servers[] entry of the published Management System OpenAPI. Anonymous requests reach a
+    single-page-app shell; every API path requires a session.
+- name: Embedded Swagger UI
+  kind: interactive API console
+  url: https://docs.nerve.cloud/developer_guide/ms-api/
+  gated: partially
+  note: >-
+    The specification renders and can be read anonymously; executing a call requires credentials on
+    trynerve1.nerve.cloud. CORS is disabled on other Management Systems for security reasons.
+- name: Nerve VM
+  kind: virtual Nerve Device
+  url: https://docs.nerve.cloud/device_guide/nerve-vm/
+  gated: true
+  note: >-
+    A virtual-machine variant of a Nerve node exists in the device guide, which is the nearest thing to a
+    local test rig; the image is obtained from the Nerve Software Center with customer-profile credentials.
+test_values: []
+test_credentials:
+  published: false
+  note: >-
+    Initial Local UI login credentials are delivered per customer in the customer profile, not published.
+    The docs repeatedly instruct implementers to change the default Local UI admin password and the host
+    access password immediately after installation.

@@ -1,0 +1,119 @@
+generated: '2026-09-01'
+method: searched
+source: >-
+  https://docs.nerve.cloud/security/compliance/ ,
+  https://www.tttech.com/company/quality-and-standards ,
+  https://www.tttech.com/company/information-security ,
+  https://www.tttech.com/sites/default/files/documents/TTTECH_certificate_IEC62443-4-2_Nerve.pdf ,
+  openapi/tttech-nerve-management-system-openapi.yml , openapi/tttech-nerve-node-openapi.yml
+standards:
+- id: openapi-3
+  conforms: true
+  evidence: >-
+    Two OpenAPI 3 documents published and served from the docs host — management_system_api.json
+    (OpenAPI 3.0.3, 151 operations) and localui_api.json (OpenAPI 3.0.1, 77 operations). The docs page
+    states them as "written according to the OpenAPI 3 standard".
+- id: oauth2
+  conforms: false
+  evidence: No oauth2 securityScheme in either contract and no OAuth flow documented.
+- id: oidc
+  conforms: false
+  evidence: No openIdConnect securityScheme; no /.well-known/openid-configuration served on any host.
+- id: ldap
+  conforms: true
+  evidence: >-
+    Ten Management System operations implement LDAP directory integration for user and group federation
+    (create_ldap_connections, ldap_users, ldap_groups, test_ldap_connection) — documented at
+    https://docs.nerve.cloud/user_guide/management_system/ldap/
+- id: totp-mfa
+  conforms: true
+  evidence: >-
+    Multi-factor authentication with secret + QR-code provisioning (mfa_generate, mfa_activate,
+    mfa_validate, mfa_reset) — the QR-code URL provisioning shape is the RFC 6238 / otpauth pattern.
+    Added in Nerve 2.9.0.
+- id: rfc9457-problem-details
+  conforms: false
+  evidence: >-
+    Errors are application/json with vendor envelopes ({errorCode,message} and {status,msg}); no
+    application/problem+json response exists in either spec.
+- id: rfc8594-sunset-header
+  conforms: false
+  evidence: No Sunset or Deprecation header declared or documented.
+- id: idempotency
+  conforms: false
+  evidence: No idempotency key header or parameter in either contract.
+- id: pagination
+  conforms: partial
+  evidence: >-
+    page + limit query parameters on nine Management System list operations, with filterBy/search/order;
+    applied inconsistently — many collection endpoints return the full collection unpaged.
+- id: json-api
+  conforms: false
+  evidence: Plain JSON payloads; no JSON:API media type or document structure.
+- id: scim
+  conforms: false
+  evidence: User provisioning is via LDAP and native user endpoints, not urn:ietf:params:scim schemas.
+domain_standards:
+- id: iec-62443-4-2
+  name: IEC 62443-4-2 — Security requirements for IACS components
+  conforms: true
+  level: certified
+  evidence: >-
+    TTTech publishes a certificate for Nerve at
+    https://www.tttech.com/sites/default/files/documents/TTTECH_certificate_IEC62443-4-2_Nerve.pdf and a
+    full requirement-by-requirement mapping at https://docs.nerve.cloud/security/compliance/ covering
+    FR1 identification and authentication control, FR2 use control, FR3 system integrity, FR4 data
+    confidentiality and beyond, with a per-requirement OK/NA verdict and a link to the Nerve feature that
+    satisfies it. A companion page, https://docs.nerve.cloud/security/verification/, publishes the test
+    cases an implementer runs to verify each control, plus a TTTech-supplied Docker container that
+    automates some of them.
+  note: >-
+    This is the domain standard for this market. Nerve's buyers are machine builders and plant operators
+    procuring against IEC 62443; a component that is already 62443-4-2 certified and ships its
+    requirement mapping integrates into their security case with no bilateral assessment. The mapping
+    lives in the product documentation, not on a marketing page.
+- id: opc-ua
+  name: OPC UA
+  conforms: true
+  evidence: >-
+    Nerve Data Services implements OPC UA client and server interfaces in the Gateway, including security
+    configuration — https://docs.nerve.cloud/developer_guide/data/examples/opcua-sec/ . It is the
+    dominant industrial interoperability standard for this segment.
+- id: mqtt
+  name: MQTT
+  conforms: true
+  evidence: >-
+    Nerve runs a local MQTT broker on the node (reserved ports 47300/47301) and the Gateway exposes MQTT
+    publisher and subscriber connectors. The Management System exposes EMQX broker integration endpoints
+    (mqtt_auth, mqtt_acl, mqtt_actions) that authenticate and authorise MQTT clients.
+- id: modbus
+  name: Modbus
+  conforms: true
+  evidence: Modbus input connector documented in the Data Services Gateway — https://docs.nerve.cloud/developer_guide/data/examples/modbus-influxdb/
+- id: iec-61131-3-codesys
+  name: IEC 61131-3 (via CODESYS)
+  conforms: true
+  evidence: >-
+    CODESYS runtime and CODESYS workload type are first-class throughout both APIs (CODESYS PROCESS tag on
+    the Node API, provision_codesys in the Management System documentation).
+- id: ieee-802.1-tsn
+  name: IEEE 802.1 Time-Sensitive Networking / TTEthernet / TTP
+  conforms: true
+  scope: company, not this API
+  evidence: >-
+    TTTech Computertechnik is a principal contributor to TTP and TTEthernet (SAE AS6802) and to IEEE 802.1
+    TSN, and holds OMG specification contributions. This is the company's core standards position; it is
+    recorded here for completeness and is not implemented by the Nerve REST contracts.
+compliance_program:
+  published: true
+  url: https://www.tttech.com/company/quality-and-standards
+  certifications:
+  - {name: 'IEC 62443-4-2', scope: 'Nerve product', status: certified, evidence: 'https://www.tttech.com/sites/default/files/documents/TTTECH_certificate_IEC62443-4-2_Nerve.pdf'}
+  - {name: 'EN/AS 9100:2018', scope: 'TTTech Aerospace Division — development of software and hardware for safety-critical aerospace applications', status: certified}
+  - {name: 'ISO 9001:2015', scope: 'TTControl, TTTech Industrial, TTTech Digital Solutions, TTTech Flexibilis Oy', status: certified}
+  - {name: 'ISO 14001', scope: 'TTTech Group environmental management system', status: in-implementation, note: 'the page says implementation has been initiated'}
+  - {name: 'ISO/IEC 27001', scope: 'TTTech Group information security management system', status: in-progress, note: 'https://www.tttech.com/company/information-security states TTTech is "actively progressing toward ISO27001 certification" — it is NOT certified today'}
+  - {name: 'ISO 26262 / Automotive SPICE', scope: 'automotive development processes', status: process-aligned, note: 'the page says development processes are BASED ON these standards; no certificate is published'}
+  note: >-
+    Only IEC 62443-4-2, EN/AS 9100 and ISO 9001 are stated as held certifications. ISO 27001 and ISO 14001
+    are explicitly described as in progress and are recorded as such rather than as certifications.

@@ -1,0 +1,34 @@
+generated: '2026-09-01'
+method: probed
+source: live DNS/TLS/HTTP probes of apis.yml + OpenAPI hosts
+hosts:
+- host: www.tttech.com
+  https: true
+  tls_version: TLSv1.3
+  cert_expires: Oct 11 20:26:52 2026 GMT
+  hsts: true
+  hsts_max_age: 63072000
+- host: docs.nerve.cloud
+  https: true
+  tls_version: TLSv1.3
+  cert_expires: Dec 25 23:59:59 2026 GMT
+  hsts: true
+  hsts_max_age: 31536000
+- host: trynerve1.nerve.cloud
+  https: true
+  tls_version: TLSv1.3
+  cert_expires: Oct 22 18:49:52 2026 GMT
+  hsts: true
+  hsts_max_age: 31536000
+domains:
+- domain: tttech.com
+  dnssec: false
+  caa: []
+  spf: true
+  dmarc: true
+  dmarc_policy: none
+- domain: nerve.cloud
+  dnssec: true
+  caa: []
+  spf: true
+  dmarc: false

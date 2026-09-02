@@ -1,0 +1,152 @@
+generated: '2026-09-01'
+method: searched
+source: >-
+  https://docs.nerve.cloud/developer_guide/ms-api/ ,
+  https://docs.nerve.cloud/developer_guide/ms-api/api-pointers/ ,
+  https://docs.nerve.cloud/developer_guide/dna/ ,
+  https://github.com/tttech-nerve/nerve-api-cli ,
+  openapi/tttech-nerve-management-system-openapi.yml ,
+  openapi/tttech-nerve-node-openapi.yml
+authentication:
+  style: session
+  detail: >-
+    POST /auth/login exchanges username + password for a session; subsequent calls carry the session in a
+    sessionId header (the Management System's global security requirement) or a cookie header. The specs
+    also declare http basic and http bearer schemes, used by a subset of operations. Multi-factor
+    authentication is supported and, when enabled, login completes through POST /auth/mfa/validate.
+    Directory federation is available through LDAP. There is no OAuth 2.0 flow and no scope surface.
+  see: authentication/tttech-authentication.yml
+  session_controls:
+    configurable_via: Node DNA (Sessions block)
+    fields: [sessionTimeout, maxSessionsPerUser, maxSSHConnections]
+    docs: https://docs.nerve.cloud/developer_guide/dna/
+idempotency:
+  supported: false
+  header: null
+  detail: >-
+    Neither Nerve contract declares an idempotency key. A case-insensitive search of both OpenAPI
+    documents for "idempoten" returns zero matches, and the docs describe no retry-safety contract. The
+    closest thing to a safe-retry surface is the workload controller, whose commands (START, STOP,
+    SUSPEND, RESUME, RESTART, UNDEPLOY) are state-transition commands rather than creations, and the
+    DNA target/current model, which is declarative — re-applying the same target configuration converges
+    rather than duplicating (re_apply_dna_configuration exists for exactly that). Neither is an
+    idempotency-key contract, so no Idempotency pointer is emitted for this provider.
+pagination:
+  style: page-number
+  params: [page, limit]
+  additional: [filterBy, search, order, orderBy, sortOrder]
+  detail: >-
+    Nine Management System list operations take page + limit query parameters, with filterBy/search/order
+    for filtering and sorting. Pagination is not applied uniformly — many collection endpoints
+    (get_labels, notification_list, list_versions_v3) return the whole collection with no paging
+    parameters at all.
+  response_fields: [count, data]
+field_expansion:
+  supported: false
+metadata:
+  supported: partial
+  detail: >-
+    Nodes and workloads carry user-defined labels (key/value) rather than a free-form metadata object;
+    labels are also the deployment targeting mechanism.
+request_tracing:
+  request_id_header: null
+  detail: >-
+    No request-id or correlation-id header is declared in either spec. Traceability is served instead by
+    Management System and node audit logs (download_audit_logs on the Node API), which record the acting
+    user; two Management System responses return x-auth-user and x-auth-role headers.
+versioning:
+  scheme: uri-path
+  detail: >-
+    The Management System API versions resources in the path (/nerve/workloads, /nerve/v2/workloads,
+    /nerve/v3/workloads) and runs the generations side by side — v2 and v3 workload endpoints are both
+    live in the 3.1.0 contract, tagged WORKLOAD_v2 / WORKLOAD_v3 / WL_VERSION_v2 / WL_VERSION_v3 /
+    NODE_v2. The document itself is versioned to the product release (info.version 3.1.0 for the
+    Management System, 2.10.0 for the Node API).
+  see: lifecycle/tttech-lifecycle.yml
+error_envelope:
+  format: vendor-json
+  detail: >-
+    application/json, not application/problem+json. Management System errors are {errorCode, message}
+    where errorCode is a front-end translation key; the Node API returns {status, msg}. See
+    errors/tttech-problem-types.yml for the full derived catalog.
+  see: errors/tttech-problem-types.yml
+rate_limit_signaling:
+  headers: []
+  status_on_exhaustion: 429
+  detail: >-
+    Nerve publishes no quota or throughput limit and returns no RateLimit-*/Retry-After headers. The only
+    429 surface is brute-force login protection. See rate-limits/tttech-rate-limits.yml.
+  see: rate-limits/tttech-rate-limits.yml
+dry_run_mode:
+  supported: partial
+  detail: >-
+    The API itself has no dry-run parameter. The first-party CLI does: nerve-cli accepts a global
+    --dry-run flag that "previews changes without applying them" and overrides --yes. There are also two
+    genuine pre-flight validators in the contracts — v3_process_docker_compose_file uploads and
+    validates a docker-compose file before it becomes a workload version, and
+    validate_remote_connection_file validates a remote-connection YAML against a node or workload. The
+    DNA model is a second form of rehearsal: a target configuration can be read back
+    (dna_target_configuration) and compared with the current one (dna_current_configuration) before it is
+    applied.
+  source: https://github.com/tttech-nerve/nerve-api-cli
+reversibility:
+  grade: documented
+  detail: >-
+    Nerve is a device-control API and it does have real reversal paths, but the docs state no time window
+    for any of them, so this grades as documented rather than verified. NO WINDOW HAS BEEN ASSERTED
+    ANYWHERE IN THIS FILE THAT THE PROVIDER DOES NOT PUBLISH.
+  write_surfaces:
+  - surface: Deployed workload lifecycle
+    action: managing_deployed_workload (command START | STOP | SUSPEND | RESUME | RESTART | UNDEPLOY)
+    reversal: >-
+      Every command has an inverse in the same enum (STOP/START, SUSPEND/RESUME). UNDEPLOY removes the
+      workload instance from the node and is reversed only by deploying the version again; its
+      removeImages flag decides whether the images are also deleted, which changes how expensive that
+      redeployment is.
+    window: not stated
+    api: Nerve Management System API
+  - surface: VM workload snapshots
+    action: create_vm_snapshot
+    reversal: revert_vm_snapshot (PUT /api/workloads/{deviceId}/snapshots) restores the VM to a snapshot
+    window: not stated — retention is whatever the operator configures; snapshots can also be scheduled (create_vm_schedule_snapshot_config)
+    api: Nerve Node API
+  - surface: VM workload backups
+    action: create_vm_backup
+    reversal: deploy_vm_backups (POST /api/workloads/backups/deploy) redeploys a backup from the local repository
+    window: not stated — backups live in a customer-provided NFS repository the operator controls
+    api: Nerve Node API
+  - surface: Node DNA target configuration
+    action: apply_dna_configuration (PUT /nerve/dna/{serialNumber}/target)
+    reversal: >-
+      cancel_dna_configuration (PATCH .../target/cancel) aborts a configuration that is in progress, and
+      re_apply_dna_configuration re-converges to the target. The previous state is readable through
+      dna_current_configuration, so a rollback is expressible as applying the prior target.
+    window: >-
+      cancel works only while the configuration is in progress — a state condition the docs state, not a
+      duration
+    api: Nerve Management System API
+  - surface: Service OS DNA target configuration
+    action: apply_service_os_dna_configuration
+    reversal: cancel_service_os_dna_configuration / re_apply_service_os_dna_configuration — same shape as Node DNA
+    window: in-progress only
+    api: Nerve Management System API
+  - surface: Workload version file upload
+    action: add_file_v3
+    reversal: cancel_file_v3 and cancel_all_files_v3 cancel downloads in progress; delete_file_v3 removes a completed file
+    window: cancel applies only to in-progress downloads
+    api: Nerve Management System API
+  - surface: Remote connections
+    action: connect_remote_connections
+    reversal: terminate_remote_connections ends active sessions; cancel_rc_approval withdraws a pending approval request
+    window: not stated
+    api: Nerve Management System API
+  irreversible:
+  - action: delete_node / delete_workload_v3 / delete_version_v3 / delete_label / delete_users_from_node
+    note: No restore or undelete operation exists for any of these in either contract.
+  - action: node_offboarding (POST /api/system/offboard), secure factory reset
+    note: >-
+      Nerve 3.1.0 documents a secure factory reset that removes customer data and destroys encryption
+      keys for safe decommissioning. It is deliberately terminal; the docs describe no recovery path.
+      Release note — https://docs.nerve.cloud/release_notes/whatsnew/3.1.0/
+  - action: nerve_registry_delete_image_tag
+    note: Deletes an image tag from the Nerve Docker registry; no undelete.

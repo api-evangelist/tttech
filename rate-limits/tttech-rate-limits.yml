@@ -1,0 +1,57 @@
+generated: '2026-09-01'
+method: searched
+source: >-
+  https://docs.nerve.cloud/release_notes/whatsnew/2.5.0/ ,
+  https://docs.nerve.cloud/developer_guide/dna/ ,
+  openapi/tttech-nerve-management-system-openapi.yml
+limit_count: 3
+note: >-
+  Nerve publishes no throughput or quota rate limit — there is no requests-per-second, per-minute or
+  per-month ceiling anywhere in the documentation or in either OpenAPI contract, and no RateLimit-*,
+  X-RateLimit-* or Retry-After response header is declared (a search of both specs for "ratelimit",
+  "rate limit" and "retry-after" returns zero matches). The only documented limiting behaviour is
+  brute-force login protection, which is an authentication control rather than an API quota. Ten
+  Management System operations and one Node API operation document a 429 response; on the Management
+  System it returns an {errors:[...]} envelope described as "Too many requests - brute force protection
+  triggered", and on the Node API a {status, msg} body described as "Too many requests made, user
+  temporarily blocked."
+limits:
+- scope: per-user login (Nerve Management System)
+  surface: POST /auth/login
+  window: consecutive attempts
+  limit: 5 failed login attempts in a row
+  penalty: the user is blocked from logging in again from the same IP address for 30 minutes
+  source: https://docs.nerve.cloud/release_notes/whatsnew/2.5.0/
+- scope: per-IP (Nerve Management System)
+  window: cumulative
+  limit: 100 failed login attempts from one IP address
+  penalty: the IP address is blocked for 24 hours
+  source: https://docs.nerve.cloud/release_notes/whatsnew/2.5.0/
+- scope: per-user login (Nerve Local UI / Node API)
+  window: consecutive attempts
+  limit: 5 failed login attempts in a row
+  penalty: the user is blocked from logging in again for 1 minute
+  source: https://docs.nerve.cloud/release_notes/whatsnew/2.5.0/
+configurable:
+  since: Nerve 3.1.0
+  mechanism: Node DNA — the BruteForce block of the node configuration file
+  fields:
+  - {name: maxFailedLoginAttemptsBeforeLockout, example: 10}
+  - {name: loginAttemptWindowMinutes, example: 10}
+  - {name: lockoutDurationMinutes, example: 5}
+  source: https://docs.nerve.cloud/developer_guide/dna/
+  note: >-
+    Values shown are the example values printed in the DNA configuration-file syntax documentation, not
+    stated defaults. From 3.1.0 the operator sets these per node, so the runtime limit on a given node is
+    the operator's, not TTTech's.
+response:
+  status_on_exhaustion: 429
+  headers: []
+  retry_after: not sent
+  envelopes:
+  - api: Nerve Management System API
+    body: '{ errors: [ ... ] }'
+    description: Too many requests - brute force protection triggered
+  - api: Nerve Node API
+    body: '{ status: 429, msg: ... }'
+    description: Too many requests made, user temporarily blocked.

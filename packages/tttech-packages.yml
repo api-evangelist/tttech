@@ -1,0 +1,64 @@
+generated: '2026-09-01'
+method: searched
+source: https://github.com/tttech-nerve + https://docs.nerve.cloud/developer_guide/ms-api/api-examples/
+note: >-
+  TTTech Industrial publishes its Nerve client libraries on GitHub under the tttech-nerve account and
+  distributes them by git URL (poetry add git+https://...), not through PyPI. Registry probes on
+  pypi.org for "nerve-api-python" and "nerve-api-cli" both return 404. The only package TTTech ever
+  published to PyPI is "nerve-api" 0.0.5, uploaded 2020-08-05 by TTTech Industrial Automation AG and
+  never updated — it predates the current Nerve 3.x API by five years and points at an internal
+  Bitbucket URL (git.tttech.com). It is recorded here as an abandoned first-party artifact, not as the
+  current SDK.
+packages:
+- language: python
+  registry: github
+  name: nerve-api-python
+  url: https://github.com/tttech-nerve/nerve-api-python
+  install: poetry add git+https://github.com/tttech-nerve/nerve-api-python.git
+  official: true
+  version: v1.4.0
+  published: '2026-06-29'
+  license: MIT
+  covers: Nerve Management System API + Nerve Node API
+  note: >-
+    "nerve_lib" — first-party Python library implementing the Nerve REST API (authentication, nodes,
+    workloads, users, roles). Version and date read from the GitHub releases API; there is no registry
+    metadata endpoint because the library is not published to PyPI.
+- language: python
+  registry: github
+  name: nerve-api-cli
+  url: https://github.com/tttech-nerve/nerve-api-cli
+  install: poetry install && poetry run nerve-cli --help
+  official: true
+  version: v2.0.0-beta
+  published: '2026-06-29'
+  license: MIT
+  covers: subset of the Nerve Management System API
+  note: >-
+    Command-line wrapper over nerve_lib. Latest published release is a beta (v2.0.0-beta, 2026-06-29);
+    the latest stable is v1.3.0 (2026-05-04). Not on PyPI — install is from the git checkout via poetry.
+- language: python
+  registry: github
+  name: nerve-api-examples
+  url: https://github.com/tttech-nerve/nerve-api-examples
+  install: git clone https://github.com/tttech-nerve/nerve-api-examples.git
+  official: true
+  version: '1.2'
+  published: '2024-09-02'
+  license: MIT
+  covers: example scripts against the Nerve Management System API
+  note: Example repository, last released 2024-09-02 — two Nerve majors behind the current 3.1.1 API.
+- language: python
+  registry: pypi
+  name: nerve-api
+  url: https://pypi.org/project/nerve-api/
+  install: pip install nerve-api
+  official: true
+  version: 0.0.5
+  published: '2020-08-05'
+  status: abandoned
+  note: >-
+    Published by "TTTech Industrial Automation AG" (author_email hannes.brantner@tttech-industrial.com)
+    and untouched since 2020-08-05. Its declared homepage is an internal Bitbucket URL
+    (https://git.tttech.com/projects/BUIENG/repos/nerve-examples/). Superseded by nerve-api-python on
+    GitHub; the current docs do not reference it. Recorded as decay evidence, not as a usable SDK.

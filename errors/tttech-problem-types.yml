@@ -1,0 +1,913 @@
+generated: '2026-09-01'
+method: derived
+source: openapi/tttech-nerve-management-system-openapi.yml, openapi/tttech-nerve-node-openapi.yml
+format: vendor-json
+note: Neither Nerve contract uses RFC 9457 application/problem+json. Both return application/json with a vendor envelope. The Management System
+  API's generic error object is {errorCode, message} where errorCode is a translation key for the front-end; a few endpoints (429, validation)
+  instead return an {errors:[...]} array. The Node API returns {status, msg} for most codes and {status, message, errors[]} for validation failures.
+  There is no published human error-code registry, so the titles below are the response descriptions written in the specs themselves — no remediation
+  text has been invented.
+envelopes:
+- api: Nerve Management System API
+  shape: '{ errorCode: string, message: string }'
+  note: errorCode is a translation key consumed by the Nerve web UI; minLength 4.
+- api: Nerve Management System API
+  shape: '{ errors: [ { ... } ] }'
+  note: Used by the 429 brute-force response and some validation failures; minItems 1, maxItems 1.
+- api: Nerve Node API
+  shape: '{ status: integer, msg: string }'
+- api: Nerve Node API
+  shape: '{ status: integer, message: string, errors: [ ... ] }'
+  note: validation errors
+status_code_counts:
+- api: Nerve Management System API
+  status: 400
+  distinct_documented_responses: 24
+- api: Nerve Management System API
+  status: 401
+  distinct_documented_responses: 4
+- api: Nerve Management System API
+  status: 403
+  distinct_documented_responses: 3
+- api: Nerve Management System API
+  status: 404
+  distinct_documented_responses: 21
+- api: Nerve Management System API
+  status: 405
+  distinct_documented_responses: 1
+- api: Nerve Management System API
+  status: 406
+  distinct_documented_responses: 1
+- api: Nerve Management System API
+  status: 409
+  distinct_documented_responses: 16
+- api: Nerve Management System API
+  status: 415
+  distinct_documented_responses: 1
+- api: Nerve Management System API
+  status: 422
+  distinct_documented_responses: 1
+- api: Nerve Management System API
+  status: 429
+  distinct_documented_responses: 4
+- api: Nerve Management System API
+  status: 499
+  distinct_documented_responses: 1
+- api: Nerve Management System API
+  status: 500
+  distinct_documented_responses: 26
+- api: Nerve Management System API
+  status: 501
+  distinct_documented_responses: 1
+- api: Nerve Management System API
+  status: 503
+  distinct_documented_responses: 1
+- api: Nerve Management System API
+  status: 504
+  distinct_documented_responses: 2
+- api: Nerve Node API
+  status: 400
+  distinct_documented_responses: 2
+- api: Nerve Node API
+  status: 401
+  distinct_documented_responses: 1
+- api: Nerve Node API
+  status: 403
+  distinct_documented_responses: 3
+- api: Nerve Node API
+  status: 404
+  distinct_documented_responses: 7
+- api: Nerve Node API
+  status: 409
+  distinct_documented_responses: 1
+- api: Nerve Node API
+  status: 415
+  distinct_documented_responses: 1
+- api: Nerve Node API
+  status: 429
+  distinct_documented_responses: 1
+- api: Nerve Node API
+  status: 500
+  distinct_documented_responses: 10
+problems:
+- status: 400
+  api: Nerve Management System API
+  title: All files download cancel not possible. There are no files in downloading status
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#cancel_all_files_v3
+- status: 400
+  api: Nerve Management System API
+  title: Bad request
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#apply_docker_workload_configuration
+  - openapi/tttech-nerve-management-system-openapi.yml#dna_target_configuration
+  - openapi/tttech-nerve-management-system-openapi.yml#apply_dna_configuration
+  - openapi/tttech-nerve-management-system-openapi.yml#dna_configuration_status
+- status: 400
+  api: Nerve Management System API
+  title: Docker workload that is not using internal registry can not be created using V3 API
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#create_workload_v3
+- status: 400
+  api: Nerve Management System API
+  title: Either request is invalid or there is some error while validating route parameters.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#find_capability_by_name
+- status: 400
+  api: Nerve Management System API
+  title: Error response when generating the usage report failed
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#get_single_usage_report
+- status: 400
+  api: Nerve Management System API
+  title: Error response when updating usage report configuration
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#get_configuration
+  - openapi/tttech-nerve-management-system-openapi.yml#update_configuration
+- status: 400
+  api: Nerve Management System API
+  title: Expected file to be uploaded with file data, missing binary file in API request
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#add_file_v3
+- status: 400
+  api: Nerve Management System API
+  title: Failed to fetch the list of nodes
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#get_nodes_for_deploy
+- status: 400
+  api: Nerve Management System API
+  title: File download cancel not possible, file is not in downloading status
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#cancel_file_v3
+- status: 400
+  api: Nerve Management System API
+  title: Invalid parameters
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#create_workload_v2
+  - openapi/tttech-nerve-management-system-openapi.yml#update_workload_version_v2
+  - openapi/tttech-nerve-management-system-openapi.yml#create_node
+- status: 400
+  api: Nerve Management System API
+  title: LDAP server is not available
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#get_ldap_status
+  - openapi/tttech-nerve-management-system-openapi.yml#test_ldap_connection
+  - openapi/tttech-nerve-management-system-openapi.yml#get_default_ldap
+  - openapi/tttech-nerve-management-system-openapi.yml#get_ldap_config_details
+- status: 400
+  api: Nerve Management System API
+  title: Request failed, this is the response received when provided file has wrong extension.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#v3_process_docker_compose_file
+  - openapi/tttech-nerve-management-system-openapi.yml#import_rc_on_wl
+  - openapi/tttech-nerve-management-system-openapi.yml#import_rc_on_node
+  - openapi/tttech-nerve-management-system-openapi.yml#validate_remote_connection_file
+- status: 400
+  api: Nerve Management System API
+  title: Request failed, this is the response received when there are duplicate selectors in the list.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#create_version_v3
+  - openapi/tttech-nerve-management-system-openapi.yml#edit_version_v3
+- status: 400
+  api: Nerve Management System API
+  title: Request failed, this is the response received when try to delete workload/version when there is ongoing version export
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#delete_workload_v3
+- status: 400
+  api: Nerve Management System API
+  title: Request failed, this is the response received when workload version is not deployable and thus cannot be exported
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#export_rc_on_wl
+- status: 400
+  api: Nerve Management System API
+  title: Request failed, this is the response received when workload version is not deployable and thus cannot be exported.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#init_export_version_v3
+- status: 400
+  api: Nerve Management System API
+  title: 'Request failed, this is the response received when: - Compose file not added. Compose file needs to exist before list of needed files
+    is defined - Provided list of files has duplicated docker images - Provided list of fi'
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#define_all_files_v3
+- status: 400
+  api: Nerve Management System API
+  title: 'Request failed, this is the response received when: - Failed to add/edit file. Value of ''type'' field in the API request needs to be
+    ''compose'' or ''docker-image'' - Failed to add/edit file. Not supported file MIME type. For'
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#edit_file_v3
+- status: 400
+  api: Nerve Management System API
+  title: Route params validation error
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#list_deployed_workloads
+  - openapi/tttech-nerve-management-system-openapi.yml#get_workloads_filtered
+  - openapi/tttech-nerve-management-system-openapi.yml#get_specific_workload
+  - openapi/tttech-nerve-management-system-openapi.yml#update_workload_general_data
+- status: 400
+  api: Nerve Management System API
+  title: The request failed because the provided file is of an unsupported type. Only Docker Compose files are accepted.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#v3_docker_compose_file_content
+- status: 400
+  api: Nerve Management System API
+  title: "The request failed. This response is returned when one of the following conditions is met:\n  - An incorrect workload type was provided\n\
+    \  - The workload does not use the MS Registry\n  - The version is invalid due to missi"
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#status_export_version_v3
+- status: 400
+  api: Nerve Management System API
+  title: UNDEPLOY command cannot be executed, workload backup is in progress
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#managing_deployed_workload
+- status: 400
+  api: Nerve Management System API
+  title: Workload version is released and can not be deleted
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#delete_workload_version
+  - openapi/tttech-nerve-management-system-openapi.yml#delete_version_v3
+- status: 400
+  api: Nerve Management System API
+  title: Workload version is released, delete file actions are not possible
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#delete_file_v3
+- status: 401
+  api: Nerve Management System API
+  title: Request failed, this is the response received when the cookie is missing in the header.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#export_rc_on_wl
+  - openapi/tttech-nerve-management-system-openapi.yml#activity_logs_get_single
+  - openapi/tttech-nerve-management-system-openapi.yml#activity_logs_get_all
+  - openapi/tttech-nerve-management-system-openapi.yml#export_rc_on_node
+- status: 401
+  api: Nerve Management System API
+  title: Unauthorized
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#nerve_registry_auth
+- status: 401
+  api: Nerve Management System API
+  title: You are not authorized to perform this operation
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#get_users_from_node
+  - openapi/tttech-nerve-management-system-openapi.yml#delete_users_from_node
+  - openapi/tttech-nerve-management-system-openapi.yml#remove_unused_docker_images
+  - openapi/tttech-nerve-management-system-openapi.yml#get_volume_list_from_node
+- status: 401
+  api: Nerve Management System API
+  title: You are not authorized.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#log_agents
+  - openapi/tttech-nerve-management-system-openapi.yml#login
+  - openapi/tttech-nerve-management-system-openapi.yml#verify_user_session
+  - openapi/tttech-nerve-management-system-openapi.yml#wstunnel_cli
+- status: 403
+  api: Nerve Management System API
+  title: Login failed.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#login
+- status: 403
+  api: Nerve Management System API
+  title: You are missing permission to perform an action
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#get_users_from_node
+  - openapi/tttech-nerve-management-system-openapi.yml#delete_users_from_node
+  - openapi/tttech-nerve-management-system-openapi.yml#remove_unused_docker_images
+  - openapi/tttech-nerve-management-system-openapi.yml#get_volume_list_from_node
+- status: 403
+  api: Nerve Management System API
+  title: You are not authorized to perform this operation
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#managing_deployed_workload
+  - openapi/tttech-nerve-management-system-openapi.yml#list_deployed_workloads
+  - openapi/tttech-nerve-management-system-openapi.yml#delete_workload
+  - openapi/tttech-nerve-management-system-openapi.yml#create_workload_v2
+- status: 404
+  api: Nerve Management System API
+  title: A capability with the specified name was not found.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#find_capability_by_name
+- status: 404
+  api: Nerve Management System API
+  title: A label with the specified ID was not found.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#delete_label
+  - openapi/tttech-nerve-management-system-openapi.yml#get_label
+  - openapi/tttech-nerve-management-system-openapi.yml#update_label
+- status: 404
+  api: Nerve Management System API
+  title: A notification with the specified ID was not found.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#get_specific_notification
+  - openapi/tttech-nerve-management-system-openapi.yml#delete_specific_notification
+  - openapi/tttech-nerve-management-system-openapi.yml#update_specific_notification
+- status: 404
+  api: Nerve Management System API
+  title: Active remote connection with provided id was not found.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#guacamole_tab_status
+  - openapi/tttech-nerve-management-system-openapi.yml#get_active_rc
+- status: 404
+  api: Nerve Management System API
+  title: LDAP server does not exist
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#get_ldap_status
+  - openapi/tttech-nerve-management-system-openapi.yml#test_ldap_connection
+  - openapi/tttech-nerve-management-system-openapi.yml#get_default_ldap
+  - openapi/tttech-nerve-management-system-openapi.yml#get_ldap_config_details
+- status: 404
+  api: Nerve Management System API
+  title: Node with provided serial number was not found.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#get_node_by_serial_number
+  - openapi/tttech-nerve-management-system-openapi.yml#get_node
+  - openapi/tttech-nerve-management-system-openapi.yml#delete_node
+  - openapi/tttech-nerve-management-system-openapi.yml#reboot_node
+- status: 404
+  api: Nerve Management System API
+  title: Node with this serial number does not exist
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#get_cached_data
+  - openapi/tttech-nerve-management-system-openapi.yml#get_node_data
+  - openapi/tttech-nerve-management-system-openapi.yml#set_node_data
+  - openapi/tttech-nerve-management-system-openapi.yml#keep_emitting_updates
+- status: 404
+  api: Nerve Management System API
+  title: Not found
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#apply_docker_workload_configuration
+  - openapi/tttech-nerve-management-system-openapi.yml#log_agents
+  - openapi/tttech-nerve-management-system-openapi.yml#login
+  - openapi/tttech-nerve-management-system-openapi.yml#mfa_activate
+- status: 404
+  api: Nerve Management System API
+  title: Provided hardware model does not exist
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#create_node
+- status: 404
+  api: Nerve Management System API
+  title: Remote connection with provided uuid was not found.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#terminate_remote_connections
+  - openapi/tttech-nerve-management-system-openapi.yml#cancel_rc_approval
+- status: 404
+  api: Nerve Management System API
+  title: Request failed, this is the response received when node with specified serial number does not exist.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#managing_deployed_workload
+  - openapi/tttech-nerve-management-system-openapi.yml#list_deployed_workloads
+- status: 404
+  api: Nerve Management System API
+  title: Request failed, this is the response received when specified file does not exist.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#v3_docker_compose_file_content
+- status: 404
+  api: Nerve Management System API
+  title: Request failed, this is the response received when the requested image was not found
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#nerve_registry_image_tags
+  - openapi/tttech-nerve-management-system-openapi.yml#nerve_registry_delete_image_tag
+- status: 404
+  api: Nerve Management System API
+  title: Request failed, this is the response received when workload version with provided version ID does not exist in the DB
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#delete_workload_version
+  - openapi/tttech-nerve-management-system-openapi.yml#delete_version_v3
+  - openapi/tttech-nerve-management-system-openapi.yml#get_version_v3
+  - openapi/tttech-nerve-management-system-openapi.yml#edit_version_v3
+- status: 404
+  api: Nerve Management System API
+  title: 'Request failed, this is the response received when: - Specified workload does not exist - Specified version does not exist'
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#add_file_v3
+  - openapi/tttech-nerve-management-system-openapi.yml#get_files_v3
+  - openapi/tttech-nerve-management-system-openapi.yml#get_file_v3
+  - openapi/tttech-nerve-management-system-openapi.yml#edit_file_v3
+- status: 404
+  api: Nerve Management System API
+  title: Requested parameter does not exist in configuration.yaml file.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#get_config
+- status: 404
+  api: Nerve Management System API
+  title: Returned when the provided configuration parameter is not found in configuration.yaml file.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#config_reload
+  - openapi/tttech-nerve-management-system-openapi.yml#config_modify
+- status: 404
+  api: Nerve Management System API
+  title: The resource is not found
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#dna_target_configuration
+  - openapi/tttech-nerve-management-system-openapi.yml#apply_dna_configuration
+  - openapi/tttech-nerve-management-system-openapi.yml#dna_configuration_status
+  - openapi/tttech-nerve-management-system-openapi.yml#cancel_dna_configuration
+- status: 404
+  api: Nerve Management System API
+  title: Workload or Version does not exist.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#init_export_version_v3
+  - openapi/tttech-nerve-management-system-openapi.yml#status_export_version_v3
+- status: 404
+  api: Nerve Management System API
+  title: Workload with provided id does not exist
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#get_nodes_for_deploy
+  - openapi/tttech-nerve-management-system-openapi.yml#activity_logs_get_single
+  - openapi/tttech-nerve-management-system-openapi.yml#activity_logs_get_all
+- status: 404
+  api: Nerve Management System API
+  title: Workload with specific ID does not exist in the db
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#delete_workload
+  - openapi/tttech-nerve-management-system-openapi.yml#create_workload_v2
+  - openapi/tttech-nerve-management-system-openapi.yml#update_workload_version_v2
+  - openapi/tttech-nerve-management-system-openapi.yml#get_specific_workload
+- status: 405
+  api: Nerve Management System API
+  title: Request failed, this is the response received when image deletion is not allowed because it is used by a released version
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#nerve_registry_delete_image_tag
+- status: 406
+  api: Nerve Management System API
+  title: Invalid credentials
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#login
+  - openapi/tttech-nerve-management-system-openapi.yml#mfa_validate
+- status: 409
+  api: Nerve Management System API
+  title: '- Node with provided name already exists - Node with provided serial number already exists - Label key must be unique for the node'
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#create_node
+- status: 409
+  api: Nerve Management System API
+  title: '- Reboot action is not supported by this version of node    - Node is offline'
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#reboot_node
+- status: 409
+  api: Nerve Management System API
+  title: A label with the key-value pair already exists.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#create_label
+  - openapi/tttech-nerve-management-system-openapi.yml#update_label
+- status: 409
+  api: Nerve Management System API
+  title: Action is not supported
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#remove_unused_docker_images
+  - openapi/tttech-nerve-management-system-openapi.yml#get_volume_list_from_node
+  - openapi/tttech-nerve-management-system-openapi.yml#delete_volume_from_node
+  - openapi/tttech-nerve-management-system-openapi.yml#import_data_to_volume_on_node
+- status: 409
+  api: Nerve Management System API
+  title: Conflict
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#apply_docker_workload_configuration
+- status: 409
+  api: Nerve Management System API
+  title: Maximum number of remote connection requests exceeded
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#connect_remote_connections
+- status: 409
+  api: Nerve Management System API
+  title: Node can not provide data
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#get_cached_data
+  - openapi/tttech-nerve-management-system-openapi.yml#get_node_data
+  - openapi/tttech-nerve-management-system-openapi.yml#set_node_data
+  - openapi/tttech-nerve-management-system-openapi.yml#keep_emitting_updates
+- status: 409
+  api: Nerve Management System API
+  title: Node does not support the required operation. Capability not reported.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#set_production_mode
+- status: 409
+  api: Nerve Management System API
+  title: Node is offline
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#get_nerve_v2_node_logging_monitoring_serial_number
+  - openapi/tttech-nerve-management-system-openapi.yml#put_nerve_node_logging_monitoring_serial_number
+  - openapi/tttech-nerve-management-system-openapi.yml#get_users_from_node
+  - openapi/tttech-nerve-management-system-openapi.yml#delete_users_from_node
+- status: 409
+  api: Nerve Management System API
+  title: Request failed, this is the response received when version with provided name already exists.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#create_version_v3
+  - openapi/tttech-nerve-management-system-openapi.yml#edit_version_v3
+- status: 409
+  api: Nerve Management System API
+  title: The logging and monitoring feature is not supported by this node software version.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#setup_monitoring_and_logging
+  - openapi/tttech-nerve-management-system-openapi.yml#get_monitoring_and_logging
+- status: 409
+  api: Nerve Management System API
+  title: The node does not have node DNA capability
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#dna_target_configuration
+  - openapi/tttech-nerve-management-system-openapi.yml#apply_dna_configuration
+  - openapi/tttech-nerve-management-system-openapi.yml#dna_service_os_target_configuration
+  - openapi/tttech-nerve-management-system-openapi.yml#service_os_dna_configuration_status
+- status: 409
+  api: Nerve Management System API
+  title: The node is offline
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#cancel_dna_configuration
+  - openapi/tttech-nerve-management-system-openapi.yml#re_apply_dna_configuration
+  - openapi/tttech-nerve-management-system-openapi.yml#apply_service_os_dna_configuration
+  - openapi/tttech-nerve-management-system-openapi.yml#cancel_service_os_dna_configuration
+- status: 409
+  api: Nerve Management System API
+  title: This authentication code has already been used
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#mfa_validate
+- status: 409
+  api: Nerve Management System API
+  title: Volume import is not in progress.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#cancel_volume_import_on_node
+- status: 409
+  api: Nerve Management System API
+  title: Workload with this name already exists
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#create_workload_v2
+  - openapi/tttech-nerve-management-system-openapi.yml#update_workload_version_v2
+  - openapi/tttech-nerve-management-system-openapi.yml#update_workload_general_data
+  - openapi/tttech-nerve-management-system-openapi.yml#create_workload_v3
+- status: 415
+  api: Nerve Management System API
+  title: Unsupported media type
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#create_workload_v2
+  - openapi/tttech-nerve-management-system-openapi.yml#update_workload_version_v2
+  - openapi/tttech-nerve-management-system-openapi.yml#update_workload_general_data
+  - openapi/tttech-nerve-management-system-openapi.yml#v3_process_docker_compose_file
+- status: 422
+  api: Nerve Management System API
+  title: Action is not supported for docker-compose workloads.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#create_workload_v2
+  - openapi/tttech-nerve-management-system-openapi.yml#update_workload_version_v2
+  - openapi/tttech-nerve-management-system-openapi.yml#get_specific_workload
+  - openapi/tttech-nerve-management-system-openapi.yml#update_workload_general_data
+- status: 429
+  api: Nerve Management System API
+  title: Brute force protection error, too many failed requests were made
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#login
+  - openapi/tttech-nerve-management-system-openapi.yml#mfa_validate
+  - openapi/tttech-nerve-management-system-openapi.yml#wstunnel_cli
+- status: 429
+  api: Nerve Management System API
+  title: Too many requests
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#reset_credentials
+- status: 429
+  api: Nerve Management System API
+  title: Too many requests - brute force protection triggered
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#nerve_registry_auth
+- status: 429
+  api: Nerve Management System API
+  title: Triggered action is already in progress.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#create_ldap_connections
+  - openapi/tttech-nerve-management-system-openapi.yml#ldap_groups
+  - openapi/tttech-nerve-management-system-openapi.yml#ldap_users
+  - openapi/tttech-nerve-management-system-openapi.yml#update_ldap_connections
+- status: 499
+  api: Nerve Management System API
+  title: The request was cancelled by the node
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#upload_volume_backup
+- status: 500
+  api: Nerve Management System API
+  title: An error occurred in executing of listing operation
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#get_nodes_filtered
+- status: 500
+  api: Nerve Management System API
+  title: An error occurred in executing the set production mode operation
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#set_production_mode
+- status: 500
+  api: Nerve Management System API
+  title: An error occurred while cancelling the volume export from the node
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#cancel_volume_export_from_node
+- status: 500
+  api: Nerve Management System API
+  title: An error occurred while cancelling the volume import.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#cancel_volume_import_on_node
+- status: 500
+  api: Nerve Management System API
+  title: An error occurred while deleting the volume from the node
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#delete_volume_from_node
+- status: 500
+  api: Nerve Management System API
+  title: An error occurred while importing data to the volume on the node
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#import_data_to_volume_on_node
+- status: 500
+  api: Nerve Management System API
+  title: An error occurred while initiating the volume export from the node
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#export_volume_from_node
+- status: 500
+  api: Nerve Management System API
+  title: An error occurred while retrieving the list of volumes from the node
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#get_volume_list_from_node
+- status: 500
+  api: Nerve Management System API
+  title: An error occurred while uploading the volume backup archive from the node
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#upload_volume_backup
+- status: 500
+  api: Nerve Management System API
+  title: Apply logging and monitoring settings operation failed
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#setup_monitoring_and_logging
+- status: 500
+  api: Nerve Management System API
+  title: Error response when generating the usage report failed because date can not be retrieved.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#get_single_usage_report
+- status: 500
+  api: Nerve Management System API
+  title: Example response
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#get_nerve_v2_node_logging_monitoring_serial_number
+- status: 500
+  api: Nerve Management System API
+  title: Failed to do LDAP sync.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#ldap_users
+- status: 500
+  api: Nerve Management System API
+  title: Failed to query groups.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#ldap_groups
+- status: 500
+  api: Nerve Management System API
+  title: Failed to retrieve the current monitoring and logging configuration for the specified node
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#get_monitoring_and_logging
+- status: 500
+  api: Nerve Management System API
+  title: Generic error node creation failed
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#create_node
+- status: 500
+  api: Nerve Management System API
+  title: Internal server error
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#create_workload_v2
+  - openapi/tttech-nerve-management-system-openapi.yml#update_workload_version_v2
+  - openapi/tttech-nerve-management-system-openapi.yml#get_workloads_filtered
+  - openapi/tttech-nerve-management-system-openapi.yml#get_specific_workload
+- status: 500
+  api: Nerve Management System API
+  title: Reboot operation failed
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#reboot_node
+- status: 500
+  api: Nerve Management System API
+  title: Request failed, this is the response received when an MongoDB error occurred on the server side while trying to find some notification
+    in the database
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#notification_before_login
+  - openapi/tttech-nerve-management-system-openapi.yml#notification_after_login
+  - openapi/tttech-nerve-management-system-openapi.yml#notification_list
+  - openapi/tttech-nerve-management-system-openapi.yml#create_notification
+- status: 500
+  api: Nerve Management System API
+  title: Request failed, this is the response received when an unexpected error occurred
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#list_deployed_workloads
+- status: 500
+  api: Nerve Management System API
+  title: Request failed, this is the response received when an unexpected error occurred on the server side
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#create_workload_v3
+  - openapi/tttech-nerve-management-system-openapi.yml#get_workloads_filtered_v3
+  - openapi/tttech-nerve-management-system-openapi.yml#get_specific_workload_v3
+  - openapi/tttech-nerve-management-system-openapi.yml#update_workload_general_data_v3
+- status: 500
+  api: Nerve Management System API
+  title: Request failed, this is the response received when an unexpected error occurred.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#managing_deployed_workload
+  - openapi/tttech-nerve-management-system-openapi.yml#create_version_v3
+  - openapi/tttech-nerve-management-system-openapi.yml#list_versions_v3
+  - openapi/tttech-nerve-management-system-openapi.yml#delete_version_v3
+- status: 500
+  api: Nerve Management System API
+  title: Request failed, this is the response received when something went wrong while processing a message.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#mqtt_actions
+- status: 500
+  api: Nerve Management System API
+  title: Returned when unexpected error occurred.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#config_reload
+  - openapi/tttech-nerve-management-system-openapi.yml#config_modify
+- status: 500
+  api: Nerve Management System API
+  title: Server error occurred while trying to cancel pending approval.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#terminate_remote_connections
+  - openapi/tttech-nerve-management-system-openapi.yml#cancel_rc_approval
+- status: 500
+  api: Nerve Management System API
+  title: Throw error in case of unexpected error during apply operationId
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#put_nerve_node_logging_monitoring_serial_number
+- status: 501
+  api: Nerve Management System API
+  title: Request failed, this is the response received when the action cannot be performed due to a missing implementation in the V3 API version
+    for the type of workload provided
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#create_version_v3
+  - openapi/tttech-nerve-management-system-openapi.yml#list_versions_v3
+  - openapi/tttech-nerve-management-system-openapi.yml#delete_version_v3
+  - openapi/tttech-nerve-management-system-openapi.yml#get_version_v3
+- status: 503
+  api: Nerve Management System API
+  title: Request failed, this is the response received when the broker is not yet ready - some of resources have not been loaded.
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#mqtt_auth
+- status: 504
+  api: Nerve Management System API
+  title: Node failed to response in expected time
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#list_deployed_workloads
+  - openapi/tttech-nerve-management-system-openapi.yml#reboot_node
+- status: 504
+  api: Nerve Management System API
+  title: The response did not received in time
+  source_operations:
+  - openapi/tttech-nerve-management-system-openapi.yml#cancel_dna_configuration
+  - openapi/tttech-nerve-management-system-openapi.yml#re_apply_dna_configuration
+  - openapi/tttech-nerve-management-system-openapi.yml#cancel_service_os_dna_configuration
+  - openapi/tttech-nerve-management-system-openapi.yml#re_apply_service_os_dna_configuration
+- status: 400
+  api: Nerve Node API
+  title: Bad request
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#login
+  - openapi/tttech-nerve-node-openapi.yml#change_password
+  - openapi/tttech-nerve-node-openapi.yml#set_configuration
+  - openapi/tttech-nerve-node-openapi.yml#get_cloud_version
+- status: 400
+  api: Nerve Node API
+  title: Bad request. Invalid parameters.
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#set_node_configuration
+- status: 401
+  api: Nerve Node API
+  title: You are not authorized to perform this operation
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#get_logged_user
+  - openapi/tttech-nerve-node-openapi.yml#logout
+  - openapi/tttech-nerve-node-openapi.yml#get_users
+  - openapi/tttech-nerve-node-openapi.yml#delete_user
+- status: 403
+  api: Nerve Node API
+  title: Access Denied. User(with Management System credentials) does not have required permissions to access this application.
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#login
+- status: 403
+  api: Nerve Node API
+  title: Forbidden
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#get_logged_user
+  - openapi/tttech-nerve-node-openapi.yml#logout
+  - openapi/tttech-nerve-node-openapi.yml#get_users
+  - openapi/tttech-nerve-node-openapi.yml#delete_user
+- status: 403
+  api: Nerve Node API
+  title: 'Response returned when a user is not allowed to change password. - Users logged in with their Management System credentials cannot changed
+    their password on the node - Default admin cannot change password if the account '
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#change_password
+- status: 404
+  api: Nerve Node API
+  title: Not found
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#get_local_repository
+  - openapi/tttech-nerve-node-openapi.yml#update_local_repository
+- status: 404
+  api: Nerve Node API
+  title: Response is returned when Management system cannot be reached due to non-existent url (getaddrinfo ENOTFOUND).
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#get_cloud_version
+- status: 404
+  api: Nerve Node API
+  title: The VM backup file not found. The local repository is not defined(configured), and the node cannot retrieve the requested VM backup file.
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#deploy_vm_backups
+- status: 404
+  api: Nerve Node API
+  title: The requested resource is temporarily unavailable. The node is not connected to the Management System and cannot retrieve the required
+    workloads to proceed with the 're-apply' target configuration.
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#re_apply_dna_configuration
+- status: 404
+  api: Nerve Node API
+  title: The resource is temporarily unavailable. The node cannot reach the Codesys controller.
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#restart_codesys
+  - openapi/tttech-nerve-node-openapi.yml#codesys_download
+- status: 404
+  api: Nerve Node API
+  title: The resource not found
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#delete_user
+  - openapi/tttech-nerve-node-openapi.yml#get_system_info
+  - openapi/tttech-nerve-node-openapi.yml#get_network_state
+  - openapi/tttech-nerve-node-openapi.yml#set_network_state
+- status: 404
+  api: Nerve Node API
+  title: Workload not found
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#get_workload_network_details
+- status: 409
+  api: Nerve Node API
+  title: Conflict
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#deploy_workload
+  - openapi/tttech-nerve-node-openapi.yml#delete_volume
+  - openapi/tttech-nerve-node-openapi.yml#import_data_to_volume
+  - openapi/tttech-nerve-node-openapi.yml#remove_unused_docker_images
+- status: 415
+  api: Nerve Node API
+  title: Unsupported media type
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#set_node_configuration
+  - openapi/tttech-nerve-node-openapi.yml#node_system_reboot
+  - openapi/tttech-nerve-node-openapi.yml#deploy_workload
+  - openapi/tttech-nerve-node-openapi.yml#control_workload
+- status: 429
+  api: Nerve Node API
+  title: Too many requests made, user temporarily blocked.
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#login
+- status: 500
+  api: Nerve Node API
+  title: Failed to deploy workload from backups repository or the response data does not match the schema.
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#deploy_vm_backups
+- status: 500
+  api: Nerve Node API
+  title: Failed to initiate creation of backup or the response data does not match the schema.
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#create_vm_backup
+- status: 500
+  api: Nerve Node API
+  title: Failed to obtain list of backups or the response data does not match the schema.
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#get_vm_backups_history
+- status: 500
+  api: Nerve Node API
+  title: Failed to restart VM backup or the response data does not match the schema.
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#restart_vm_backup_creation
+- status: 500
+  api: Nerve Node API
+  title: Failed to restore snapshot or the response data does not match the schema.
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#revert_vm_snapshot
+- status: 500
+  api: Nerve Node API
+  title: Internal Server Error
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#delete_user
+  - openapi/tttech-nerve-node-openapi.yml#get_network_update_status
+  - openapi/tttech-nerve-node-openapi.yml#initiating_network_update
+  - openapi/tttech-nerve-node-openapi.yml#download_audit_logs
+- status: 500
+  api: Nerve Node API
+  title: Request failed. Failed to obtain the secure id or the response data does not match the schema.
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#get_node_secure_id
+  - openapi/tttech-nerve-node-openapi.yml#get_node_secure_id_deprecated
+- status: 500
+  api: Nerve Node API
+  title: Response received when an unexpected error occurred while reading node configuration. Failed to read configuration.
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#get_node_configuration
+- status: 500
+  api: Nerve Node API
+  title: Response received when the response does not match the schema or an unexpected error has occurred.
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#set_node_configuration
+  - openapi/tttech-nerve-node-openapi.yml#set_proxy_configuration
+  - openapi/tttech-nerve-node-openapi.yml#deploy_workload
+  - openapi/tttech-nerve-node-openapi.yml#list_deployed_workloads
+- status: 500
+  api: Nerve Node API
+  title: Response when the Management system version could not be returned due to an invalid response format.
+  source_operations:
+  - openapi/tttech-nerve-node-openapi.yml#get_cloud_version

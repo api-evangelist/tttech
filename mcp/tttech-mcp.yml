@@ -1,0 +1,85 @@
+generated: '2026-09-01'
+method: derived
+status: candidate
+source: openapi/tttech-nerve-management-system-openapi.yml, openapi/tttech-nerve-node-openapi.yml
+note: >-
+  TTTech ships no MCP server. Searches of the Nerve documentation, the tttech-nerve GitHub account (three
+  public repos: nerve-api-python, nerve-api-cli, nerve-api-examples), npm under @modelcontextprotocol and
+  the MCP registries found nothing, and probes of https://trynerve1.nerve.cloud/mcp return the
+  single-page-app HTML shell that host returns for every path. The tool list below is a DERIVED candidate
+  mapped one-to-one onto real operationIds in the published OpenAPI documents — it is a design proposal,
+  not a surface TTTech offers. No endpoint URL has been invented.
+deployment:
+  mode: none
+  endpoint: null
+  install: null
+  package: null
+  auth: unknown
+  verified: derived
+server:
+  name: nerve
+  transport: null
+tools:
+- name: list_nodes
+  description: List and filter registered Nerve edge nodes
+  source_operation: openapi/tttech-nerve-management-system-openapi.yml#get_nodes_filtered
+- name: get_node
+  description: Get a node by serial number
+  source_operation: openapi/tttech-nerve-management-system-openapi.yml#get_node_by_serial_number
+- name: reboot_node
+  description: Reboot a node
+  source_operation: openapi/tttech-nerve-management-system-openapi.yml#reboot_node
+  consequence: physical — reboots industrial edge hardware
+- name: list_workloads
+  description: List workloads held in the Management System
+  source_operation: openapi/tttech-nerve-management-system-openapi.yml#get_workloads_filtered_v3
+- name: get_workload
+  description: Get a workload by id
+  source_operation: openapi/tttech-nerve-management-system-openapi.yml#get_specific_workload_v3
+- name: list_workload_versions
+  description: List the versions of a workload
+  source_operation: openapi/tttech-nerve-management-system-openapi.yml#list_versions_v3
+- name: list_deployed_workloads
+  description: List the workloads deployed on a node
+  source_operation: openapi/tttech-nerve-management-system-openapi.yml#list_deployed_workloads
+- name: control_deployed_workload
+  description: START, STOP, SUSPEND, RESUME, RESTART or UNDEPLOY a deployed workload
+  source_operation: openapi/tttech-nerve-management-system-openapi.yml#managing_deployed_workload
+  consequence: safety-critical — changes what is running on a machine on a plant floor
+- name: list_nodes_for_deploy
+  description: List nodes eligible for deployment of a workload version
+  source_operation: openapi/tttech-nerve-management-system-openapi.yml#get_nodes_for_deploy
+- name: list_labels
+  description: List labels used to target deployments
+  source_operation: openapi/tttech-nerve-management-system-openapi.yml#get_labels
+- name: get_dna_status
+  description: Get the DNA configuration status of a node
+  source_operation: openapi/tttech-nerve-management-system-openapi.yml#dna_configuration_status
+- name: get_dna_current
+  description: Get the current DNA configuration of a node
+  source_operation: openapi/tttech-nerve-management-system-openapi.yml#dna_current_configuration
+- name: apply_dna_configuration
+  description: Apply a target DNA configuration to a node
+  source_operation: openapi/tttech-nerve-management-system-openapi.yml#apply_dna_configuration
+  consequence: safety-critical — rewrites node network, session and workload configuration
+- name: list_active_remote_connections
+  description: List active remote connections
+  source_operation: openapi/tttech-nerve-management-system-openapi.yml#get_list_of_active_remote_connections
+- name: terminate_remote_connections
+  description: Terminate active remote connections
+  source_operation: openapi/tttech-nerve-management-system-openapi.yml#terminate_remote_connections
+- name: list_notifications
+  description: List Management System notifications
+  source_operation: openapi/tttech-nerve-management-system-openapi.yml#notification_list
+- name: get_usage_reports
+  description: Retrieve licence and usage reports across the estate
+  source_operation: openapi/tttech-nerve-management-system-openapi.yml#get_usage_reports
+- name: get_node_system_status
+  description: Get the system state of a node from its own Node API
+  source_operation: openapi/tttech-nerve-node-openapi.yml#get_system_status
+- name: get_node_system_info
+  description: Get node system information
+  source_operation: openapi/tttech-nerve-node-openapi.yml#get_system_info
+- name: list_vm_snapshots
+  description: List snapshots of a VM workload on a node
+  source_operation: openapi/tttech-nerve-node-openapi.yml#get_vm_snapshots

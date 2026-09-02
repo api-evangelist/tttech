@@ -1,0 +1,47 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for the Nerve Node API
+  version: 1.0.0
+extends: openapi/tttech-nerve-node-openapi.yml
+x-generated: '2026-09-01'
+x-method: generated
+x-source: >-
+  Derived from this repository's artifacts. The overlay records API Evangelist annotations only; the
+  harvested specification at openapi/_original/ is never mutated.
+actions:
+- target: $.info
+  update:
+    x-apievangelist-profile: https://apis.io/providers/tttech
+    x-apievangelist-operator: TTTech Industrial Automation AG (TTTech Group)
+    x-apievangelist-contract-source: https://docs.nerve.cloud/developer_guide/ms-api/localui_api.json
+    x-apievangelist-harvested: '2026-09-01'
+    x-apievangelist-note: >-
+      The harvested document declares no servers[]. This API is served by the Local UI on the Nerve
+      device itself; the documentation gives http://172.20.2.1:3333/ on the host-access interface, or
+      <wanip>:3333 where the device has no dedicated host-access port —
+      https://docs.nerve.cloud/user_guide/local_ui/
+- target: $.servers
+  update:
+  - url: http://172.20.2.1:3333
+    description: >-
+      Documented Local UI / Node API address on the host-access interface of a Nerve Device (MFN 100,
+      MFN 200, fitlet3, SIMATIC IPC427E, SIMATIC IPC BX-39A, Vecow SPC-5600). Added by API Evangelist;
+      it is not in the vendor document.
+  - url: http://{wanip}:3333
+    description: >-
+      Devices without a dedicated host-access port (Kontron KBox A-250, MOXA DRP-A100) serve the Local UI
+      on the WAN interface address. Added by API Evangelist.
+    variables:
+      wanip:
+        default: 172.20.2.1
+        description: IP address of the node's WAN interface
+- target: $.paths['/api/system/offboard'].post
+  update:
+    x-apievangelist-consequence: safety-critical
+    x-apievangelist-note: Node offboarding is terminal; no recovery operation exists in this contract.
+- target: $.paths['/api/workloads/{deviceId}/snapshots'].put
+  update:
+    x-apievangelist-reversal-for: /api/workloads/{deviceId}/snapshots POST
+    x-apievangelist-note: >-
+      revert_vm_snapshot is the reversal path for a VM workload change. The documentation states no
+      retention window — snapshot retention is whatever the operator configures.

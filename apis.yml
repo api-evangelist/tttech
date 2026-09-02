@@ -1,23 +1,181 @@
 aid: tttech
 name: TTTech
-description: 'TTTech is a company surfaced via the API Evangelist harvest backlog (source: secondary-market)
-  and added to the network as a stub for full-pipeline profiling.'
+description: >-
+  TTTech Computertechnik AG is a Vienna-based supplier of deterministic networking and safety-critical
+  embedded platforms — TTP, TTEthernet and IEEE 802.1 Time-Sensitive Networking — for aerospace, space,
+  automotive, energy and industrial automation. Its public developer surface is Nerve, the industrial edge
+  computing and device-management platform built by TTTech Industrial Automation AG: a hosted Management
+  System plus on-device node software that deploys and controls Docker, docker-compose, CODESYS and virtual
+  machine workloads on certified edge hardware. Nerve publishes two OpenAPI 3 contracts — the Nerve
+  Management System API (151 operations across nodes, workloads, labels, LDAP, DNA, remote connections,
+  notifications and the Docker registry) and the Nerve Node API (77 operations for on-device configuration,
+  networking, workloads and users) — together with a first-party Python library and CLI on GitHub. The
+  platform is certified to IEC 62443-4-2 and ships a documented product-security reporting channel.
 url: https://raw.githubusercontent.com/api-evangelist/tttech/refs/heads/main/apis.yml
+image: https://nerve.cloud/sites/default/files/vision.jpg
 x-type: company
 x-source: harvest:secondary-market
-x-tier: stub
-x-tier-reason: harvest
 specificationVersion: '0.20'
 created: '2026-09-01'
 modified: '2026-09-01'
 tags:
 - Company
-apis: []
+- Industrial IoT
+- Edge Computing
+- Device Management
+- Deterministic Networking
+- Time-Sensitive Networking
+- Industrial Automation
+- Workload Orchestration
+- Embedded Systems
+- Safety Critical
+- OPC UA
+- MQTT
+- CODESYS
+- IEC 62443
+tags_raw:
+- company
+- industrial-iot
+- edge-computing
+- device-management
+- deterministic-networking
+- time-sensitive-networking
+- industrial-automation
+- workload-orchestration
+- embedded-systems
+- safety-critical
+- opc-ua
+- mqtt
+- codesys
+- iec-62443
+apis:
+- name: Nerve Management System API
+  description: >-
+    REST API of the Nerve Management System, the cloud-hosted control plane for Nerve edge nodes. Covers
+    authentication and MFA, node registration and lifecycle, workload and workload-version management
+    (Docker, docker-compose, CODESYS, VM), deployment and workload control, labels, LDAP integration,
+    Nerve DNA declarative node configuration, remote connections, notifications, the Nerve Docker registry,
+    node/cloud updates and usage reports. Session-cookie / sessionId authentication with basic and bearer
+    variants; OpenAPI 3.0.3, 151 operations.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - Industrial IoT
+  - Edge Computing
+  - Device Management
+  - Workload Orchestration
+  - Industrial Automation
+  tags_raw:
+  - industrial-iot
+  - edge-computing
+  - device-management
+  - workload-orchestration
+  - industrial-automation
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-nerve-management-system-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Overlay
+    url: overlays/tttech-nerve-management-system-overlay.yaml
+- name: Nerve Node API
+  description: >-
+    REST API served by the Nerve Local UI on each Nerve edge node. Covers node initialization and license
+    activation, system and network configuration, proxy settings, local users and permissions, Docker image
+    and volume resources, workload deployment, snapshots, backups, logs and compose, CODESYS process control,
+    remote connections, the Data Services datapath and Nerve DNA. Cookie / basic authentication; OpenAPI 3.0.1,
+    77 operations.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+  baseURL: http://172.20.2.1:3333
+  tags:
+  - Edge Computing
+  - Device Management
+  - Industrial Automation
+  - CODESYS
+  tags_raw:
+  - edge-computing
+  - device-management
+  - industrial-automation
+  - codesys
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-nerve-node-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+  - type: Overlay
+    url: overlays/tttech-nerve-node-overlay.yaml
+common:
+- type: AgenticAccess
+  url: agentic-access/tttech-agentic-access.yml
+- type: VulnerabilityDisclosure
+  url: security/tttech-vulnerability-disclosure.yml
+- type: DomainSecurity
+  url: security/tttech-domain-security.yml
+- type: Authentication
+  url: authentication/tttech-authentication.yml
+- type: Website
+  url: https://www.tttech.com/
+- type: DeveloperPortal
+  url: https://nerve.cloud/
+- type: Documentation
+  url: https://docs.nerve.cloud/
+- type: APIReference
+  url: https://docs.nerve.cloud/developer_guide/ms-api/
+- type: GettingStarted
+  url: https://docs.nerve.cloud/getting_started/
+- type: Support
+  url: https://tttech-industrial.xurrent.com/
+- type: Blog
+  url: https://nerve.cloud/news
+- type: GitHubOrganization
+  url: https://github.com/tttech-nerve
+- type: TermsOfService
+  url: https://www.tttech.com/terms-conditions
+- type: PrivacyPolicy
+  url: https://www.tttech.com/privacy-notice
+- type: ChangeLog
+  url: https://docs.nerve.cloud/changelog/
+- type: Packages
+  url: packages/tttech-packages.yml
+- type: SDKs
+  url: packages/tttech-packages.yml
+- type: CLI
+  url: cli/tttech-cli.yml
+- type: Sandbox
+  url: sandbox/tttech-sandbox.yml
+- type: Conventions
+  url: conventions/tttech-conventions.yml
+- type: ErrorCatalog
+  url: errors/tttech-problem-types.yml
+- type: DataModel
+  url: data-model/tttech-data-model.yml
+- type: Lifecycle
+  url: lifecycle/tttech-lifecycle.yml
+- type: ChangeLog
+  url: changelog/tttech-changelog.yml
+- type: RateLimits
+  url: rate-limits/tttech-rate-limits.yml
+- type: Plans
+  url: plans/tttech-plans-pricing.yml
+- type: Conformance
+  url: conformance/tttech-conformance.yml
+- type: Compliance
+  url: https://www.tttech.com/company/quality-and-standards
+- type: Security
+  url: https://www.tttech.com/responsible-disclosure
+- type: AgentSkill
+  url: skills/_index.yml
+- type: LLMsTxt
+  url: llms/tttech-llms.txt
 maintainers:
 - FN: Kin Lane
   email: kin@apievangelist.com
 - FN: APIs.json
   email: info@apis.io
-common:
-- type: Website
-  url: https://www.hiive.com/securities/tttech-stock
+x-enrichment:
+  date: '2026-09-01'
+  status: enriched
+  artifacts_added: 31
+  pass: local-v1

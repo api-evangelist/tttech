@@ -1,0 +1,102 @@
+generated: '2026-09-01'
+method: searched
+source: openapi/tttech-nerve-management-system-openapi.yml, openapi/tttech-nerve-node-openapi.yml, https://docs.nerve.cloud/user_guide/management_system/
+summary:
+  types:
+  - apiKey
+  - http
+  api_key_in:
+  - header
+  oauth2_flows: []
+  scopes: 0
+schemes:
+- name: sessionId
+  type: apiKey
+  in: header
+  parameter: sessionId
+  sources:
+  - openapi/tttech-nerve-management-system-openapi.yml
+- name: basicAuth
+  type: http
+  scheme: basic
+  sources:
+  - openapi/tttech-nerve-management-system-openapi.yml
+  - openapi/tttech-nerve-node-openapi.yml
+- name: cookieAuth
+  type: apiKey
+  in: header
+  parameter: cookie
+  sources:
+  - openapi/tttech-nerve-management-system-openapi.yml
+  - openapi/tttech-nerve-node-openapi.yml
+- name: bearerAuth
+  type: http
+  scheme: bearer
+  sources:
+  - openapi/tttech-nerve-management-system-openapi.yml
+docs:
+- https://docs.nerve.cloud/user_guide/management_system/users/
+- https://docs.nerve.cloud/user_guide/management_system/mfa/
+- https://docs.nerve.cloud/user_guide/management_system/ldap/
+- https://docs.nerve.cloud/user_guide/management_system/roles/
+- https://docs.nerve.cloud/user_guide/local_ui/permissions_and_users/
+model:
+  primary: session
+  detail: POST /auth/login exchanges username and password for a session. The Management System's global security requirement
+    is the sessionId apiKey header; a cookie header is accepted as an alternative and the Node API uses the cookie header
+    as its global requirement. HTTP basic and HTTP bearer schemes are declared and used by a subset of operations. There is
+    no OAuth 2.0 authorization server, no OpenID Connect discovery document and therefore no scope surface — scopes/ is deliberately
+    absent from this repository.
+  multi_factor:
+    supported: true
+    since: Nerve 2.9.0
+    operations:
+    - mfa_is_enabled
+    - mfa_generate
+    - mfa_activate
+    - mfa_validate
+    - mfa_reset
+    detail: 'TOTP-style: mfa_generate returns the user''s secret and a QR code URL, mfa_activate enables it with an activation
+      token, mfa_validate completes login with the code, mfa_reset clears it with a reset token. mfa_is_enabled is unauthenticated
+      and tells a client whether the Management System requires a second factor.'
+    docs: https://docs.nerve.cloud/user_guide/management_system/mfa/
+  directory_federation:
+    supported: true
+    protocol: LDAP
+    operations:
+    - create_ldap_connections
+    - get_ldap_config_details
+    - get_ldap_status
+    - get_default_ldap
+    - activate_deactivate_ldap
+    - test_ldap_connection
+    - ldap_users
+    - ldap_groups
+    detail: TTTech's own IEC 62443-4-2 mapping cites LDAP as the control satisfying CR1.4 identifier management and CR1.5
+      authenticator management, and its security checklist recommends organization-wide credential management through LDAP,
+      with MFA as the fallback when LDAP is not used.
+    docs: https://docs.nerve.cloud/user_guide/management_system/ldap/
+  authorization:
+    model: roles and permissions
+    detail: Users are assigned roles; roles carry permissions. TTTech maps this to CR2.1 authorization enforcement and CR2.1
+      RE(2) permission mapping to roles. Node accounts can be synchronised from the Management System (Nerve 2.9.0).
+    docs: https://docs.nerve.cloud/user_guide/management_system/roles/
+  session_controls:
+    configurable_since: Nerve 3.1.0
+    mechanism: Node DNA
+    fields:
+    - sessionTimeout
+    - maxSessionsPerUser
+    - maxSSHConnections
+    password_policy:
+    - complexity
+    - lifetime and expiration
+    - expiration warnings
+    docs: https://docs.nerve.cloud/developer_guide/dna/
+  brute_force_protection:
+    supported: true
+    since: Nerve 2.5.0
+    see: rate-limits/tttech-rate-limits.yml
+  credential_handling_warning: The first-party CLI can persist Management System credentials to a plain-text credentials.ini;
+    TTTech flags this in the CLI's own --store-credentials help text. TTTech's security checklist also requires that Nerve
+    DNA files contain no credentials.

@@ -1,0 +1,55 @@
+overlay: 1.0.0
+info:
+  title: API Evangelist enhancements for the Nerve Management System API
+  version: 1.0.0
+extends: openapi/tttech-nerve-management-system-openapi.yml
+x-generated: '2026-09-01'
+x-method: generated
+x-source: >-
+  Derived from this repository's artifacts. The overlay records API Evangelist annotations only; the
+  harvested specification at openapi/_original/ is never mutated.
+actions:
+- target: $.info
+  update:
+    x-apievangelist-profile: https://apis.io/providers/tttech
+    x-apievangelist-operator: TTTech Industrial Automation AG (TTTech Group)
+    x-apievangelist-contract-source: https://docs.nerve.cloud/developer_guide/ms-api/management_system_api.json
+    x-apievangelist-harvested: '2026-09-01'
+    x-apievangelist-artifacts:
+      authentication: authentication/tttech-authentication.yml
+      conventions: conventions/tttech-conventions.yml
+      errors: errors/tttech-problem-types.yml
+      data-model: data-model/tttech-data-model.yml
+      lifecycle: lifecycle/tttech-lifecycle.yml
+      rate-limits: rate-limits/tttech-rate-limits.yml
+      conformance: conformance/tttech-conformance.yml
+      skills: skills/_index.yml
+- target: $.info
+  update:
+    x-apievangelist-notes:
+      idempotency: none — no idempotency key in the contract
+      error-format: vendor JSON ({errorCode, message}); not RFC 9457
+      pagination: page + limit on nine list operations; not applied uniformly
+      rate-limits: no quota published; 429 is brute-force login protection only
+      domain-standard: IEC 62443-4-2 certified, with a published requirement mapping
+- target: $.servers
+  update:
+  - url: https://trynerve1.nerve.cloud
+    description: >-
+      TTTech-hosted trial Management System, published as the servers[] entry of the vendor
+      specification. A production deployment is a customer-specific Management System host, or a
+      self-managed installation — see https://docs.nerve.cloud/developer_guide/ms-api/api-pointers/
+- target: $.paths['/nerve/workload/controller'].post
+  update:
+    x-apievangelist-consequence: safety-critical
+    x-apievangelist-note: >-
+      START/STOP/SUSPEND/RESUME/RESTART/UNDEPLOY change what is running on an industrial edge node. Every
+      command has an inverse in the same enum except UNDEPLOY, which is reversed only by deploying the
+      version again — and removeImages: true additionally deletes the images, making that redeployment
+      a full transfer.
+- target: $.paths['/nerve/dna/{serialNumber}/target'].put
+  update:
+    x-apievangelist-consequence: safety-critical
+    x-apievangelist-note: >-
+      Applies a declarative target configuration to a node. Reversible only while in progress
+      (PATCH .../target/cancel); the prior state is readable from .../current.

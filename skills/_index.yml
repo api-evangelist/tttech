@@ -1,0 +1,27 @@
+generated: '2026-09-01'
+method: generated
+source: >-
+  Generated from the two harvested Nerve OpenAPI contracts and this repository's conventions/, errors/,
+  lifecycle/ and rate-limits/ artifacts. Every operationId referenced was verified to exist verbatim in
+  the specification named on the skill. TTTech publishes no AGENTS.md or skill files of its own.
+skills:
+- file: tttech-authenticate-and-inventory-nodes.md
+  name: Authenticate to a Nerve Management System and inventory the node estate
+  api: openapi/tttech-nerve-management-system-openapi.yml
+  operations: [mfa_is_enabled, login, mfa_validate, get_nodes_filtered, get_node_by_serial_number, get_labels, get_label_group, logout]
+- file: tttech-provision-and-deploy-a-workload.md
+  name: Provision a Nerve workload and deploy it to nodes
+  api: openapi/tttech-nerve-management-system-openapi.yml
+  operations: [v3_process_docker_compose_file, create_workload_v3, create_version_v3, add_file_v3, define_all_files_v3, get_files_v3, list_versions_v3, get_nodes_for_deploy, managing_deployed_workload, list_deployed_workloads]
+- file: tttech-apply-node-dna-configuration.md
+  name: Apply a declarative node configuration with Nerve DNA
+  api: openapi/tttech-nerve-management-system-openapi.yml
+  operations: [dna_current_configuration, dna_target_configuration, apply_dna_configuration, dna_configuration_status, cancel_dna_configuration, re_apply_dna_configuration, apply_service_os_dna_configuration, cancel_service_os_dna_configuration]
+- file: tttech-manage-remote-connections.md
+  name: Open, audit and terminate Nerve remote connections
+  api: openapi/tttech-nerve-management-system-openapi.yml
+  operations: [validate_remote_connection_file, connect_remote_connections, get_list_of_active_remote_connections, terminate_remote_connections, cancel_rc_approval, export_rc_on_node, import_rc_on_node]
+- file: tttech-snapshot-backup-and-restore-a-vm-workload.md
+  name: Snapshot, back up and restore a Nerve VM workload
+  api: openapi/tttech-nerve-node-openapi.yml
+  operations: [get_system_status, get_vm_snapshots, create_vm_snapshot, revert_vm_snapshot, delete_vm_snapshot, create_vm_schedule_snapshot_config, delete_vm_schedule_snapshot_config, get_vm_backups_history, create_vm_backup, restart_vm_backup_creation, deploy_vm_backups]

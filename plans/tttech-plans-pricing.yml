@@ -1,0 +1,23 @@
+generated: '2026-09-01'
+method: searched
+source: https://nerve.cloud/ , https://nerve.cloud/contact , https://docs.nerve.cloud/getting_started/
+plan_count: 0
+note: >-
+  TTTech publishes no price list and no self-serve plan tiers for Nerve. https://nerve.cloud/pricing
+  returns 404 and no pricing page exists in the nerve.cloud or tttech.com navigation. Nerve is sold
+  through a sales representative: the getting-started guide begins with "E-mail from sales
+  representative" and "Customer profile", the software is downloaded from the Nerve Software Center
+  using credentials in that customer profile, and API access to a hosted Management System
+  (trynerve1.nerve.cloud) requires requesting a free trial or contacting the TTTech Industrial support
+  portal. Licensing is modular — the documentation states that Nerve modules "can be licensed
+  individually or combined" — but no module price is published. The commercial terms that ARE public are
+  contract documents, not plans: the Nerve Software License Terms 1.8 and the Nerve Management System
+  SLA 4.0, both November 2025 PDFs.
+plans: []
+commercial_documents:
+- {name: Nerve Software License Terms, version: '1.8', url: https://www.tttech-industrial.com/slt/nerve}
+- {name: Nerve Management System Service Level Agreement, version: '4.0', url: https://www.tttech-industrial.com/sla/nerve}
+sales_contact: https://nerve.cloud/contact
+evidence:
+- {url: 'https://nerve.cloud/pricing', status: 404}
+- {url: 'https://nerve.cloud/contact', status: 200}

@@ -1,0 +1,117 @@
+generated: '2026-09-01'
+method: derived
+source: openapi/tttech-nerve-management-system-openapi.yml, openapi/tttech-nerve-node-openapi.yml
+note: >-
+  Derived from the path structure, path parameters and 200-response property names of the two Nerve
+  OpenAPI contracts, plus the eleven named components.schemas in the Management System spec. The
+  Management System spec declares almost all of its request/response bodies inline (11 named schemas
+  against 151 operations), so the entity graph below is read from the URL hierarchy
+  (/workloads/{workloadId}/versions/{versionId}/files/{fileId}) and from id-reference fields
+  (serialNumber, workloadId, versionId, deviceId, label_id, notification_id) rather than from $ref
+  links. Relationships marked confidence: medium are inferred from path nesting only.
+identifier_conventions:
+- field: _id
+  form: MongoDB ObjectId (24-char hex)
+  note: The Management System persists to MongoDB; list responses also carry __v and deleted flags.
+- field: serialNumber
+  form: node serial number, UPPERCASE
+  note: >-
+    The docs state explicitly that the serial number must be entered in all capital letters for every
+    function requiring one — https://docs.nerve.cloud/developer_guide/ms-api/
+- field: workloadId / versionId / fileId / deviceId
+  form: ObjectId
+- field: uniqueId
+  form: node-local workload instance id (Node API)
+entities:
+- name: Node
+  api: Nerve Management System API
+  key: serialNumber
+  description: A registered Nerve edge device. Root of DNA configuration, remote connections and deployments.
+  operations: [create_node, get_node, get_node_by_serial_number, delete_node, reboot_node, get_nodes_filtered]
+- name: Workload
+  api: Nerve Management System API
+  key: workloadId
+  description: A deployable unit — Docker, docker-compose, CODESYS or virtual machine — held in the Management System.
+  operations: [create_workload_v3, get_workloads_filtered_v3, get_specific_workload_v3, update_workload_general_data_v3, delete_workload_v3]
+- name: WorkloadVersion
+  api: Nerve Management System API
+  key: versionId
+  description: A concrete, deployable version of a workload; carries the images/files and the deployment payload.
+  operations: [create_version_v3, list_versions_v3, get_version_v3, edit_version_v3, delete_version_v3]
+- name: WorkloadVersionFile
+  api: Nerve Management System API
+  key: fileId
+  description: A file attached to a workload version (image, compose file, artifact) with its own download lifecycle.
+  operations: [add_file_v3, get_files_v3, get_file_v3, edit_file_v3, delete_file_v3, cancel_file_v3]
+- name: DeployedWorkload
+  api: Nerve Management System API
+  key: deviceId
+  description: An instance of a workload version running on a node; controlled through the workload controller.
+  operations: [list_deployed_workloads, managing_deployed_workload, apply_docker_workload_configuration]
+- name: Label
+  api: Nerve Management System API
+  key: label_id
+  description: Key/value tag applied to nodes; used to target deployments and filter node lists.
+  operations: [create_label, get_label, get_labels, get_label_group, update_label, delete_label]
+- name: DnaConfiguration
+  api: Nerve Management System API
+  key: serialNumber
+  description: Declarative target configuration for a node (network, sessions, brute-force policy, timezone, workloads), with current/target/status.
+  operations: [dna_target_configuration, apply_dna_configuration, dna_current_configuration, dna_configuration_status, cancel_dna_configuration, re_apply_dna_configuration]
+- name: ServiceOsDnaConfiguration
+  api: Nerve Management System API
+  key: serialNumber
+  description: The Service OS sibling of Node DNA, with the same target/current/status/cancel/re-apply shape.
+  operations: [apply_service_os_dna_configuration, dna_service_os_target_configuration, dna_service_os_current_configuration, service_os_dna_configuration_status, cancel_service_os_dna_configuration, re_apply_service_os_dna_configuration]
+- name: RemoteConnection
+  api: Nerve Management System API
+  key: connectionRequestUid / activeConnectionId
+  description: Tunnel to a node, workload or CODESYS runtime; typed as rc_node, rc_docker, rc_vm, rc_codesys or rc_compose in the spec's named schemas.
+  operations: [connect_remote_connections, get_list_of_active_remote_connections, terminate_remote_connections, cancel_rc_approval, get_active_rc]
+- name: Notification
+  api: Nerve Management System API
+  key: notification_id
+  description: Management System banner/notice, optionally shown before login.
+  operations: [create_notification, notification_list, get_specific_notification, update_specific_notification, delete_specific_notification]
+- name: LdapConnection
+  api: Nerve Management System API
+  key: name
+  description: LDAP directory binding used for Management System user federation.
+  operations: [create_ldap_connections, get_ldap_config_details, get_ldap_status, get_default_ldap, activate_deactivate_ldap, test_ldap_connection]
+- name: RegistryImage
+  api: Nerve Management System API
+  key: name + tag
+  description: Container image held in the Nerve Docker registry that backs workload versions.
+  operations: [nerve_registry_image_list, nerve_registry_image_tags, nerve_registry_image_list_with_status, nerve_registry_delete_image_tag]
+- name: UsageReport
+  api: Nerve Management System API
+  description: Licence/usage reporting over the estate, plus its configuration.
+  operations: [get_usage_reports, get_single_usage_report, get_configuration, update_configuration]
+- name: LocalUser
+  api: Nerve Node API
+  key: username
+  description: Account on the node itself; can be synchronised from the Management System.
+  operations: [get_users_from_node, delete_users_from_node]
+- name: LocalWorkload
+  api: Nerve Node API
+  key: uniqueId
+  description: Workload as the node sees it, with logs, snapshots, backups, networks and compose sub-resources.
+- name: DockerVolume
+  api: Nerve Node API
+  key: volumeName
+  description: Docker volume on the node, listed and pruned through the Node API.
+relationships:
+- {from: Node, to: DeployedWorkload, kind: has_many, via: serialNumber, confidence: high}
+- {from: Node, to: DnaConfiguration, kind: has_one, via: serialNumber, confidence: high}
+- {from: Node, to: ServiceOsDnaConfiguration, kind: has_one, via: serialNumber, confidence: high}
+- {from: Node, to: RemoteConnection, kind: has_many, via: serialNumber, confidence: high}
+- {from: Node, to: Label, kind: has_many, via: labels, confidence: high}
+- {from: Node, to: LocalUser, kind: has_many, via: serial_number, confidence: high}
+- {from: Node, to: DockerVolume, kind: has_many, via: serialNumber, confidence: high}
+- {from: Workload, to: WorkloadVersion, kind: has_many, via: workloadId, confidence: high}
+- {from: WorkloadVersion, to: WorkloadVersionFile, kind: has_many, via: versionId, confidence: high}
+- {from: WorkloadVersion, to: RegistryImage, kind: has_many, via: image reference, confidence: medium}
+- {from: DeployedWorkload, to: WorkloadVersion, kind: belongs_to, via: versionId, confidence: high}
+- {from: DeployedWorkload, to: Node, kind: belongs_to, via: serialNumber, confidence: high}
+- {from: DnaConfiguration, to: Workload, kind: has_many, via: DNA workload list, confidence: medium}
+- {from: LdapConnection, to: LocalUser, kind: has_many, via: account synchronization, confidence: medium}

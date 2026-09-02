@@ -1,0 +1,92 @@
+generated: '2026-09-01'
+method: probed
+source: live GET of the named /.well-known/ path list on every TTTech / Nerve host
+hit_count: 0
+note: >-
+  No TTTech or Nerve host serves any /.well-known/ discovery document. docs.nerve.cloud returns a clean
+  nginx 404 on every path. www.tttech.com, www.tttech-industrial.com and nerve.cloud return 403 for the
+  whole /.well-known/ prefix (an edge deny, not a bot challenge — the same client fetches their HTML
+  pages with 200). trynerve1.nerve.cloud is a single-page-app catch-all: it answers 200 with the same
+  5,173-byte HTML shell for every path including the negative control, so every "hit" on that host is
+  discarded and path_echo_control is recorded as failed. No WellKnown and no SecurityTxt pointer is
+  emitted — this file documents an absence.
+path_echo_control:
+  host: https://trynerve1.nerve.cloud
+  path: /.well-known/tttech-negative-control-7f3ab91c.json
+  status: 200
+  bytes: 5173
+  result: failed
+  effect: all trynerve1.nerve.cloud 200s treated as misses
+soft_404_control:
+  host: https://docs.nerve.cloud
+  path: /.well-known/tttech-negative-control-7f3ab91c.json
+  status: 404
+  bytes: 548
+  result: passed
+hosts:
+- host: https://docs.nerve.cloud
+  documents:
+  - {path: /.well-known/security.txt, status: 404}
+  - {path: /.well-known/openid-configuration, status: 404}
+  - {path: /.well-known/oauth-authorization-server, status: 404}
+  - {path: /.well-known/oauth-protected-resource, status: 404}
+  - {path: /.well-known/api-catalog, status: 404}
+  - {path: /.well-known/ai-plugin.json, status: 404}
+  - {path: /.well-known/ucp.json, status: 404}
+  - {path: /.well-known/acp.json, status: 404}
+  - {path: /.well-known/aauth-resource.json, status: 404}
+  - {path: /.well-known/agent-card.json, status: 404}
+  - {path: /.well-known/agent.json, status: 404}
+- host: https://trynerve1.nerve.cloud
+  note: SPA catch-all — 200 with an HTML shell on every path, including the negative control; no document saved
+  documents:
+  - {path: /.well-known/security.txt, status: 200, content_type: text/html, result: soft-404}
+  - {path: /.well-known/openid-configuration, status: 200, content_type: text/html, result: soft-404}
+  - {path: /.well-known/oauth-authorization-server, status: 200, content_type: text/html, result: soft-404}
+  - {path: /.well-known/oauth-protected-resource, status: 200, content_type: text/html, result: soft-404}
+  - {path: /.well-known/api-catalog, status: 200, content_type: text/html, result: soft-404}
+  - {path: /.well-known/ai-plugin.json, status: 200, content_type: text/html, result: soft-404}
+  - {path: /.well-known/ucp.json, status: 200, content_type: text/html, result: soft-404}
+  - {path: /.well-known/acp.json, status: 200, content_type: text/html, result: soft-404}
+  - {path: /.well-known/aauth-resource.json, status: 200, content_type: text/html, result: soft-404}
+  - {path: /.well-known/agent-card.json, status: 200, content_type: text/html, result: soft-404}
+  - {path: /.well-known/agent.json, status: 200, content_type: text/html, result: soft-404}
+- host: https://www.tttech.com
+  documents:
+  - {path: /.well-known/security.txt, status: 403}
+  - {path: /.well-known/openid-configuration, status: 403}
+  - {path: /.well-known/oauth-authorization-server, status: 403}
+  - {path: /.well-known/oauth-protected-resource, status: 403}
+  - {path: /.well-known/api-catalog, status: 403}
+  - {path: /.well-known/ai-plugin.json, status: 403}
+  - {path: /.well-known/ucp.json, status: 403}
+  - {path: /.well-known/acp.json, status: 403}
+  - {path: /.well-known/aauth-resource.json, status: 403}
+  - {path: /.well-known/agent-card.json, status: 403}
+  - {path: /.well-known/agent.json, status: 403}
+- host: https://nerve.cloud
+  documents:
+  - {path: /.well-known/security.txt, status: 403}
+  - {path: /.well-known/openid-configuration, status: 403}
+  - {path: /.well-known/oauth-authorization-server, status: 403}
+  - {path: /.well-known/oauth-protected-resource, status: 403}
+  - {path: /.well-known/api-catalog, status: 403}
+  - {path: /.well-known/ai-plugin.json, status: 403}
+  - {path: /.well-known/ucp.json, status: 403}
+  - {path: /.well-known/acp.json, status: 403}
+  - {path: /.well-known/aauth-resource.json, status: 403}
+  - {path: /.well-known/agent-card.json, status: 403}
+  - {path: /.well-known/agent.json, status: 403}
+- host: https://www.tttech-industrial.com
+  documents:
+  - {path: /.well-known/security.txt, status: 403}
+  - {path: /.well-known/openid-configuration, status: 403}
+  - {path: /.well-known/oauth-authorization-server, status: 403}
+  - {path: /.well-known/oauth-protected-resource, status: 403}
+  - {path: /.well-known/api-catalog, status: 403}
+  - {path: /.well-known/ai-plugin.json, status: 403}
+  - {path: /.well-known/ucp.json, status: 403}
+  - {path: /.well-known/acp.json, status: 403}
+  - {path: /.well-known/aauth-resource.json, status: 403}
+  - {path: /.well-known/agent-card.json, status: 403}
+  - {path: /.well-known/agent.json, status: 403}

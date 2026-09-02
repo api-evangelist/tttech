@@ -1,0 +1,55 @@
+generated: '2026-09-01'
+method: searched
+source: https://github.com/tttech-nerve/nerve-api-cli
+docs: https://docs.nerve.cloud/developer_guide/ms-api/api-examples/
+name: nerve-cli
+official: true
+license: MIT
+latest_release: v2.0.0-beta
+latest_release_date: '2026-06-29'
+latest_stable: v1.3.0
+latest_stable_date: '2026-05-04'
+note: >-
+  First-party command-line wrapper over the nerve_lib Python library, published by TTTech Industrial on
+  GitHub. Positioned in the docs as the way to integrate Nerve workflows into a build pipeline and
+  automate workload creation and deployment. It covers a subset of the Management System API; the docs
+  direct users to the library directly for anything not exposed.
+install:
+- method: source + poetry
+  steps:
+  - git clone https://github.com/tttech-nerve/nerve-api-cli.git
+  - curl -sSL https://install.python-poetry.org | python3 -
+  - poetry install
+  - poetry run nerve-cli --help
+  note: >-
+    Not published to PyPI — there is no pip install. Requires Python 3.11 or later (tested against 3.11,
+    3.12, 3.13, 3.14).
+authentication:
+  modes:
+  - command-line arguments (--ms-url, --ms-user, --ms-password)
+  - a credentials.ini file, sectioned by Management System URL
+  - environment variables MS_URL, MS_USR, MS_PSW
+  precedence: command-line argument, then credentials.ini, then environment variable
+  warning: >-
+    The CLI's own --store-credentials help text warns that credentials.ini stores the password in plain
+    text; the README repeats the warning.
+global_flags:
+- {flag: --yes, description: auto-confirm all prompts}
+- {flag: --dry-run, description: preview changes without applying them; overrides --yes}
+- {flag: --work-dir PATH, description: working directory for temporary files}
+- {flag: -v/-vv/-vvv, description: 'verbosity: INFO / DEBUG / TRACE'}
+- {flag: --store-credentials, description: write the supplied credentials to credentials.ini}
+commands:
+- {name: cli, description: start interactive CLI mode}
+- {name: template, description: generate templates for workload definitions or remote connections}
+- {name: ms-workloads, description: 'manage workloads on the Management System — list, export, provision, delete, deploy'}
+- {name: ms-nodes, description: 'manage nodes — list, reboot, workload state, DNA, remote connections, with filtering'}
+- {name: ms-labels, description: manage labels on the Management System}
+- {name: local-node, description: manage nodes through the local Node API}
+key_flows:
+- name: List Docker workloads to a file
+  command: poetry run nerve-cli ms-workloads list --type docker --output workloads.json
+  source: https://github.com/tttech-nerve/nerve-api-cli
+- name: Rehearse a change
+  command: poetry run nerve-cli --dry-run <subcommand>
+  note: The only dry-run affordance in the whole Nerve surface; the REST APIs have no dry-run parameter.

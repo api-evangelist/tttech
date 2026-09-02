@@ -1,0 +1,87 @@
+generated: '2026-09-01'
+method: searched
+source: https://docs.nerve.cloud/changelog/ + https://docs.nerve.cloud/release_notes/
+docs: https://docs.nerve.cloud/changelog/
+release_notes: https://docs.nerve.cloud/versions/
+scheme: semver
+current_version: 3.1.1
+current_version_released: '2026-04-20'
+node_api_version: 2.10.0
+note: >-
+  Nerve publishes two dated surfaces: a documentation changelog (https://docs.nerve.cloud/changelog/)
+  that records when each doc set was updated and which chapters changed, and per-release notes
+  (https://docs.nerve.cloud/release_notes/<version>/) carrying features, fixed issues, known issues and
+  a Management-System-to-node compatibility matrix. There is no separate API changelog — the API
+  document version is the product version, so a Nerve release is an API release. Windows below are the
+  recent releases only; the archive runs back to 2.0.0.
+entries:
+- version: 3.1.1
+  date: '2026-04-20'
+  doc_update: '2026-04-20'
+  type: patch
+  breaking: false
+  highlights:
+  - Fixed Docker volume import errors and timeouts on export of large volumes
+  - Fixed CODESYS licence not recognised after node update to 3.1.0
+  - Fixed DNA apply/re-apply failing after a node update to 3.1.0
+  - Fixed SSH password reset after node update to 3.1.0
+  - Relaxed the character limit on remote-connection names
+  known_issues:
+  - Workloads modified locally on a node are not replaced by a DNA re-apply even though status reports applied
+- version: 3.1.0
+  date: '2026-02-11'
+  doc_update: '2026-02-11'
+  type: minor
+  breaking: false
+  highlights:
+  - Production Mode for nodes — SSH restricted or disabled, CODESYS runtime air-gapped; activatable via Local UI, Management System or API
+  - Signed workload DNA with integrity verification — DNA files signed by the Management System and verified on the node
+  - Secure Boot and disk-encryption status surfaced in the node list and Local UI
+  - Node DNA extended to network interfaces, proxy settings, timezone, brute-force parameters and session timeouts
+  - Configurable password policy (complexity, lifetime, expiration warnings)
+  - Configurable session and connection limits (concurrent sessions, SSH connections, remote connections per user, inactivity logout)
+  - Secure factory reset for decommissioning — removes customer data and destroys encryption keys
+  - Nerve Connection Manager 3.0.8
+- version: 3.0.1
+  date: '2025-09-25'
+  type: patch
+  breaking: false
+  highlights:
+  - Maintenance release; release notes only
+- version: 3.0.0
+  date: '2025-08-01'
+  type: major
+  breaking: false
+  highlights:
+  - Secure Boot — signature verification of bootloader and kernel, with TPM-held disk decryption keys released only on a successful boot
+  - Full disk encryption for edge nodes
+- version: 2.10.0
+  date: '2025-06-23'
+  type: minor
+  breaking: false
+  highlights:
+  - Docker registry hosted in the Management System, with layered image transfer to nodes
+  - Registry-backed workloads deployable to node version 2.10 or later only
+- version: 2.9.3
+  date: '2024-11-22'
+  type: patch
+  breaking: false
+  highlights:
+  - Release notes for 2.9.3
+- version: 2.9.0
+  date: '2024-09-03'
+  type: minor
+  breaking: false
+  highlights:
+  - Multi-factor authentication on the Management System
+  - Audit log extension and node name in the deploy log
+  - Optional enforcement of remote-connection approval on the node
+  - Secure off-boarding; account synchronisation from Management System to node
+- version: 2.8.0
+  date: '2024-03-27'
+  type: minor
+  breaking: false
+  highlights:
+  - Nerve Management System API documentation published (this is where the OpenAPI surface first appears)
+  - Export and import of remote connections; audit logs for the Management System
+  - Nerve Connection Manager 2.0.0
