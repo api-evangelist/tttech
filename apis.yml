@@ -12,6 +12,21 @@ description: >-
   networking, workloads and users) — together with a first-party Python library and CLI on GitHub. The
   platform is certified to IEC 62443-4-2 and ships a documented product-security reporting channel.
 url: https://raw.githubusercontent.com/api-evangelist/tttech/refs/heads/main/apis.yml
+accessModel:
+  pricing: unknown
+  onboarding: unknown
+  trial: false
+  try_now: false
+  public: false
+  label: Unknown
+  confidence: low
+  source:
+  - authentication
+  - rate-limits
+  - security
+  - sandbox
+  generated: '2026-09-03'
+  method: derived
 image: https://nerve.cloud/sites/default/files/vision.jpg
 x-type: company
 x-source: harvest:secondary-market
