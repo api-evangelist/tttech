@@ -64,64 +64,689 @@ tags_raw:
 - codesys
 - iec-62443
 apis:
-- name: Nerve Management System API
-  description: >-
-    REST API of the Nerve Management System, the cloud-hosted control plane for Nerve edge nodes. Covers
-    authentication and MFA, node registration and lifecycle, workload and workload-version management
-    (Docker, docker-compose, CODESYS, VM), deployment and workload control, labels, LDAP integration,
-    Nerve DNA declarative node configuration, remote connections, notifications, the Nerve Docker registry,
-    node/cloud updates and usage reports. Session-cookie / sessionId authentication with basic and bearer
-    variants; OpenAPI 3.0.3, 151 operations.
+- aid: tttech:tttech-auth-api
+  name: TTTech AUTH API
+  description: The operations to manage authentication and authorization of MS users
   humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
   baseURL: https://trynerve1.nerve.cloud
   tags:
-  - Industrial IoT
-  - Edge Computing
-  - Device Management
-  - Workload Orchestration
-  - Industrial Automation
-  tags_raw:
-  - industrial-iot
-  - edge-computing
-  - device-management
-  - workload-orchestration
-  - industrial-automation
+  - AUTH
   properties:
   - type: OpenAPI
-    url: openapi/tttech-nerve-management-system-openapi.yml
+    url: openapi/tttech-auth-api-openapi.yml
   - type: Documentation
     url: https://docs.nerve.cloud/developer_guide/ms-api/
   - type: APIReference
     url: https://docs.nerve.cloud/developer_guide/ms-api/
-  - type: Overlay
-    url: overlays/tttech-nerve-management-system-overlay.yaml
-- name: Nerve Node API
-  description: >-
-    REST API served by the Nerve Local UI on each Nerve edge node. Covers node initialization and license
-    activation, system and network configuration, proxy settings, local users and permissions, Docker image
-    and volume resources, workload deployment, snapshots, backups, logs and compose, CODESYS process control,
-    remote connections, the Data Services datapath and Nerve DNA. Cookie / basic authentication; OpenAPI 3.0.1,
-    77 operations.
-  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
-  baseURL: http://172.20.2.1:3333
-  tags:
-  - Edge Computing
-  - Device Management
-  - Industrial Automation
-  - CODESYS
-  tags_raw:
-  - edge-computing
-  - device-management
-  - industrial-automation
-  - codesys
-  properties:
-  - type: OpenAPI
-    url: openapi/tttech-nerve-node-openapi.yml
   - type: Documentation
     url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
-  - type: Overlay
-    url: overlays/tttech-nerve-node-overlay.yaml
+- aid: tttech:tttech-capabilities-api
+  name: TTTech CAPABILITIES API
+  description: The operations to manage node capabilities
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - CAPABILITIES
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-capabilities-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-codesys-process-api
+  name: TTTech CODESYS PROCESS API
+  description: The CODESYS PROCESS API from TTTech — 1 operation(s) for codesys process.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - CODESYS PROCESS
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-codesys-process-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-configuration-api
+  name: TTTech CONFIGURATION API
+  description: >-
+    Node configuration operations (onboarding, retrieving the Management system version, retrieving the
+    node's secure ID, etc.)
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - CONFIGURATION
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-configuration-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-data-exchange-api
+  name: TTTech DATA EXCHANGE API
+  description: The operations to manage node data exchange.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - DATA EXCHANGE
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-data-exchange-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-datapath-api
+  name: TTTech DATAPATH API
+  description: The DATAPATH API from TTTech — 1 operation(s) for datapath.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - DATAPATH
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-datapath-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-dna-api
+  name: TTTech DNA API
+  description: The operations to manage workload DNA configuration
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - DNA
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-dna-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-docker-compose-file-api
+  name: TTTech DOCKER COMPOSE FILE API
+  description: The operations to manage docker compose file
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - DOCKER_COMPOSE_FILE
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-docker-compose-file-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-docker-resources-images-api
+  name: TTTech DOCKER RESOURCES IMAGES API
+  description: >-
+    The DOCKER_RESOURCES_IMAGES API from TTTech — 1 operation(s) for docker_resources_images.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - DOCKER_RESOURCES_IMAGES
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-docker-resources-images-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-docker-resources-volumes-api
+  name: TTTech DOCKER RESOURCES VOLUMES API
+  description: >-
+    The DOCKER_RESOURCES_VOLUMES API from TTTech — 4 operation(s) for docker_resources_volumes.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - DOCKER_RESOURCES_VOLUMES
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-docker-resources-volumes-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-emqx-api
+  name: TTTech EMQX API
+  description: The operations to manage authentication and authorization of MQTT clients
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - EMQX
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-emqx-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-initialization-api
+  name: TTTech INITIALIZATION API
+  description: The INITIALIZATION API from TTTech — 1 operation(s) for initialization.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - INITIALIZATION
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-initialization-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-internal-test-api-api
+  name: TTTech INTERNAL TEST API
+  description: >-
+    Operations intended solely for testing, used to validate system behavior under invalid or edge-case
+    data scenarios. Not for production use.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - INTERNAL_TEST_API
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-internal-test-api-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-label-api
+  name: TTTech LABEL API
+  description: The operations to manage labels
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - LABEL
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-label-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-ldap-api
+  name: TTTech LDAP API
+  description: The operations to manage LDAP users
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - LDAP
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-ldap-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-nerve-docker-registry-api
+  name: TTTech NERVE DOCKER REGISTRY API
+  description: The operations to manage Docker registry
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - NERVE_DOCKER_REGISTRY
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-nerve-docker-registry-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-nerve-update-api
+  name: TTTech NERVE UPDATE API
+  description: The operations to manage Nerve updates
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - NERVE_UPDATE
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-nerve-update-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-node-api
+  name: TTTech NODE API
+  description: The operations to manage nodes v1.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - NODE
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-node-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-node-v2-api
+  name: TTTech NODE V2 API
+  description: The operations to manage nodes v2.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - NODE_v2
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-node-v2-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-notification-api
+  name: TTTech NOTIFICATION API
+  description: The operations to manage notifications.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - NOTIFICATION
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-notification-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-proxy-settings-api
+  name: TTTech PROXY SETTINGS API
+  description: The PROXY SETTINGS API from TTTech — 1 operation(s) for proxy settings.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - PROXY SETTINGS
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-proxy-settings-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-remote-connections-api
+  name: TTTech REMOTE CONNECTIONS API
+  description: The operations to manage remote connections.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - REMOTE_CONNECTIONS
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-remote-connections-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-repositories-api
+  name: TTTech REPOSITORIES API
+  description: The REPOSITORIES API from TTTech — 4 operation(s) for repositories.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - REPOSITORIES
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-repositories-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-service-os-dna-api
+  name: TTTech SERVICE OS DNA API
+  description: The operations to manage Service OS DNA configuration
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - SERVICE-OS-DNA
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-service-os-dna-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-setup-network-api
+  name: TTTech SETUP NETWORK API
+  description: The SETUP NETWORK API from TTTech — 3 operation(s) for setup network.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - SETUP NETWORK
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-setup-network-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-system-api
+  name: TTTech SYSTEM API
+  description: The SYSTEM API from TTTech — 7 operation(s) for system.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - SYSTEM
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-system-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-usage-reports-api
+  name: TTTech USAGE REPORTS API
+  description: The operations to manage usage reports
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - USAGE_REPORTS
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-usage-reports-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-users-api
+  name: TTTech USERS API
+  description: The USERS API from TTTech — 2 operation(s) for users.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - USERS
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-users-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-wl-version-file-api
+  name: TTTech WL VERSION FILE API
+  description: The operations to manage workload files of specific versions v3
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - WL_VERSION_FILE
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-wl-version-file-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-wl-version-v2-api
+  name: TTTech WL VERSION V2 API
+  description: The operations to manage specific versions of workloads v2
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - WL_VERSION_v2
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-wl-version-v2-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-wl-version-v3-api
+  name: TTTech WL VERSION V3 API
+  description: The operations to manage specific versions of workloads v3
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - WL_VERSION_v3
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-wl-version-v3-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-workload-api
+  name: TTTech WORKLOAD API
+  description: The operations to manage workloads v1.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - WORKLOAD
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-workload-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-workload-codesys-api
+  name: TTTech WORKLOAD CODESYS API
+  description: The WORKLOAD CODESYS API from TTTech — 2 operation(s) for workload codesys.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - WORKLOAD CODESYS
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-workload-codesys-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-workload-configuration-api
+  name: TTTech WORKLOAD CONFIGURATION API
+  description: The operations to manage workload configurations
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - WORKLOAD_CONFIGURATION
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-workload-configuration-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-workload-v2-api
+  name: TTTech WORKLOAD V2 API
+  description: The operations to manage workloads v2.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - WORKLOAD_v2
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-workload-v2-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-workload-v3-api
+  name: TTTech WORKLOAD V3 API
+  description: The operations to manage workloads v3.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - WORKLOAD_v3
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-workload-v3-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-workloads-api
+  name: TTTech WORKLOADS API
+  description: The WORKLOADS API from TTTech — 6 operation(s) for workloads.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - WORKLOADS
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-workloads-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-workloads-backups-api
+  name: TTTech WORKLOADS BACKUPS API
+  description: The WORKLOADS BACKUPS API from TTTech — 3 operation(s) for workloads backups.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - WORKLOADS BACKUPS
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-workloads-backups-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-workloads-compose-api
+  name: TTTech WORKLOADS COMPOSE API
+  description: The WORKLOADS COMPOSE API from TTTech — 2 operation(s) for workloads compose.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - WORKLOADS COMPOSE
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-workloads-compose-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-workloads-logs-api
+  name: TTTech WORKLOADS LOGS API
+  description: The WORKLOADS LOGS API from TTTech — 2 operation(s) for workloads logs.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - WORKLOADS LOGS
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-workloads-logs-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-workloads-networks-api
+  name: TTTech WORKLOADS NETWORKS API
+  description: The WORKLOADS NETWORKS API from TTTech — 1 operation(s) for workloads networks.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - WORKLOADS NETWORKS
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-workloads-networks-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
+- aid: tttech:tttech-workloads-snapshots-api
+  name: TTTech WORKLOADS SNAPSHOTS API
+  description: The WORKLOADS SNAPSHOTS API from TTTech — 2 operation(s) for workloads snapshots.
+  humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
+  baseURL: https://trynerve1.nerve.cloud
+  tags:
+  - WORKLOADS SNAPSHOTS
+  properties:
+  - type: OpenAPI
+    url: openapi/tttech-workloads-snapshots-api-openapi.yml
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: APIReference
+    url: https://docs.nerve.cloud/developer_guide/ms-api/
+  - type: Documentation
+    url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
 common:
+- type: Overlay
+  url: overlays/tttech-nerve-management-system-overlay.yaml
+- type: Overlay
+  url: overlays/tttech-nerve-node-overlay.yaml
 - type: AgenticAccess
   url: agentic-access/tttech-agentic-access.yml
 - type: VulnerabilityDisclosure
