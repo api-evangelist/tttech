@@ -70,6 +70,8 @@ apis:
   humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
   baseURL: https://trynerve1.nerve.cloud
   tags:
+  - Authentication
+  tags_raw:
   - AUTH
   properties:
   - type: OpenAPI
@@ -86,6 +88,8 @@ apis:
   humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
   baseURL: https://trynerve1.nerve.cloud
   tags:
+  - Capabilities
+  tags_raw:
   - CAPABILITIES
   properties:
   - type: OpenAPI
@@ -120,6 +124,8 @@ apis:
   humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
   baseURL: https://trynerve1.nerve.cloud
   tags:
+  - Configuration
+  tags_raw:
   - CONFIGURATION
   properties:
   - type: OpenAPI
@@ -136,6 +142,8 @@ apis:
   humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
   baseURL: https://trynerve1.nerve.cloud
   tags:
+  - Data Exchange
+  tags_raw:
   - DATA EXCHANGE
   properties:
   - type: OpenAPI
@@ -250,6 +258,8 @@ apis:
   humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
   baseURL: https://trynerve1.nerve.cloud
   tags:
+  - Initialization
+  tags_raw:
   - INITIALIZATION
   properties:
   - type: OpenAPI
@@ -284,6 +294,8 @@ apis:
   humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
   baseURL: https://trynerve1.nerve.cloud
   tags:
+  - Label
+  tags_raw:
   - LABEL
   properties:
   - type: OpenAPI
@@ -348,6 +360,8 @@ apis:
   humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
   baseURL: https://trynerve1.nerve.cloud
   tags:
+  - Node
+  tags_raw:
   - NODE
   properties:
   - type: OpenAPI
@@ -380,6 +394,8 @@ apis:
   humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
   baseURL: https://trynerve1.nerve.cloud
   tags:
+  - Notification
+  tags_raw:
   - NOTIFICATION
   properties:
   - type: OpenAPI
@@ -428,6 +444,8 @@ apis:
   humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
   baseURL: https://trynerve1.nerve.cloud
   tags:
+  - Repositories
+  tags_raw:
   - REPOSITORIES
   properties:
   - type: OpenAPI
@@ -476,6 +494,8 @@ apis:
   humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
   baseURL: https://trynerve1.nerve.cloud
   tags:
+  - System
+  tags_raw:
   - SYSTEM
   properties:
   - type: OpenAPI
@@ -508,6 +528,8 @@ apis:
   humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
   baseURL: https://trynerve1.nerve.cloud
   tags:
+  - User
+  tags_raw:
   - USERS
   properties:
   - type: OpenAPI
@@ -572,6 +594,8 @@ apis:
   humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
   baseURL: https://trynerve1.nerve.cloud
   tags:
+  - Workload
+  tags_raw:
   - WORKLOAD
   properties:
   - type: OpenAPI
@@ -652,6 +676,8 @@ apis:
   humanURL: https://docs.nerve.cloud/developer_guide/ms-api/
   baseURL: https://trynerve1.nerve.cloud
   tags:
+  - Workloads
+  tags_raw:
   - WORKLOADS
   properties:
   - type: OpenAPI
