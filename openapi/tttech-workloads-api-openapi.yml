@@ -1,0 +1,2474 @@
+openapi: 3.2.0
+info:
+  version: 2.10.0
+  description: 'Nerve OVDM API to manage:
+
+    - node configuration
+
+    - system configuration
+
+    - system network configuration
+
+    - workloads
+
+    - remote connections
+
+    - dna'
+  title: Nerve Node WORKLOADS API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+security:
+- cookieAuth: []
+tags:
+- name: Workloads
+paths:
+  /api/workloads/deploy:
+    post:
+      summary: Deploy workload
+      description: Used to deploy workload by uploading archive.
+      operationId: deploy_workload
+      tags:
+      - Workloads
+      x-permissions:
+      - WORKLOAD:DEPLOY
+      parameters:
+      - name: action
+        in: query
+        description: Defines if deployment is done as update of already deployed workload
+        required: false
+        schema:
+          type: string
+          enum:
+          - update
+          - deploy
+      requestBody:
+        description: Includes archived workload
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              description: Object contains 'file' property, which represents the file to be uploaded
+              properties:
+                file:
+                  description: Archived workload file
+                  type: string
+                  format: binary
+                  minLength: 1
+      responses:
+        '204':
+          description: No response content if workload is successfully deployed.
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                docker_compose_image_not_found:
+                  value:
+                    status: 409
+                    msg: Local Docker image not found. Please try deploying the workload again.
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Validation error.
+                required:
+                - status
+                - message
+                - errors
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  message:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: The validation error message
+                  errors:
+                    type: array
+                    minItems: 1
+                    maxItems: 1001
+                    description: Detailed description of what does not match the schema
+                    items:
+                      type: object
+                      properties:
+                        path:
+                          type: string
+                          minLength: 1
+                          maxLength: 1001
+                          description: Specified location within the document where the error occurred
+                        message:
+                          type: string
+                          minLength: 1
+                          maxLength: 1001
+                          description: Error message
+              example:
+                status: 415
+                message: unsupported media type text/plain
+                errors:
+                - path: /api/setup/configurations
+                  message: unsupported media type text/plain
+        '500':
+          description: Response received when the response does not match the schema or an unexpected error has occurred.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              example:
+                status: 500
+                msg: Invalid response
+  /api/workloads:
+    get:
+      summary: Get list of workloads installed on the system
+      operationId: list_deployed_workloads
+      tags:
+      - Workloads
+      description: Used to retrieve the list of workloads installed on the system.
+      x-permissions:
+      - WORKLOAD:LIST
+      responses:
+        '200':
+          description: List of workloads installed on the system.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing the list of workloads.
+                required:
+                - workloads
+                additionalProperties: false
+                properties:
+                  workloads:
+                    type: array
+                    description: List of workloads installed on the system.
+                    minItems: 0
+                    maxItems: 1001
+                    items:
+                      type: object
+                      description: Workload payload
+                      additionalProperties: false
+                      required:
+                      - uniqueId
+                      - ovdmStatus
+                      - name
+                      - type
+                      - workloadId
+                      properties:
+                        uniqueId:
+                          description: Workload unique identifier in the queue
+                          type: string
+                          minLength: 36
+                          maxLength: 36
+                          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                        deviceId:
+                          type: integer
+                          description: Id of the workload installed on system
+                          minimum: 1
+                        status:
+                          type: integer
+                          description: Status enumeration that corresponds to the state of deployed workload
+                          minimum: 0
+                          maximum: 13
+                        ovdmStatus:
+                          type: string
+                          description: Status of workload in queue
+                          enum:
+                          - New
+                          - Reserved
+                          - Queued
+                          - Downloading
+                          - Downloaded
+                          - Installed
+                          - Removing
+                          - Removing_failed
+                        name:
+                          type: string
+                          description: Workload name
+                          minLength: 1
+                          maxLength: 40
+                          pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                        type:
+                          type: string
+                          description: Workload type
+                          enum:
+                          - vm
+                          - docker
+                          - codesys
+                          - docker-compose
+                        workloadId:
+                          oneOf:
+                          - description: ID (from Management System) of the entry
+                            type: string
+                            pattern: ^[0-9a-fA-F]{24}$
+                            minLength: 24
+                            maxLength: 24
+                          - description: ID created as workloadId(from database)-uniqueId(randomly generated uuid when workload is queued).
+                            type: string
+                            pattern: ^[0-9a-fA-F]{24}-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                            minLength: 61
+                            maxLength: 61
+              example:
+                workloads:
+                - uniqueId: 1d92452a-554c-4937-8595-0f233b195897
+                  deviceId: 664
+                  status: 8
+                  ovdmStatus: Installed
+                  name: Codesys_Workload
+                  type: codesys
+                  workloadId: 65f43b4ea7316d23e867979a
+                - uniqueId: 851f5101-213b-4343-bea6-fad3c9c0d62c
+                  deviceId: 359
+                  status: 8
+                  ovdmStatus: Installed
+                  name: tinycore_kvm
+                  type: vm
+                  workloadId: 661508ddd52be6af23415b69
+                - uniqueId: 09e834a8-e5c1-4821-a700-4b4d009a509d
+                  deviceId: 266
+                  status: 10
+                  ovdmStatus: Installed
+                  name: test docker M
+                  type: docker
+                  workloadId: 6615213ae61e8e68b2ec8a62
+                - uniqueId: e1278bd9-57e9-4a59-9192-02cbb19be631
+                  deviceId: 912
+                  status: 8
+                  ovdmStatus: Installed
+                  name: test 1
+                  type: docker-compose
+                  workloadId: 65f0408a802c8588b639ae71
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '500':
+          description: Response received when the response does not match the schema or an unexpected error has occurred.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              example:
+                status: 500
+                msg: Invalid response
+  /api/workloads/{deviceId}/details:
+    get:
+      summary: Get details of workload
+      description: Get detailed information about the workload installed on the system.
+      operationId: deployed_workload_details
+      tags:
+      - Workloads
+      x-permissions:
+      - WORKLOAD_DETAILS:VIEW
+      parameters:
+      - name: deviceId
+        in: path
+        required: true
+        description: Unique identifier of the deployed workload. Device is a term used for workloads.
+        schema:
+          type: string
+          description: Id of the deployed workload
+          pattern: ^\d+$
+          minLength: 1
+          maxLength: 1001
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - description: Payload of the docker workload
+                  allOf:
+                  - type: object
+                    required:
+                    - state
+                    - workloadId
+                    - uniqueId
+                    - ovdmStatus
+                    - name
+                    - type
+                    - statusChangedTimestamp
+                    - versionName
+                    properties:
+                      state:
+                        type: integer
+                        description: Status enumeration that corresponds to the state of deployed workload
+                        minimum: 0
+                        maximum: 13
+                      message:
+                        type: string
+                        description: Message that states name of the workload and state that it is in.
+                      workloadId:
+                        oneOf:
+                        - description: ID (from Management System) of the entry
+                          type: string
+                          pattern: ^[0-9a-fA-F]{24}$
+                          minLength: 24
+                          maxLength: 24
+                        - description: ID created as workloadId(from database)-uniqueId(randomly generated uuid when workload is queued).
+                          type: string
+                          pattern: ^[0-9a-fA-F]{24}-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                          minLength: 61
+                          maxLength: 61
+                      uniqueId:
+                        description: Workload unique identifier in the queue
+                        type: string
+                        minLength: 36
+                        maxLength: 36
+                        pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      ovdmStatus:
+                        type: string
+                        description: Status of workload in queue
+                        enum:
+                        - New
+                        - Reserved
+                        - Queued
+                        - Downloading
+                        - Downloaded
+                        - Installed
+                        - Removing
+                        - Removing_failed
+                      name:
+                        type: string
+                        description: Workload name
+                        minLength: 1
+                        maxLength: 40
+                        pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                      type:
+                        type: string
+                        description: Workload type
+                        enum:
+                        - vm
+                        - docker
+                        - codesys
+                        - docker-compose
+                      statusChangedTimestamp:
+                        type: integer
+                        description: Time when state of the workload has changed in milliseconds.
+                      versionName:
+                        type: string
+                        description: Workload version name
+                        minLength: 1
+                        maxLength: 40
+                        pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                  - type: object
+                    required:
+                    - envVars
+                    - ports
+                    - containerName
+                    - resources
+                    properties:
+                      envVars:
+                        description: List of docker environment variables
+                        type: array
+                        minItems: 0
+                        maxItems: 1001
+                        items:
+                          type: string
+                          pattern: ^[a-zA-Z_][a-zA-Z0-9_]+=
+                      ports:
+                        type: array
+                        description: A list of port mappings
+                        minItems: 0
+                        maxItems: 1001
+                        items:
+                          type: object
+                          description: Mapping a container port to a port on the Docker host to the outside world.
+                          required:
+                          - protocol
+                          - hostPort
+                          - containerPort
+                          additionalProperties: false
+                          properties:
+                            protocol:
+                              type: string
+                              description: The protocol used for the port mapping, either TCP or UDP
+                              enum:
+                              - tcp
+                              - udp
+                            hostPort:
+                              type: string
+                              pattern: ^\d+$
+                              description: The port number on the host machine that is mapped to the container's port
+                            containerPort:
+                              type: string
+                              pattern: ^\d+$
+                              description: The port number inside the Docker container that is being exposed
+                      containerName:
+                        type: string
+                        description: Docker container name
+                        minLength: 2
+                        maxLength: 100
+                        pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]+$
+                      resources:
+                        type: object
+                        description: Current and original values of defined cpu and memory limits
+                        additionalProperties: false
+                        properties:
+                          cpu:
+                            type: object
+                            description: Object containing the current and original values of defined CPU
+                            properties:
+                              current:
+                                description: Current values of defined CPU
+                                anyOf:
+                                - type: number
+                                  minimum: 0.01
+                                  maximum: 256
+                                - type: integer
+                                  minimum: 1
+                                  maximum: 256
+                              originally:
+                                description: Original values of defined CPU
+                                anyOf:
+                                - type: number
+                                  minimum: 0.01
+                                  maximum: 256
+                                - type: integer
+                                  minimum: 1
+                                  maximum: 256
+                          memory:
+                            type: object
+                            description: Object containing the current and original values of defined memory
+                            properties:
+                              current:
+                                description: Current values of defined memory
+                                type: integer
+                                minimum: 100000000
+                                maximum: 20000000000
+                              originally:
+                                description: Original values of defined memory
+                                type: integer
+                                minimum: 100000000
+                                maximum: 20000000000
+                      internalDockerRegistry:
+                        description: Is workload using internal Docker Registry as an docker image source
+                        type: boolean
+                - description: Payload of the vm workload
+                  allOf:
+                  - type: object
+                    required:
+                    - state
+                    - workloadId
+                    - uniqueId
+                    - ovdmStatus
+                    - name
+                    - type
+                    - statusChangedTimestamp
+                    - versionName
+                    properties:
+                      state:
+                        type: integer
+                        description: Status enumeration that corresponds to the state of deployed workload
+                        minimum: 0
+                        maximum: 13
+                      message:
+                        type: string
+                        description: Message that states name of the workload and state that it is in.
+                      workloadId:
+                        oneOf:
+                        - description: ID (from Management System) of the entry
+                          type: string
+                          pattern: ^[0-9a-fA-F]{24}$
+                          minLength: 24
+                          maxLength: 24
+                        - description: ID created as workloadId(from database)-uniqueId(randomly generated uuid when workload is queued).
+                          type: string
+                          pattern: ^[0-9a-fA-F]{24}-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                          minLength: 61
+                          maxLength: 61
+                      uniqueId:
+                        description: Workload unique identifier in the queue
+                        type: string
+                        minLength: 36
+                        maxLength: 36
+                        pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      ovdmStatus:
+                        type: string
+                        description: Status of workload in queue
+                        enum:
+                        - New
+                        - Reserved
+                        - Queued
+                        - Downloading
+                        - Downloaded
+                        - Installed
+                        - Removing
+                        - Removing_failed
+                      name:
+                        type: string
+                        description: Workload name
+                        minLength: 1
+                        maxLength: 40
+                        pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                      type:
+                        type: string
+                        description: Workload type
+                        enum:
+                        - vm
+                        - docker
+                        - codesys
+                        - docker-compose
+                      statusChangedTimestamp:
+                        type: integer
+                        description: Time when state of the workload has changed in milliseconds.
+                      versionName:
+                        type: string
+                        description: Workload version name
+                        minLength: 1
+                        maxLength: 40
+                        pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                  - type: object
+                    required:
+                    - resources
+                    - features
+                    properties:
+                      features:
+                        type: array
+                        description: List of specific workload features(e.g. snapshot)
+                        minItems: 0
+                        maxItems: 1001
+                        items:
+                          type: object
+                          required:
+                          - name
+                          - value
+                          additionalProperties: false
+                          properties:
+                            name:
+                              type: string
+                              description: Feature name
+                            value:
+                              type: object
+                              description: Object containing a property that indicates if the feature is enabled or not.
+                      resources:
+                        type: object
+                        description: Current and original values of defined cpu and memory limits
+                        additionalProperties: false
+                        properties:
+                          cpu:
+                            type: object
+                            description: Object containing the current and original values of defined CPU
+                            properties:
+                              current:
+                                description: Current values of defined CPU
+                                anyOf:
+                                - type: number
+                                  minimum: 0.01
+                                  maximum: 256
+                                - type: integer
+                                  minimum: 1
+                                  maximum: 256
+                              originally:
+                                description: Original values of defined CPU
+                                anyOf:
+                                - type: number
+                                  minimum: 0.01
+                                  maximum: 256
+                                - type: integer
+                                  minimum: 1
+                                  maximum: 256
+                          memory:
+                            type: object
+                            description: Object containing the current and original values of defined memory
+                            properties:
+                              current:
+                                description: Current values of defined memory
+                                type: integer
+                                minimum: 100000000
+                                maximum: 20000000000
+                              originally:
+                                description: Original values of defined memory
+                                type: integer
+                                minimum: 100000000
+                                maximum: 20000000000
+                - description: Payload of the codesys workload
+                  type: object
+                  additionalProperties: false
+                  required:
+                  - state
+                  - workloadId
+                  - uniqueId
+                  - ovdmStatus
+                  - name
+                  - type
+                  - statusChangedTimestamp
+                  - versionName
+                  properties:
+                    state:
+                      type: integer
+                      description: Status enumeration that corresponds to the state of deployed workload
+                      minimum: 0
+                      maximum: 13
+                    message:
+                      type: string
+                      description: Message that states name of the workload and state that it is in.
+                    workloadId:
+                      oneOf:
+                      - description: ID (from Management System) of the entry
+                        type: string
+                        pattern: ^[0-9a-fA-F]{24}$
+                        minLength: 24
+                        maxLength: 24
+                      - description: ID created as workloadId(from database)-uniqueId(randomly generated uuid when workload is queued).
+                        type: string
+                        pattern: ^[0-9a-fA-F]{24}-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                        minLength: 61
+                        maxLength: 61
+                    uniqueId:
+                      description: Workload unique identifier in the queue
+                      type: string
+                      minLength: 36
+                      maxLength: 36
+                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                    ovdmStatus:
+                      type: string
+                      description: Status of workload in queue
+                      enum:
+                      - New
+                      - Reserved
+                      - Queued
+                      - Downloading
+                      - Downloaded
+                      - Installed
+                      - Removing
+                      - Removing_failed
+                    name:
+                      type: string
+                      description: Workload name
+                      minLength: 1
+                      maxLength: 40
+                      pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                    type:
+                      type: string
+                      description: Workload type
+                      enum:
+                      - vm
+                      - docker
+                      - codesys
+                      - docker-compose
+                    statusChangedTimestamp:
+                      type: integer
+                      description: Time when state of the workload has changed in milliseconds.
+                    versionName:
+                      type: string
+                      description: Workload version name
+                      minLength: 1
+                      maxLength: 40
+                      pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                - description: Payload of the compose workload
+                  allOf:
+                  - type: object
+                    required:
+                    - state
+                    - workloadId
+                    - uniqueId
+                    - ovdmStatus
+                    - name
+                    - type
+                    - statusChangedTimestamp
+                    - versionName
+                    properties:
+                      state:
+                        type: integer
+                        description: Status enumeration that corresponds to the state of deployed workload
+                        minimum: 0
+                        maximum: 13
+                      message:
+                        type: string
+                        description: Message that states name of the workload and state that it is in.
+                      workloadId:
+                        oneOf:
+                        - description: ID (from Management System) of the entry
+                          type: string
+                          pattern: ^[0-9a-fA-F]{24}$
+                          minLength: 24
+                          maxLength: 24
+                        - description: ID created as workloadId(from database)-uniqueId(randomly generated uuid when workload is queued).
+                          type: string
+                          pattern: ^[0-9a-fA-F]{24}-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                          minLength: 61
+                          maxLength: 61
+                      uniqueId:
+                        description: Workload unique identifier in the queue
+                        type: string
+                        minLength: 36
+                        maxLength: 36
+                        pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      ovdmStatus:
+                        type: string
+                        description: Status of workload in queue
+                        enum:
+                        - New
+                        - Reserved
+                        - Queued
+                        - Downloading
+                        - Downloaded
+                        - Installed
+                        - Removing
+                        - Removing_failed
+                      name:
+                        type: string
+                        description: Workload name
+                        minLength: 1
+                        maxLength: 40
+                        pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                      type:
+                        type: string
+                        description: Workload type
+                        enum:
+                        - vm
+                        - docker
+                        - codesys
+                        - docker-compose
+                      statusChangedTimestamp:
+                        type: integer
+                        description: Time when state of the workload has changed in milliseconds.
+                      versionName:
+                        type: string
+                        description: Workload version name
+                        minLength: 1
+                        maxLength: 40
+                        pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                  - type: object
+                    required:
+                    - webUiInfo
+                    - services
+                    - configurationUpdateInfo
+                    properties:
+                      webUiInfo:
+                        type: array
+                        minItems: 0
+                        maxItems: 1001
+                        description: Information about containers with defined web Ui
+                        items:
+                          type: object
+                          required:
+                          - serviceName
+                          - containerName
+                          - locationUrl
+                          properties:
+                            serviceName:
+                              type: string
+                              description: The name of the service defined in the docker-compose file. Service name can only contain numbers, letters,_ and -.
+                              pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+                              minLength: 1
+                              maxLength: 40
+                            containerName:
+                              type: string
+                              description: Docker container name
+                              minLength: 2
+                              maxLength: 100
+                              pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]+$
+                            locationUrl:
+                              type: string
+                              description: URL path for accessing the web UI of a container
+                      services:
+                        type: array
+                        description: Information about services defined within compose workload
+                        minItems: 1
+                        maxItems: 1001
+                        items:
+                          type: object
+                          required:
+                          - containerName
+                          - state
+                          - message
+                          - timestamp
+                          properties:
+                            containerName:
+                              type: string
+                              description: Docker container name
+                              minLength: 2
+                              maxLength: 100
+                              pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]+$
+                            state:
+                              type: integer
+                              description: Status enumeration that corresponds to the state of individual containers in compose workload
+                              minimum: 0
+                              maximum: 12
+                            message:
+                              type: string
+                              description: message describing state of individual containers
+                              enum:
+                              - container_running
+                              - container_created
+                              - container_restarting
+                              - container_paused
+                              - container_exited
+                              - container_dead
+                              - container_starting
+                              - container_stopping
+                              - container_pausing
+                              - container_resuming
+                            timestamp:
+                              description: Timestamp of the last state change in Unix epoch format
+                              type: integer
+                      configurationUpdateInfo:
+                        type: array
+                        minItems: 0
+                        maxItems: 1001
+                        description: List of configuration storages
+                        items:
+                          type: object
+                          description: Configuration storage information for docker workload
+                          required:
+                          - restartOnConfigurationUpdate
+                          - path
+                          - name
+                          - serviceName
+                          properties:
+                            restartOnConfigurationUpdate:
+                              type: boolean
+                              description: Indicator if container will be restarted when applying configuration
+                              default: false
+                            name:
+                              type: string
+                              description: 'The docker volume name. The name is extracted from docker-compose file. Volume name can only contain numbers, letters, _ and -. NOTE: For now only volume name is allowed. Bind mount points are not allowed.'
+                              pattern: ^[A-z0-9-.]*$
+                              minLength: 1
+                              maxLength: 1001
+                            path:
+                              type: string
+                              description: Container destination path which is mounted to specified volume
+                              pattern: ^[A-z0-9/.-]*$
+                              minLength: 1
+                              maxLength: 1001
+                            serviceName:
+                              type: string
+                              description: The name of the service defined in the docker-compose file. Service name can only contain numbers, letters,_ and -.
+                              pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+                              minLength: 1
+                              maxLength: 40
+                      internalDockerRegistry:
+                        description: Is workload using internal Docker Registry as an docker image source
+                        type: boolean
+              examples:
+                docker_workload:
+                  value:
+                    state: 8
+                    message: Domain test docker started
+                    workloadId: 6615213ae61e8e68b2ec8a62
+                    uniqueId: 09e834a8-e5c1-4821-a700-4b4d009a509d
+                    name: test docker
+                    type: docker
+                    statusChangedTimestamp: 1712822633403
+                    ovdmStatus: Installed
+                    resources:
+                      cpu:
+                        current: 0.01
+                        originally: 0.01
+                      memory:
+                        current: 150000000
+                        originally: 150000000
+                    versionName: v1
+                    envVars:
+                    - VARIABLE=value
+                    ports:
+                    - hostPort: '65535'
+                      containerPort: '12'
+                      protocol: tcp
+                    containerName: nginx
+                vm_with_snapshot_workload:
+                  value:
+                    state: 8
+                    message: Domain test vm started
+                    workloadId: 661537162d315340eb79be21
+                    uniqueId: cee60672-482c-49b0-8cb1-00138bc2fd2b
+                    name: test vm
+                    type: vm
+                    statusChangedTimestamp: 1712829137281
+                    ovdmStatus: Installed
+                    resources:
+                      memory:
+                        current: 100000000
+                        originally: 150000000
+                      cpu:
+                        current: 1
+                        originally: 1
+                    versionName: v1
+                    features:
+                    - name: snapshot
+                      value:
+                        enabled: true
+                        space: 1GB
+                vm_without_snapshot_workload:
+                  value:
+                    state: 8
+                    message: Domain tinycore_kvm started
+                    workloadId: 661508ddd52be6af23415b69
+                    uniqueId: 851f5101-213b-4343-bea6-fad3c9c0d62c
+                    name: tinycore_kvm
+                    type: vm
+                    statusChangedTimestamp: 1712817710733
+                    ovdmStatus: Installed
+                    resources:
+                      memory:
+                        current: 1000000000
+                        originally: 1000000000
+                      cpu:
+                        current: 1
+                        originally: 1
+                    versionName: ver_01
+                    features:
+                    - name: snapshot
+                      value:
+                        enabled: false
+                        space: ''
+                codesys_workload:
+                  value:
+                    state: 8
+                    message: Domain Codesys_Workload started
+                    workloadId: 65f43b4ea7316d23e867979a
+                    uniqueId: 1d92452a-554c-4937-8595-0f233b195897
+                    name: Codesys_Workload
+                    type: codesys
+                    statusChangedTimestamp: 1712817711132
+                    ovdmStatus: Installed
+                    versionName: Codesys_Workload
+                compose_workload:
+                  value:
+                    state: 8
+                    message: Domain compose with webUI started
+                    workloadId: 64be62c627d17a2ffc02457e
+                    uniqueId: afa64d3c-28b3-4e11-a067-98d595641f98
+                    name: compose with webUI
+                    type: docker-compose
+                    statusChangedTimestamp: 1712817710688
+                    ovdmStatus: Installed
+                    configurationUpdateInfo: []
+                    versionName: v1
+                    webUiInfo:
+                    - serviceName: test
+                      containerName: compose_with_webui_test_1
+                      locationUrl: /webui/compose_with_webui_test_1/
+                    services:
+                    - containerName: compose_with_webui_test_1
+                      state: 8
+                      message: container_running
+                      timestamp: 1712817710687
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+        '500':
+          description: Response received when the response does not match the schema or an unexpected error has occurred.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              example:
+                status: 500
+                msg: Invalid response
+  /api/workloads/{deviceId}/control/{command}:
+    put:
+      summary: Workload control
+      description: Control workloads - start, stop, suspend, restart, resume or undeploy it.
+      operationId: control_workload
+      tags:
+      - Workloads
+      x-permissions:
+      - WORKLOAD:CONTROL
+      parameters:
+      - name: deviceId
+        in: path
+        required: true
+        description: Unique identifier of the deployed workload. Device is a term used for workloads.
+        schema:
+          type: string
+          description: Id of the deployed workload
+          pattern: ^\d+$
+          minLength: 1
+          maxLength: 1001
+      - name: command
+        in: path
+        required: true
+        description: Operation to perform on codesys workload (start, stop, undeploy).
+        schema:
+          type: string
+          enum:
+          - START
+          - STOP
+          - SUSPEND
+          - RESTART
+          - RESUME
+          - UNDEPLOY
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Control workload route request payload
+              additionalProperties: false
+              required:
+              - workloadId
+              properties:
+                workloadId:
+                  oneOf:
+                  - description: ID (from Management System) of the entry
+                    type: string
+                    pattern: ^[0-9a-fA-F]{24}$
+                    minLength: 24
+                    maxLength: 24
+                  - description: ID created as workloadId(from database)-uniqueId(randomly generated uuid when workload is queued).
+                    type: string
+                    pattern: ^[0-9a-fA-F]{24}-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                    minLength: 61
+                    maxLength: 61
+                removeImages:
+                  type: boolean
+                  default: false
+                  description: 'Determines whether Docker and Docker Compose images associated with the deployed workload should be removed.
+
+                    - If set to **true**, all images linked to the workload will be deleted from the system.
+
+                    - If set to **false**, the images will remain in the system.
+
+                    This setting applies specifically to workloads using the Management System Registry.
+
+                    '
+            example:
+              workloadId: 64be62c627d17a2ffc02457e
+        required: true
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing information on whether the command was successful or not
+                additionalProperties: false
+                required:
+                - code
+                properties:
+                  code:
+                    type: integer
+                    description: Values that represent if command was successfully executed or not - 0 meaning success and 1 meaning failure.
+                    enum:
+                    - 0
+                    - 1
+                  message:
+                    type: string
+                    description: Action initiated or error message
+              examples:
+                operation_successful:
+                  value:
+                    code: 0
+                operation_already_applied:
+                  value:
+                    code: 1
+                    message: Command 'STOP' cannot be handled workload already STOPPED
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Validation error.
+                required:
+                - status
+                - message
+                - errors
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  message:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: The validation error message
+                  errors:
+                    type: array
+                    minItems: 1
+                    maxItems: 1001
+                    description: Detailed description of what does not match the schema
+                    items:
+                      type: object
+                      properties:
+                        path:
+                          type: string
+                          minLength: 1
+                          maxLength: 1001
+                          description: Specified location within the document where the error occurred
+                        message:
+                          type: string
+                          minLength: 1
+                          maxLength: 1001
+                          description: Error message
+              example:
+                status: 415
+                message: unsupported media type text/plain
+                errors:
+                - path: /api/setup/configurations
+                  message: unsupported media type text/plain
+        '500':
+          description: Response received when the response does not match the schema or an unexpected error has occurred.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              example:
+                status: 500
+                msg: Invalid response
+  /api/workloads/{deviceId}/apply-resources:
+    post:
+      summary: Update CPU and memory resources of VM workloads
+      operationId: update_workload_resources
+      tags:
+      - Workloads
+      description: Update values for CPU and memory for specified workload(applicable only for VM workload)
+      x-permissions:
+      - WORKLOAD_RESOURCES:APPLY
+      parameters:
+      - name: deviceId
+        in: path
+        required: true
+        description: Unique identifier of the deployed workload. Device is a term used for workloads.
+        schema:
+          type: string
+          description: Id of the deployed workload
+          pattern: ^\d+$
+          minLength: 1
+          maxLength: 1001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Object containing the information regarding the resource allocation
+              properties:
+                cpu:
+                  type: integer
+                  minimum: 1
+                  maximum: 256
+                  description: CPU allocation
+                memory:
+                  type: string
+                  description: Ram memory allocation
+                  minLength: 3
+                  maxLength: 11
+                  pattern: ^(?:(100000|[1-9][0-9]{5,6}|1[0-9]{7}|20000000)KB|(100|[1-9][0-9]{2,3}|1[0-9]{4}|20000)MB|(0\.[1-9]|[1-9](\.[0-9]+)?|1[0-9](\.[0-9]+)?|20(\.0)?)GB|(0\.000[1-9]|0\.00[1-9][0-9]?|0\.0[1-9][0-9]?|0\.[1-9][0-9]{0,2}|0\.01[0-9]?|0\.02)TB)$
+            examples:
+              cpu_changed:
+                value:
+                  cpu: 1
+              memory_changed:
+                value:
+                  memory: 160MB
+              memory_and_cpu_changed:
+                value:
+                  cpu: 1
+                  memory: 160MB
+      responses:
+        '204':
+          description: successful operation, configuration applied
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Validation error.
+                required:
+                - status
+                - message
+                - errors
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  message:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: The validation error message
+                  errors:
+                    type: array
+                    minItems: 1
+                    maxItems: 1001
+                    description: Detailed description of what does not match the schema
+                    items:
+                      type: object
+                      properties:
+                        path:
+                          type: string
+                          minLength: 1
+                          maxLength: 1001
+                          description: Specified location within the document where the error occurred
+                        message:
+                          type: string
+                          minLength: 1
+                          maxLength: 1001
+                          description: Error message
+              example:
+                status: 415
+                message: unsupported media type text/plain
+                errors:
+                - path: /api/setup/configurations
+                  message: unsupported media type text/plain
+        '500':
+          description: Response received when the response does not match the schema or an unexpected error has occurred.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              example:
+                status: 500
+                msg: Invalid response
+  /api/workloads/{deviceId}/apply-configuration:
+    post:
+      summary: Apply configuration to workload
+      description: The method is used to apply configuration to docker and docker-compose workloads.
+      operationId: apply_workload_configuration
+      tags:
+      - Workloads
+      x-permissions:
+      - WORKLOAD_DOCKER_CONFIGURATION:APPLY
+      parameters:
+      - name: deviceId
+        in: path
+        required: true
+        description: Unique identifier of the deployed workload. Device is a term used for workloads.
+        schema:
+          type: string
+          description: Id of the deployed workload
+          pattern: ^\d+$
+          minLength: 1
+          maxLength: 1001
+      requestBody:
+        description: Defines workload configuration
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              description: Object containing the configuration archive file and data regarding the workload for which the configuration is to be applied
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: File to be uploaded
+                data:
+                  type: object
+                  description: "Provides information about the workload and its configuration.\n**Example Request Data**:\n- **For Docker**:\n  ```json\n  {\n    \"deviceId\": 111,\n    \"user\": \"local@nerve.cloud\",\n    \"timestamp\": 1713250137163,\n    \"configurations\": [\n      {\n        \"volumeName\": \"volume\",\n        \"containerPath\": \"/tmp\"\n      }\n    ],\n    \"restartOnConfigurationUpdate\": true\n  }\n  ```\n  \n- **For Docker Compose**:\n  ```json\n  {\n    \"deviceId\": 243,\n    \"service\": \"nginx\",\n    \"user\": \"local@nerve.cloud\",\n    \"timestamp\": 1713251166323,\n    \"configurations\": [\n      {\n        \"volumeName\": \"volume1\",\n        \"containerPath\": \"/tmp\"\n      }\n    ],\n    \"restartOnConfigurationUpdate\": false\n  }\n  ```\n  \n**Notes**: - Ensure that the volume is created on the workload before applying the configuration. - After the volume is created, the workload needs to be (re)deployed."
+                  additionalProperties: false
+                  required:
+                  - configurations
+                  - user
+                  - timestamp
+                  - restartOnConfigurationUpdate
+                  properties:
+                    service:
+                      type: string
+                      description: The name of the service defined in the docker-compose file. Service name can only contain numbers, letters,_ and -.
+                      pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+                      minLength: 1
+                      maxLength: 40
+                    user:
+                      type: string
+                      description: The username of the user who initiated request to apply configuration
+                      minLength: 1
+                      maxLength: 1001
+                      pattern: .*
+                    configurations:
+                      type: array
+                      description: List of volume objects containing volume name and container path
+                      minItems: 0
+                      maxItems: 1001
+                      items:
+                        type: object
+                        properties:
+                          volumeName:
+                            type: string
+                            description: 'The docker volume name. The name is extracted from docker-compose file. Volume name can only contain numbers, letters, _ and -. NOTE: For now only volume name is allowed. Bind mount points are not allowed.'
+                            pattern: ^[A-z0-9-.]*$
+                            minLength: 1
+                            maxLength: 1001
+                          containerPath:
+                            type: string
+                            description: Container destination path which is mounted to specified volume
+                            pattern: ^[A-z0-9/.-]*$
+                            minLength: 1
+                            maxLength: 1001
+                    restartOnConfigurationUpdate:
+                      type: boolean
+                      description: Indicator if container will be restarted when applying configuration
+                      default: false
+                    timestamp:
+                      type: integer
+                      description: Time when configuration was applied to the workload(in milliseconds).
+      responses:
+        '204':
+          description: successful operation, configuration applied
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Validation error.
+                required:
+                - status
+                - message
+                - errors
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  message:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: The validation error message
+                  errors:
+                    type: array
+                    minItems: 1
+                    maxItems: 1001
+                    description: Detailed description of what does not match the schema
+                    items:
+                      type: object
+                      properties:
+                        path:
+                          type: string
+                          minLength: 1
+                          maxLength: 1001
+                          description: Specified location within the document where the error occurred
+                        message:
+                          type: string
+                          minLength: 1
+                          maxLength: 1001
+                          description: Error message
+              example:
+                status: 415
+                message: unsupported media type text/plain
+                errors:
+                - path: /api/setup/configurations
+                  message: unsupported media type text/plain
+        '500':
+          description: Response received when the response does not match the schema or an unexpected error has occurred.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                invalid_response:
+                  value:
+                    status: 500
+                    msg: Invalid response
+                workload_does_not_exist:
+                  value:
+                    status: 500
+                    msg: Workload for which configuration update is requested does not exist on the system.
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    basicAuth:
+      type: http
+      scheme: basic

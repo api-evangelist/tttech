@@ -1,0 +1,735 @@
+openapi: 3.2.0
+info:
+  version: 2.10.0
+  description: 'Nerve OVDM API to manage:
+
+    - node configuration
+
+    - system configuration
+
+    - system network configuration
+
+    - workloads
+
+    - remote connections
+
+    - dna'
+  title: Nerve Node SETUP NETWORK API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+security:
+- cookieAuth: []
+tags:
+- name: SETUP NETWORK
+paths:
+  /api/setup/network/interfaces:
+    get:
+      summary: Get network configuration
+      tags:
+      - SETUP NETWORK
+      x-permissions:
+      - NETWORK_INTERFACE:VIEW
+      description: Get current setup of the network interfaces.
+      operationId: get_network_configuration
+      responses:
+        '200':
+          description: Successful operation. The network configuration returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing the list of network interfaces and the status of the configuration process
+                additionalProperties: false
+                properties:
+                  interfaces:
+                    minItems: 1
+                    maxItems: 1001
+                    type: array
+                    description: List of network interfaces
+                    items:
+                      type: object
+                      properties:
+                        interface_name:
+                          type: string
+                          description: The name of the network interface. This field specifies the logical name  assigned to a network interface. It helps in identifying different interfaces  such as WAN or external interfaces that connect to different parts of the network.
+                          enum:
+                          - wan
+                          - extern1
+                          - extern2
+                          - extern3
+                        allocation:
+                          type: string
+                          description: "The method of IP address allocation for the network interface. This field  indicates how the IP address for the interface is assigned.  - If the allocation is 'dhcp', the IP address of the port will be assigned \n  dynamically by the DHCP server, making it easier to manage addresses centrally.\n- If the allocation is 'static', the IP address of the port will be manually \n  defined, providing a fixed and permanent address which is crucial for servers \n  or services requiring stable IP addresses.\n- If the allocation is 'unconfigured', the port is disabled for the host (it has \n  no IP address), but can still be used for virtual machines with bridged interfaces, \n  which is useful in virtualized environments where the host does not need direct \n  network access."
+                          enum:
+                          - dhcp
+                          - static
+                          - unconfigured
+                        ip_address:
+                          description: The IP address assigned to the interface. This is the unique identifier assigned  to the network interface which allows it to communicate within the network. It should  be in the standard IPv4 format.
+                          type: string
+                          format: ipv4
+                          minLength: 0
+                          maxLength: 15
+                          pattern: ^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$
+                        netmask:
+                          description: The netmask associated with the IP address. This defines the subnet of the  IP address, helping to determine which part of the IP address denotes the network  and which part denotes the host. It should be in the standard IPv4 format.
+                          type: string
+                          format: ipv4
+                          minLength: 0
+                          maxLength: 15
+                          pattern: ^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$
+                        domainNames:
+                          description: The domain names associated with the interface. These are human-readable  names that map to the IP address of the interface, used for easier identification  and access within the network. This can either be a single domain name as a string  or an array of domain names.
+                          anyOf:
+                          - type: string
+                          - type: array
+                            items:
+                              type: string
+                              minLength: 0
+                              maxLength: 1001
+                        gateway:
+                          description: The IP address of the gateway associated with the interface. This is the router  address that serves as the access point or IP router that a network device uses to send  information to a different network or the internet. It should be in the standard IPv4 format.
+                          type: string
+                          format: ipv4
+                          minLength: 0
+                          maxLength: 15
+                          pattern: ^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$
+                        disabledWanTraffic:
+                          description: Block incoming traffic on the WAN interface
+                          type: boolean
+                          default: false
+                  status:
+                    type: string
+                    description: The status of the configuration process
+                    enum:
+                    - INIT
+                    - IN_PROGRESS
+                    - FAILURE
+                    - SUCCESS
+              example:
+                status: INIT
+                interfaces:
+                - interface_name: wan
+                  allocation: dhcp
+                  ip_address: 0.0.0.0
+                  netmask: 0.0.0.0
+                  gateway: 0.0.0.0
+                  domainNames:
+                  - 127.0.0.11
+                - interface_name: extern1
+                  allocation: unconfigured
+                  ip_address: 0.0.0.0
+                  netmask: 0.0.0.0
+                  gateway: 0.0.0.0
+                  domainNames: []
+                - interface_name: extern2
+                  allocation: unconfigured
+                  ip_address: 0.0.0.0
+                  netmask: 0.0.0.0
+                  gateway: 0.0.0.0
+                  domainNames: []
+                - interface_name: extern3
+                  allocation: unconfigured
+                  ip_address: 0.0.0.0
+                  netmask: 0.0.0.0
+                  gateway: 0.0.0.0
+                  domainNames: []
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+  /api/setup/network/check-update-status:
+    get:
+      summary: Get network update status
+      tags:
+      - SETUP NETWORK
+      x-permissions:
+      - NETWORK_UPDATE_STATUS:VIEW
+      description: Retrieve the current status of network updates.
+      operationId: get_network_update_status
+      responses:
+        '200':
+          description: Successful operation. The current status of network updates returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing the list of network interfaces and the network configuration status
+                properties:
+                  status:
+                    type: string
+                    description: The status of the configuration process
+                    enum:
+                    - INIT
+                    - IN_PROGRESS
+                    - FAILURE
+                    - SUCCESS
+                  interfaces:
+                    type: array
+                    minItems: 0
+                    maxItems: 1001
+                    description: List of network interfaces
+                    items:
+                      type: object
+                      properties:
+                        interface_name:
+                          type: string
+                          description: The name of the network interface. This field specifies the logical name  assigned to a network interface. It helps in identifying different interfaces  such as WAN or external interfaces that connect to different parts of the network.
+                          enum:
+                          - wan
+                          - extern1
+                          - extern2
+                          - extern3
+                        status:
+                          description: Status of network updates.
+                          type: boolean
+                      required:
+                      - interface_name
+                      - status
+                required:
+                - status
+                - interfaces
+              example:
+                status: SUCCESS
+                interfaces:
+                - interface_name: extern3
+                  status: true
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+  /api/setup/network/init-config-update:
+    post:
+      summary: Initiating network interface update
+      tags:
+      - SETUP NETWORK
+      x-permissions:
+      - NETWORK_INTERFACE:EDIT
+      description: Initiating network interface update.
+      operationId: initiating_network_update
+      requestBody:
+        description: Initiating network interface update.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Object containing the list of network interface configurations to be applied
+              required:
+              - configurations
+              additionalProperties: false
+              properties:
+                configurations:
+                  type: array
+                  minItems: 1
+                  maxItems: 1001
+                  description: List of network interface configurations to be applied
+                  items:
+                    type: object
+                    additionalProperties: false
+                    properties:
+                      interface_name:
+                        type: string
+                        description: The name of the network interface. This field specifies the logical name  assigned to a network interface. It helps in identifying different interfaces  such as WAN or external interfaces that connect to different parts of the network.
+                        enum:
+                        - wan
+                        - extern1
+                        - extern2
+                        - extern3
+                      allocation:
+                        type: string
+                        description: "The method of IP address allocation for the network interface. This field  indicates how the IP address for the interface is assigned.  - If the allocation is 'dhcp', the IP address of the port will be assigned \n  dynamically by the DHCP server, making it easier to manage addresses centrally.\n- If the allocation is 'static', the IP address of the port will be manually \n  defined, providing a fixed and permanent address which is crucial for servers \n  or services requiring stable IP addresses.\n- If the allocation is 'unconfigured', the port is disabled for the host (it has \n  no IP address), but can still be used for virtual machines with bridged interfaces, \n  which is useful in virtualized environments where the host does not need direct \n  network access."
+                        enum:
+                        - dhcp
+                        - static
+                        - unconfigured
+                      ip_address:
+                        description: The IP address assigned to the interface. This is the unique identifier assigned  to the network interface which allows it to communicate within the network. It should  be in the standard IPv4 format.
+                        type: string
+                        format: ipv4
+                        minLength: 0
+                        maxLength: 15
+                        pattern: ^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$
+                      netmask:
+                        description: The netmask associated with the IP address. This defines the subnet of the  IP address, helping to determine which part of the IP address denotes the network  and which part denotes the host. It should be in the standard IPv4 format.
+                        type: string
+                        format: ipv4
+                        minLength: 0
+                        maxLength: 15
+                        pattern: ^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$
+                      domainNames:
+                        description: The domain names associated with the interface. These are human-readable  names that map to the IP address of the interface, used for easier identification  and access within the network. This can either be a single domain name as a string  or an array of domain names.
+                        anyOf:
+                        - type: string
+                        - type: array
+                          items:
+                            type: string
+                            minLength: 0
+                            maxLength: 1001
+                      gateway:
+                        description: The IP address of the gateway associated with the interface. This is the router  address that serves as the access point or IP router that a network device uses to send  information to a different network or the internet. It should be in the standard IPv4 format.
+                        type: string
+                        format: ipv4
+                        minLength: 0
+                        maxLength: 15
+                        pattern: ^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$
+                      disabledWanTraffic:
+                        description: Block incoming traffic on the WAN interface
+                        type: boolean
+                        default: false
+                    required:
+                    - interface_name
+                    - allocation
+                    - ip_address
+                    - netmask
+            examples:
+              wan:
+                value:
+                  configurations:
+                  - allocation: dhcp
+                    domainNames:
+                    - 192.168.231.186
+                    - 192.168.231.189
+                    gateway: 0.0.0.0
+                    interface_name: wan
+                    ip_address: 10.85.10.63
+                    netmask: 255.255.255.0
+              unconfigured:
+                value:
+                  configurations:
+                  - allocation: unconfigured
+                    interface_name: extern2
+                    ip_address: 0.0.0.0
+                    netmask: 0.0.0.0
+              static:
+                value:
+                  configurations:
+                  - allocation: static
+                    interface_name: extern3
+                    domainNames: ''
+                    ip_address: 10.85.10.63
+                    netmask: 255.255.255.0
+      responses:
+        '200':
+          description: Successful initialization of network interface update.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing 'message' property which indicating the network interface update has been initiated
+                properties:
+                  message:
+                    type: string
+                    description: Message indicating that the network interface update has been initiated
+              example:
+                message: ''
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error
+                  required:
+                  - message
+                  additionalProperties: false
+                  properties:
+                    message:
+                      type: string
+                      description: Error message
+              example:
+                message: Fields interface_name and allocation are required for each interface!
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    basicAuth:
+      type: http
+      scheme: basic

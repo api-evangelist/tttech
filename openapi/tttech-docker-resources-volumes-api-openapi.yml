@@ -1,0 +1,1071 @@
+openapi: 3.2.0
+info:
+  version: 2.10.0
+  description: 'Nerve OVDM API to manage:
+
+    - node configuration
+
+    - system configuration
+
+    - system network configuration
+
+    - workloads
+
+    - remote connections
+
+    - dna'
+  title: Nerve Node DOCKER RESOURCES VOLUMES API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+security:
+- cookieAuth: []
+tags:
+- name: DOCKER_RESOURCES_VOLUMES
+paths:
+  /api/docker-resources/volumes:
+    get:
+      tags:
+      - DOCKER_RESOURCES_VOLUMES
+      operationId: list_volumes
+      summary: List all docker volumes from the node
+      description: Retrieve a list of all docker volumes from the node.
+      x-permissions:
+      - DOCKER_RESOURCES:VOLUME_LIST
+      responses:
+        '200':
+          description: Volumes successfully fetched from node.
+          content:
+            application/json:
+              schema:
+                description: List all docker volumes from the node
+                type: object
+                additionalProperties: false
+                required:
+                - volumes
+                properties:
+                  volumes:
+                    type: array
+                    description: Docker volumes from the node
+                    minItems: 0
+                    maxItems: 1001
+                    items:
+                      type: object
+                      required:
+                      - name
+                      - usedByContainers
+                      - usedByWorkloads
+                      - size
+                      - createdAt
+                      additionalProperties: false
+                      properties:
+                        name:
+                          type: string
+                          description: Docker volume name
+                          minLength: 1
+                          maxLength: 1000
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                        size:
+                          type: integer
+                          description: Size of the volume in bytes
+                          minimum: 0
+                          maximum: 1073741824000
+                        createdAt:
+                          type: string
+                          description: Creation date of the volume in ISO 8601 format
+                          format: date-time
+                          minLength: 24
+                          maxLength: 24
+                        usedByContainers:
+                          type: array
+                          description: Docker containers using the volume
+                          minItems: 0
+                          maxItems: 1000
+                          items:
+                            type: string
+                            description: Docker container name
+                            minLength: 2
+                            maxLength: 100
+                            pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]+$
+                        usedByWorkloads:
+                          type: array
+                          description: Workloads using the volume
+                          minItems: 0
+                          maxItems: 1000
+                          items:
+                            type: object
+                            required:
+                            - name
+                            - type
+                            - versionName
+                            additionalProperties: false
+                            properties:
+                              name:
+                                type: string
+                                description: Workload name
+                                minLength: 1
+                                maxLength: 40
+                                pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                              type:
+                                type: string
+                                description: Workload type
+                                enum:
+                                - vm
+                                - docker
+                                - codesys
+                                - docker-compose
+                              versionName:
+                                type: string
+                                description: Workload version name
+                                minLength: 1
+                                maxLength: 40
+                                pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+              examples:
+                docker_volumes:
+                  value:
+                    volumes:
+                    - name: volume1
+                      size: 1000000
+                      createdAt: '2025-03-20T10:04:22.000Z'
+                      usedByContainers:
+                      - container1
+                      - container2
+                      usedByWorkloads:
+                      - name: workload1
+                        type: docker
+                        versionName: v1
+                      - name: workload2
+                        type: docker-compose
+                        versionName: v2
+                    - name: volume2
+                      size: 2000000
+                      createdAt: '2025-03-28T12:02:53.000Z'
+                      usedByContainers:
+                      - container3
+                      - container4
+                      usedByWorkloads:
+                      - name: workload3
+                        type: docker
+                        versionName: v1
+                      - name: workload4
+                        type: docker-compose
+                        versionName: v2
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+  /api/docker-resources/volumes/{name}:
+    delete:
+      tags:
+      - DOCKER_RESOURCES_VOLUMES
+      operationId: delete_volume
+      summary: Delete a docker volume
+      description: Delete a docker volume from the node. Volume can ba deleted only if it is not used by any docker container.
+      x-permissions:
+      - DOCKER_RESOURCES:VOLUME_DELETE
+      parameters:
+      - name: name
+        in: path
+        required: true
+        description: Name of the docker volume to be deleted.
+        schema:
+          type: string
+          description: Docker volume name
+          minLength: 1
+          maxLength: 1000
+          pattern: ^[\x20-\x7E\t\n\r]*$
+      responses:
+        '204':
+          description: The volume was successfully deleted.
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                docker_compose_image_not_found:
+                  value:
+                    status: 409
+                    msg: Local Docker image not found. Please try deploying the workload again.
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+  /api/docker-resources/volumes/{name}/import:
+    post:
+      summary: Import data to an existing docker volume
+      description: Import data to an existing docker volume. The data is provided as a zip archive.
+      operationId: import_data_to_volume
+      tags:
+      - DOCKER_RESOURCES_VOLUMES
+      x-permissions:
+      - DOCKER_RESOURCES:VOLUME_IMPORT
+      parameters:
+      - name: name
+        in: path
+        required: true
+        description: The name of the Docker volume to which the data will be imported.
+        schema:
+          type: string
+          description: Docker volume name
+          minLength: 1
+          maxLength: 1000
+          pattern: ^[\x20-\x7E\t\n\r]*$
+      requestBody:
+        description: Defines volume data to be imported
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              description: Object containing the zip archive file that includes both the data archive and its SHA256 hash.
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: File to be uploaded
+                  minLength: 1
+                  maxLength: 1000
+      responses:
+        '200':
+          description: successful operation, data applied to volume, new volume size returned
+          content:
+            application/json:
+              schema:
+                description: Object containing the size of the volume after the import operation.
+                type: object
+                required:
+                - volumeSize
+                additionalProperties: false
+                properties:
+                  volumeSize:
+                    type: integer
+                    description: Size of the volume in bytes
+                    minimum: 1
+                    maximum: 10000000000
+              example:
+                volumeSize: 123456789
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                docker_compose_image_not_found:
+                  value:
+                    status: 409
+                    msg: Local Docker image not found. Please try deploying the workload again.
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Validation error.
+                required:
+                - status
+                - message
+                - errors
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  message:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: The validation error message
+                  errors:
+                    type: array
+                    minItems: 1
+                    maxItems: 1001
+                    description: Detailed description of what does not match the schema
+                    items:
+                      type: object
+                      properties:
+                        path:
+                          type: string
+                          minLength: 1
+                          maxLength: 1001
+                          description: Specified location within the document where the error occurred
+                        message:
+                          type: string
+                          minLength: 1
+                          maxLength: 1001
+                          description: Error message
+              example:
+                status: 415
+                message: unsupported media type text/plain
+                errors:
+                - path: /api/setup/configurations
+                  message: unsupported media type text/plain
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+  /api/docker-resources/volumes/{name}/export:
+    get:
+      tags:
+      - DOCKER_RESOURCES_VOLUMES
+      operationId: export_volume
+      summary: Export a Docker volume
+      description: Export a Docker volume to a specified path.
+      x-permissions:
+      - DOCKER_RESOURCES:VOLUME_EXPORT
+      parameters:
+      - name: name
+        in: path
+        required: true
+        description: Name of the docker volume to be exported.
+        schema:
+          type: string
+          description: Docker volume name
+          minLength: 1
+          maxLength: 1000
+          pattern: ^[\x20-\x7E\t\n\r]*$
+      responses:
+        '200':
+          description: The volume was successfully exported
+          content:
+            application/zip:
+              schema:
+                description: The volume data is downloaded as a .zip archive.
+                type: string
+                format: binary
+                minLength: 1
+                maxLength: 1000
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                docker_compose_image_not_found:
+                  value:
+                    status: 409
+                    msg: Local Docker image not found. Please try deploying the workload again.
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    basicAuth:
+      type: http
+      scheme: basic

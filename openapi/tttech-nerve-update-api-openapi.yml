@@ -1,0 +1,749 @@
+openapi: 3.2.0
+info:
+  version: 3.1.0
+  description: 'Nerve Management System API to manage: -labels -nodes -workloads -notifications -capabilities'
+  title: Nerve Management System NERVE UPDATE API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+servers:
+- url: https://trynerve1.nerve.cloud
+security:
+- sessionId: []
+tags:
+- name: NERVE_UPDATE
+  description: The operations to manage Nerve updates
+paths:
+  /nerve/update/cloud/current-version:
+    get:
+      summary: Get the current version of the cloud
+      operationId: current_cloud_version
+      security: []
+      tags:
+      - NERVE_UPDATE
+      description: Retrieve the current version of the cloud. This version number is shown when the user hovers over "System Info" at the bottom of the side bar menu.
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '200':
+          description: Successfully retrieved the current cloud version
+          content:
+            application/json:
+              schema:
+                type: object
+                description: The current version of the Management System.
+                additionalProperties: false
+                required:
+                - buildDate
+                - currentVersion
+                - gitCommit
+                properties:
+                  buildDate:
+                    type: string
+                    description: The build date of the current version.
+                    pattern: ^\d{2}/\d{2}/\d{4}$
+                    minLength: 10
+                    maxLength: 10
+                  currentVersion:
+                    type: string
+                    description: The version name of the Management System or the version of the node
+                    minLength: 5
+                    maxLength: 150
+                    pattern: ^.+$
+                    example: 2.10.0
+                  gitCommit:
+                    type: string
+                    description: The Git commit hash associated with the current version.
+                    pattern: ^[0-9a-f]{40}$
+                    minLength: 1
+                    maxLength: 40
+              example:
+                buildDate: 15/02/2025
+                currentVersion: 2.10.0
+                gitCommit: 223811ea0a8752f91135c9743a83675f82401771
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: update_service_006
+                httpCode: '500'
+                message: Failed to fetch current cloud version. Please check logs for more details.
+  /nerve/update/cloud/incompatible-nodes/{version}:
+    get:
+      summary: Get the list of incompatible nodes compared to the specific MS version
+      operationId: incompatible_nodes
+      tags:
+      - NERVE_UPDATE
+      description: This endpoint retrieves a list of nodes that are incompatible with specified MS version to which the system can update.
+      parameters:
+      - name: version
+        in: path
+        required: true
+        description: The version of the Management System
+        schema:
+          type: string
+          description: The version name of the Management System or the version of the node
+          minLength: 5
+          maxLength: 150
+          pattern: ^.+$
+          example: 2.10.0
+      x-permissions:
+      - VERSION:UPDATE
+      responses:
+        '200':
+          description: Successfully retrieved the list of incompatible nodes
+          content:
+            application/json:
+              schema:
+                type: object
+                description: The list of nodes that are not compatible with specified MS versions.
+                additionalProperties: false
+                required:
+                - nodes
+                properties:
+                  nodes:
+                    type: array
+                    description: The list of nodes that are not compatible with specified MS versions.
+                    minItems: 0
+                    maxItems: 1000
+                    items:
+                      type: object
+                      additionalProperties: false
+                      required:
+                      - name
+                      - currentFWVersion
+                      properties:
+                        name:
+                          type: string
+                          description: The name of the node
+                          minLength: 1
+                          maxLength: 40
+                          pattern: ^\s*(?=[a-zA-Z0-9_ -]+$)\S.*$
+                        currentFWVersion:
+                          minLength: 0
+                          maxLength: 1000
+                          description: Node version(e.g. 2.5)
+                          default: ''
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                nodes:
+                - name: test_node_1
+                  currentFWVersion: 3.2.0
+                - name: test_node_2
+                  currentFWVersion: 3.0.0
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: update_service_007
+                httpCode: '500'
+                message: Failed to fetch incompatible nodes. Please check logs for more details.
+  /nerve/update/local-node-update:
+    get:
+      summary: Get the list of available node update versions
+      operationId: local_node_update_versions
+      tags:
+      - NERVE_UPDATE
+      description: This endpoint is used to retrieve the list of available node update versions. The list of available versions is fetched from the Nerve Software Center and saved to Management System (MS) database. The list of available versions is used to update node devices connected to Management System.
+      x-permissions:
+      - NODE_UPDATE:LIST
+      responses:
+        '200':
+          description: Successfully retrieved the list of available node update versions
+          content:
+            application/json:
+              schema:
+                type: object
+                description: The list of available node update versions.
+                additionalProperties: false
+                required:
+                - nodeUpdates
+                properties:
+                  nodeUpdates:
+                    type: array
+                    description: The list of available node update versions.
+                    minItems: 0
+                    maxItems: 200
+                    items:
+                      type: object
+                      additionalProperties: false
+                      required:
+                      - name
+                      - releaseDate
+                      properties:
+                        name:
+                          type: string
+                          description: The version name of the Management System or the version of the node
+                          minLength: 5
+                          maxLength: 150
+                          pattern: ^.+$
+                          example: 2.10.0
+                        releaseDate:
+                          oneOf:
+                          - type: string
+                            description: Date and time in ISO 8601 format
+                            format: date-time
+                            pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
+                            minLength: 24
+                            maxLength: 24
+                          - type:
+                            - object
+                            - 'null'
+                            description: The release date of the version.
+                          example: '2022-03-18T00:00:00.000Z'
+              example:
+                nodeUpdates:
+                - name: 2.8.0
+                  releaseDate: '2022-03-18T00:00:00.000Z'
+                - name: 3.0.0
+                  releaseDate: '2024-05-18T00:00:00.000Z'
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+  /nerve/update/node/details-by-name:
+    get:
+      summary: Get the details of a node update version
+      operationId: node_update_details
+      tags:
+      - NERVE_UPDATE
+      description: Retrieve the details of a node update version. This includes information about the version, its release date, updateFrom and updateTo version lists
+      parameters:
+      - name: versionName
+        in: query
+        required: true
+        description: The version of the node update
+        schema:
+          type: string
+          description: The version name of the Management System or the version of the node
+          minLength: 5
+          maxLength: 150
+          pattern: ^.+$
+          example: 2.10.0
+      x-permissions:
+      - NODE_UPDATE:DETAILS
+      responses:
+        '200':
+          description: Successfully retrieved the details of the node update version
+          content:
+            application/json:
+              schema:
+                type: object
+                description: The details of the node update version.
+                required:
+                - nodeUpdateDetails
+                additionalProperties: false
+                properties:
+                  nodeUpdateDetails:
+                    type: array
+                    description: The list of node update versions
+                    minItems: 0
+                    maxItems: 200
+                    items:
+                      type: object
+                      additionalProperties: false
+                      required:
+                      - name
+                      - releaseDate
+                      - updateFrom
+                      - updateTo
+                      properties:
+                        name:
+                          type: string
+                          description: The version name of the Management System or the version of the node
+                          minLength: 5
+                          maxLength: 150
+                          pattern: ^.+$
+                          example: 2.10.0
+                        releaseDate:
+                          oneOf:
+                          - type: string
+                            description: Date and time in ISO 8601 format
+                            format: date-time
+                            pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
+                            minLength: 24
+                            maxLength: 24
+                          - type:
+                            - object
+                            - 'null'
+                            description: The release date of the version.
+                          example: '2022-03-18T00:00:00.000Z'
+                        updateFrom:
+                          type: array
+                          description: The list of versions that can be updated to this version.
+                          minItems: 0
+                          maxItems: 20
+                          items:
+                            type: string
+                            description: The version name of the Management System or the version of the node
+                            minLength: 5
+                            maxLength: 150
+                            pattern: ^.+$
+                            example: 2.10.0
+                        updateTo:
+                          type: array
+                          description: A list of versions to which specific version can be updated.
+                          minItems: 0
+                          maxItems: 20
+                          items:
+                            type: object
+                            required:
+                            - version
+                            - release_date
+                            additionalProperties: false
+                            properties:
+                              version:
+                                type: string
+                                description: The version name of the Management System or the version of the node
+                                minLength: 5
+                                maxLength: 150
+                                pattern: ^.+$
+                                example: 2.10.0
+                              release_date:
+                                oneOf:
+                                - type: string
+                                  description: The release date of the version in short format.
+                                  pattern: ^\d{4}-\d{2}-\d{2}$
+                                  minLength: 10
+                                  maxLength: 10
+                                  example: '2022-03-18'
+                                - type:
+                                  - object
+                                  - 'null'
+                                  description: The release date of the version.
+                                example: '2022-03-18'
+                          example:
+                          - version: 2.4.2
+                            release_date: '2022-03-18'
+                          - version: 2.6.1
+                            release_date: '2024-02-13'
+                        hardwareModel:
+                          description: The name of the hardware model (hardware model must be defined in the database)
+                          minLength: 1
+                          maxLength: 1000
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                nodeUpdateDetails:
+                - hardwareModel: mfn-100
+                  name: 2.4.2
+                  releaseDate: '2022-03-18T00:00:00.000Z'
+                  updateFrom:
+                  - 2.0.0
+                  - 2.2.0
+                  updateTo:
+                  - version: 2.6.1
+                    release_date: '2023-03-18'
+                  - version: 2.8.0
+                    release_date: '2024-02-13'
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+  /nerve/update/fetch-node-updates:
+    get:
+      summary: Trigger fetch of node updates from the NSC
+      operationId: fetch_node_updates
+      description: This endpoint triggers fetch of available node updates from the Nerve Software Center. Available updates are stored in the Nerve database and can be listed using a dedicated endpoint.
+      tags:
+      - NERVE_UPDATE
+      x-permissions:
+      - NODE_UPDATE:LIST
+      responses:
+        '200':
+          description: Successfully triggered fetch of node updates
+          content:
+            application/json:
+              schema:
+                type: object
+                description: The result of the fetch operation.
+                additionalProperties: false
+                required:
+                - message
+                properties:
+                  message:
+                    type: string
+                    pattern: ^.*$
+                    minLength: 15
+                    maxLength: 100
+                    description: The result of the fetch operation.
+                    example: Node updates successfully pulled and stored in database.
+              examples:
+                success:
+                  summary: Successful fetch
+                  value:
+                    message: Node updates successfully pulled and stored in database.
+                no_updates:
+                  summary: No updates available
+                  value:
+                    message: No available node updates from Nerve Software Center.
+                error:
+                  summary: Fetch failed
+                  value:
+                    message: Unable to store available node versions. Check logs for more details.
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+  /nerve/update/cloud/fetch-available-versions:
+    get:
+      summary: Trigger fetch of available cloud update versions from the NSC
+      operationId: fetch_available_versions
+      description: This endpoint triggers fetch of available cloud update versions from the Nerve Software Center.
+      tags:
+      - NERVE_UPDATE
+      x-permissions:
+      - VERSION:UPDATE
+      responses:
+        '200':
+          description: Successfully triggered fetch of available cloud update versions from Nerve Software Center
+          content:
+            application/json:
+              schema:
+                type: object
+                description: The result of the fetch operation.
+                additionalProperties: false
+                required:
+                - message
+                properties:
+                  message:
+                    type: string
+                    pattern: ^.*$
+                    minLength: 15
+                    maxLength: 100
+                    description: The result of the fetch operation.
+                    example: Cloud updates successfully pulled and stored in database.
+              examples:
+                success:
+                  summary: Successful fetch
+                  value:
+                    message: Available cloud update versions fetched from NSC.
+                error:
+                  summary: Fetch failed
+                  value:
+                    message: Failed to fetch latest available cloud update versions from NSC. Check logs for more details.
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+  /nerve/update/cloud/available-versions:
+    get:
+      summary: Get available MS update versions for current cloud version
+      operationId: available_cloud_update_versions
+      description: This endpoint retrieves the available update versions for the current cloud version. The response includes a list of available versions with specific information about each.
+      tags:
+      - NERVE_UPDATE
+      x-permissions:
+      - VERSION:LIST
+      responses:
+        '200':
+          description: Get the list of available cloud update versions for current MS version
+          content:
+            application/json:
+              schema:
+                type: object
+                description: The response containing the list of available update versions.
+                additionalProperties: false
+                required:
+                - versions
+                properties:
+                  versions:
+                    type: array
+                    minItems: 0
+                    maxItems: 200
+                    description: A list of available update versions.
+                    items:
+                      type: object
+                      additionalProperties: false
+                      required:
+                      - version
+                      - release_date
+                      properties:
+                        version:
+                          type: string
+                          description: The version name of the Management System or the version of the node
+                          minLength: 5
+                          maxLength: 150
+                          pattern: ^.+$
+                          example: 2.10.0
+                        release_date:
+                          oneOf:
+                          - type: string
+                            description: Date and time in ISO 8601 format
+                            format: date-time
+                            pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
+                            minLength: 24
+                            maxLength: 24
+                          - type:
+                            - object
+                            - 'null'
+                            description: The release date of the version.
+                          example: '2022-03-18T00:00:00.000Z'
+              example:
+                versions:
+                - version: 2.8.0
+                  release_date: '2022-03-18T00:00:00.000Z'
+                - version: 3.0.0
+                  release_date: '2024-05-18T00:00:00.000Z'
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+components:
+  securitySchemes:
+    sessionId:
+      type: apiKey
+      in: header
+      name: sessionId
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    bearerAuth:
+      type: http
+      scheme: bearer

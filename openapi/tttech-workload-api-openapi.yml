@@ -1,0 +1,337 @@
+openapi: 3.2.0
+info:
+  version: 3.1.0
+  description: 'Nerve Management System API to manage: -labels -nodes -workloads -notifications -capabilities'
+  title: Nerve Management System WORKLOAD API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+servers:
+- url: https://trynerve1.nerve.cloud
+security:
+- sessionId: []
+tags:
+- name: Workload
+  description: The operations to manage workloads v1.
+paths:
+  /nerve/workload/controller:
+    post:
+      summary: Control life-cycle and workflow of the deployed workload
+      operationId: managing_deployed_workload
+      tags:
+      - Workload
+      description: Used to control life-cycle and workflow of the deployed workload. With this request the command is only sent to OVDM, the result of the operation is received via mqtt.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Request body for controlling the life-cycle and workflow of the deployed workload
+              required:
+              - deviceId
+              - serialNumber
+              - command
+              - sessionToken
+              properties:
+                deviceId:
+                  type: integer
+                  format: int32
+                  description: Id of the deployed workload
+                  minimum: 100
+                  maximum: 1000
+                serialNumber:
+                  description: The serial number of the node
+                  type: string
+                  maxLength: 12
+                  minLength: 12
+                  pattern: ([A-Z0-9]){12}
+                sessionToken:
+                  description: Session token of the user who initiated the action
+                  minLength: 1
+                  maxLength: 1000
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                command:
+                  type: string
+                  description: Command to be executed
+                  enum:
+                  - START
+                  - STOP
+                  - SUSPEND
+                  - RESUME
+                  - RESTART
+                  - UNDEPLOY
+                workloadId:
+                  description: ID (from Management System) of the entry
+                  type: string
+                  pattern: ^[0-9a-fA-F]{24}$
+                  minLength: 24
+                  maxLength: 24
+                versionId:
+                  description: ID (from Management System) of the entry
+                  type: string
+                  pattern: ^[0-9a-fA-F]{24}$
+                  minLength: 24
+                  maxLength: 24
+                removeImages:
+                  type: boolean
+                  description: 'Specifies whether Docker and Docker Compose images associated with the deployed workload
+
+                    should be removed during the undeploy process.
+
+                    - If set to **true**, all images linked to the workload will be deleted from the system.
+
+                    - If set to **false**, the images will be retained.
+
+                    This setting applies specifically to workloads using the Management System Registry.
+
+                    '
+            examples:
+              wl_control_req:
+                value:
+                  command: UNDEPLOY
+                  serialNumber: MFN111111111
+                  deviceId: 895
+                  sessionToken: 62569e8b448cd10020407243-9fa80007fef2eb190c876038527d8fd3e2afb0ece03402a19563a4f754107e9e
+                  workloadId: 62e8e8ef39c508006b8c5231
+                  versionId: 62e8e8ef39c508006b8c5232
+      x-permissions:
+      - WORKLOAD:CONTROL
+      responses:
+        '200':
+          description: Request successfully executed
+          content:
+            application/json:
+              schema:
+                description: Message that the command has been accepted for processing
+                oneOf:
+                - type: string
+                - type: object
+                  maxProperties: 0
+              examples:
+                wl_control_ok:
+                  value: OK
+        '400':
+          description: UNDEPLOY command cannot be executed, workload backup is in progress
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                wl_undeploy_not_possible:
+                  value:
+                    errorCode: nerve_workload_140
+                    httpCode: '400'
+                    message: The workload cannot be undeployed, a backup is in progress
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Request failed, this is the response received when node with specified serial number does not exist.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                node_not_found:
+                  value:
+                    errorCode: 000719
+                    httpCode: '404'
+                    message: Node with this serial number does not exist
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                wl_control_err:
+                  value:
+                    errorCode: nerve_workload_045
+                    httpCode: '500'
+                    message: Undeploy failed
+  /nerve/workload/{workloadId}:
+    delete:
+      summary: Delete the selected workload
+      operationId: delete_workload
+      tags:
+      - Workload
+      description: Used to delete specific workload by ID
+      parameters:
+      - name: workloadId
+        in: path
+        required: true
+        description: Workload Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      x-permissions:
+      - WORKLOAD:DELETE
+      responses:
+        '204':
+          description: The resource was deleted successfully
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Workload with specific ID does not exist in the db
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '000700'
+                httpCode: '404'
+                message: Workload you are looking for does not exist
+components:
+  securitySchemes:
+    sessionId:
+      type: apiKey
+      in: header
+      name: sessionId
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    bearerAuth:
+      type: http
+      scheme: bearer

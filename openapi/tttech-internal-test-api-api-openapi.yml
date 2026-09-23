@@ -1,0 +1,397 @@
+openapi: 3.2.0
+info:
+  version: 3.1.0
+  description: 'Nerve Management System API to manage: -labels -nodes -workloads -notifications -capabilities'
+  title: Nerve Management System INTERNAL TEST API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+servers:
+- url: https://trynerve1.nerve.cloud
+security:
+- sessionId: []
+tags:
+- name: INTERNAL_TEST_API
+  description: Operations intended solely for testing, used to validate system behavior under invalid or edge-case data scenarios. Not for production use.
+paths:
+  /nerve/internal-test-api/config/{parameter}/reload:
+    post:
+      summary: Reload configuration for a specific parameter from `configuration.yaml`
+      description: 'This endpoint enables dynamic reloading of a specific configuration parameter from the `configuration.yaml` file.
+
+        Previously, updating a configuration required modifying the configuration.yaml file and restarting the MS to apply changes. This API eliminates the need to restart MS - changes take effect immediately by triggering a reload of the specific parameter, which simplifies testing. Currently, only the `password_policy` parameter is supported.
+
+        Designed exclusively for the Test team — not for production use!!!'
+      operationId: config_reload
+      tags:
+      - INTERNAL_TEST_API
+      security: []
+      x-internal: true
+      parameters:
+      - name: parameter
+        in: path
+        required: true
+        description: Name of the top-level key in the configuration.yaml file.
+        schema:
+          description: The parameter name from the configuration.yaml file, one of top-level keys.
+          type: string
+          minLength: 2
+          maxLength: 100
+          pattern: ^[a-zA-Z0-9_]+$
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '200':
+          description: The current configuration of the parameter.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: An object representing the value of a top-level key in the configuration.yaml file.
+              examples:
+                password_policy:
+                  value:
+                    password_expiry_period_days: 365
+                    min_length: 8
+                    max_length: 100
+                    require_uppercase: true
+                    require_lowercase: true
+                    require_numbers: true
+                    require_special_chars: false
+        '404':
+          description: Returned when the provided configuration parameter is not found in configuration.yaml file.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_found:
+                  value:
+                    message: Parameter not found in configuration. Please check the parameter name.
+                    httpCode: '404'
+                    errorCode: nerve_internal_test_api_004
+        '500':
+          description: Returned when unexpected error occurred.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                reload_error:
+                  value:
+                    message: Failed to reload the configuration for the specified parameter.
+                    httpCode: '500'
+                    errorCode: nerve_internal_test_api_005
+  /nerve/internal-test-api/config/{parameter}:
+    patch:
+      summary: Modify configuration for a specific parameter from `configuration.yaml` file
+      description: 'This endpoint enables dynamic modification of a specific configuration parameter from the `configuration.yaml` file.
+
+        This API eliminates the need to manually edit the configuration.yaml file — changes take effect immediately by triggering an update of the specified parameter, simplifying testing. Currently, only the `password_policy; remote_connection` parameters are supported.
+
+        Designed exclusively for the Test team — not for production use!!!'
+      operationId: config_modify
+      tags:
+      - INTERNAL_TEST_API
+      x-internal: true
+      security: []
+      parameters:
+      - name: parameter
+        in: path
+        required: true
+        description: Name of the top-level key in the configuration.yaml file.
+        schema:
+          description: The parameter name from the configuration.yaml file, one of top-level keys.
+          type: string
+          minLength: 2
+          maxLength: 100
+          pattern: ^[a-zA-Z0-9_]+$
+      requestBody:
+        description: New parameter configuration
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: A new parameter configuration
+              required:
+              - config
+              properties:
+                config:
+                  type: object
+                  description: An object representing the value of a top-level key in the configuration.yaml file.
+            examples:
+              password_policy:
+                value:
+                  config:
+                    password_expiry_period_days: 365
+                    min_length: 8
+                    max_length: 100
+                    require_uppercase: true
+                    require_lowercase: true
+                    require_numbers: true
+                    require_special_chars: false
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '202':
+          description: Successful operation, configuration modification initiated.
+        '404':
+          description: Returned when the provided configuration parameter is not found in configuration.yaml file.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_found:
+                  value:
+                    message: Parameter not found in configuration. Please check the parameter name.
+                    httpCode: '404'
+                    errorCode: nerve_internal_test_api_004
+        '500':
+          description: Returned when unexpected error occurred.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                modify_error:
+                  value:
+                    message: Failed to modify parameter configuration.
+                    httpCode: '500'
+                    errorCode: nerve_internal_test_api_006
+    get:
+      summary: Get the configuration for a specific parameter from `configuration.yaml` file
+      description: 'This endpoint retrieves a configuration of a specific parameter from the `configuration.yaml` file.
+
+        This API does not take into account changes made through the modify/reload endpoint - it simply returns the values currently present in the configuration.yaml file.
+
+        Designed exclusively for the Test team — not for production use!!!'
+      operationId: get_config
+      tags:
+      - INTERNAL_TEST_API
+      x-internal: true
+      security: []
+      parameters:
+      - name: parameter
+        in: path
+        required: true
+        description: Name of the top-level key in the configuration.yaml file.
+        schema:
+          description: The parameter name from the configuration.yaml file, one of top-level keys.
+          type: string
+          minLength: 2
+          maxLength: 100
+          pattern: ^[a-zA-Z0-9_]+$
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '200':
+          description: The current configuration of the parameter from configuration.yaml file
+          content:
+            application/json:
+              schema:
+                type: object
+                description: An object representing the value of a top-level key in the configuration.yaml file.
+              examples:
+                password_policy:
+                  value:
+                    password_expiry_period_days: 365
+                    min_length: 8
+                    max_length: 100
+                    require_uppercase: true
+                    require_lowercase: true
+                    require_numbers: true
+                    require_special_chars: false
+        '404':
+          description: Requested parameter does not exist in configuration.yaml file.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_found:
+                  value:
+                    message: Parameter not found in configuration. Please check the parameter name.
+                    httpCode: '404'
+                    errorCode: nerve_internal_test_api_004
+  /nerve/internal-test-api/mqtt:
+    post:
+      summary: Publish an MQTT message for testing
+      description: 'This endpoint is used to publish a custom MQTT message to a specified topic.
+
+        No validation is performed on the payload structure, allowing full control over the message.
+
+        Designed exclusively for the Test team — not for production use!!!'
+      operationId: publish_mqtt_message
+      tags:
+      - INTERNAL_TEST_API
+      x-internal: true
+      security: []
+      requestBody:
+        description: MQTT message
+        required: true
+        content:
+          application/json:
+            schema:
+              description: Object including topic to which to publish MQTT message and the message payload
+              type: object
+              additionalProperties: false
+              required:
+              - topic
+              - message
+              properties:
+                topic:
+                  type: string
+                  description: The topic to which the MQTT message will be published.
+                  minLength: 5
+                  maxLength: 500
+                  pattern: ^[a-zA-Z0-9_-]+(/[a-zA-Z0-9_-]+)*$
+                message:
+                  description: The message payload to be sent.
+                  type: object
+                  required:
+                  - name
+                  - params
+                  properties:
+                    name:
+                      type: string
+                      description: Unique message name
+                      minLength: 3
+                      maxLength: 200
+                      pattern: ^[a-zA-Z0-9_-]+$
+                    params:
+                      type: object
+                      description: Message payload to be sent
+            examples:
+              password_policy:
+                value:
+                  message:
+                    name: parameter_config_reloaded
+                    params:
+                      parameter: password_policy
+                      value:
+                        password_expiry_period_days: 15
+                        min_length: 5
+                        max_length: 100
+                        require_uppercase: true
+                        require_lowercase: true
+                        require_numbers: true
+                        require_special_chars: false
+                  topic: nerve_internal_test_api/config
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '204':
+          description: Successful operation.
+components:
+  securitySchemes:
+    sessionId:
+      type: apiKey
+      in: header
+      name: sessionId
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    bearerAuth:
+      type: http
+      scheme: bearer

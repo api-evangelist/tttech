@@ -1,0 +1,675 @@
+openapi: 3.2.0
+info:
+  version: 3.1.0
+  description: 'Nerve Management System API to manage: -labels -nodes -workloads -notifications -capabilities'
+  title: Nerve Management System USAGE REPORTS API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+servers:
+- url: https://trynerve1.nerve.cloud
+security:
+- sessionId: []
+tags:
+- name: USAGE_REPORTS
+  description: The operations to manage usage reports
+paths:
+  /nerve/usage-reports/single:
+    get:
+      summary: Retrieve single usage report
+      description: Retrieve a single usage report for a specific month and year
+      operationId: get_single_usage_report
+      tags:
+      - USAGE_REPORTS
+      parameters:
+      - name: month
+        in: query
+        required: true
+        description: The month for which the usage report is requested
+        example: August
+        schema:
+          type: string
+          description: The month to which the usage report applies
+          example: August
+          enum:
+          - January
+          - February
+          - March
+          - April
+          - May
+          - June
+          - July
+          - August
+          - September
+          - October
+          - November
+          - December
+      - name: year
+        in: query
+        required: true
+        description: The year for which the usage report is requested
+        example: '2024'
+        schema:
+          type: string
+          pattern: ^[0-9]{4}$
+          minLength: 0
+          maxLength: 4
+      responses:
+        '200':
+          description: Successful operation. Selected usage report returned.
+          content:
+            application/json:
+              schema:
+                description: Usage report object containing the report details for single month
+                type: object
+                additionalProperties: false
+                properties:
+                  name:
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                    description: Name of the report file
+                    example: August_2024_usage_report.yaml
+                    minLength: 0
+                    maxLength: 1001
+                  relativePath:
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                    description: The relative path where the report is stored
+                    example: nerve_usage/storage/usage_reports/August_2024_usage_report.yaml
+                    minLength: 0
+                    maxLength: 1001
+                  month:
+                    type: string
+                    description: The month to which the usage report applies
+                    example: August
+                    enum:
+                    - January
+                    - February
+                    - March
+                    - April
+                    - May
+                    - June
+                    - July
+                    - August
+                    - September
+                    - October
+                    - November
+                    - December
+                  year:
+                    type: string
+                    description: The year to which the usage report applies
+                    example: '2024'
+                    pattern: ^[0-9]{4}$
+                    minLength: 0
+                    maxLength: 4
+                  dateOfReport:
+                    type: string
+                    description: Date when the report was generated
+                    format: date-time
+                    example: '2024-08-01T00:00:00.000Z'
+                    minLength: 0
+                    maxLength: 24
+                  isComplete:
+                    type: boolean
+                    description: Status indicating if the report is complete
+                    example: false
+                  _id:
+                    description: ID (from Management System) of the entry
+                    type: string
+                    pattern: ^[0-9a-fA-F]{24}$
+                    minLength: 24
+                    maxLength: 24
+                example:
+                  name: September_2024_usage_report.yaml
+                  relativePath: nerve_usage/storage/usage_reports/September_2024_usage_report.yaml
+                  month: September
+                  year: '2024'
+                  dateOfReport: '2024-09-01T00:00:00.000Z'
+                  isComplete: false
+                  _id: 66daa628a66040a284c1b4e5
+        '400':
+          description: Error response when generating the usage report failed
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: usage_report_001
+                httpCode: '400'
+                message: Something went wrong during usage report generation.
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '500':
+          description: Error response when generating the usage report failed because date can not be retrieved.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: usage_report_007
+                httpCode: '500'
+                message: Can't retrieve date when instance is spawned.
+  /nerve/usage-reports:
+    get:
+      summary: Retrieve usage reports
+      description: List all available usage reports or filter them by search term or filter criteria
+      operationId: get_usage_reports
+      tags:
+      - USAGE_REPORTS
+      parameters:
+      - name: search
+        in: query
+        required: false
+        description: Search term for filtering usage reports
+        schema:
+          description: Number of items in result set when searching is applied
+          type: string
+          default: ''
+          minLength: 0
+          maxLength: 1000
+          pattern: ^[\x20-\x7E\t\n\r]*$
+      - name: filter
+        in: query
+        required: false
+        description: JSON-encoded filter criteria for usage reports
+        schema:
+          type: string
+          pattern: ^[\x20-\x7E\t\n\r]*$
+          minLength: 0
+          maxLength: 1001
+          description: Search term for filtering usage reports
+      responses:
+        '200':
+          description: Successful operation. List of usage reports returned.
+          content:
+            application/json:
+              schema:
+                description: List of usage reports returned.
+                type: object
+                additionalProperties: false
+                properties:
+                  data:
+                    description: List of usage reports
+                    type: array
+                    minItems: 0
+                    maxItems: 1001
+                    items:
+                      description: Usage report object containing the report details for single month
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        name:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: Name of the report file
+                          example: August_2024_usage_report.yaml
+                          minLength: 0
+                          maxLength: 1001
+                        relativePath:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The relative path where the report is stored
+                          example: nerve_usage/storage/usage_reports/August_2024_usage_report.yaml
+                          minLength: 0
+                          maxLength: 1001
+                        month:
+                          type: string
+                          description: The month to which the usage report applies
+                          example: August
+                          enum:
+                          - January
+                          - February
+                          - March
+                          - April
+                          - May
+                          - June
+                          - July
+                          - August
+                          - September
+                          - October
+                          - November
+                          - December
+                        year:
+                          type: string
+                          description: The year to which the usage report applies
+                          example: '2024'
+                          pattern: ^[0-9]{4}$
+                          minLength: 0
+                          maxLength: 4
+                        dateOfReport:
+                          type: string
+                          description: Date when the report was generated
+                          format: date-time
+                          example: '2024-08-01T00:00:00.000Z'
+                          minLength: 0
+                          maxLength: 24
+                        isComplete:
+                          type: boolean
+                          description: Status indicating if the report is complete
+                          example: false
+                        _id:
+                          description: ID (from Management System) of the entry
+                          type: string
+                          pattern: ^[0-9a-fA-F]{24}$
+                          minLength: 24
+                          maxLength: 24
+                      example:
+                        name: September_2024_usage_report.yaml
+                        relativePath: nerve_usage/storage/usage_reports/September_2024_usage_report.yaml
+                        month: September
+                        year: '2024'
+                        dateOfReport: '2024-09-01T00:00:00.000Z'
+                        isComplete: false
+                        _id: 66daa628a66040a284c1b4e5
+                example:
+                  data:
+                  - name: August_2024_usage_report.yaml
+                    relativePath: nerve_usage/storage/usage_reports/August_2024_usage_report.yaml
+                    month: August
+                    year: '2024'
+                    dateOfReport: '2024-08-01T00:00:00.000Z'
+                    isComplete: false
+                    _id: 66c87a4a509470041120e137
+                  - name: September_2024_usage_report.yaml
+                    relativePath: nerve_usage/storage/usage_reports/September_2024_usage_report.yaml
+                    month: September
+                    year: '2024'
+                    dateOfReport: '2024-08-01T00:00:00.000Z'
+                    isComplete: false
+                    _id: 66c87a4a509470041120e138
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_dna_006
+                message: Operation failed for unknown reason.
+  /nerve/usage-reports/configuration:
+    get:
+      summary: Retrieve usage reports configuration
+      description: Get the current configuration of Usage Reports
+      operationId: get_configuration
+      tags:
+      - USAGE_REPORTS
+      responses:
+        '200':
+          description: Get the current configuration of Usage Reports
+          content:
+            application/json:
+              schema:
+                description: The current configuration of Usage Reports
+                type: object
+                properties:
+                  tttechEmail:
+                    description: The email address to notify TTTech
+                    type: string
+                    format: email
+                    example: nerve-billing@tttech-industrial.com
+                    pattern: ^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$
+                    minLength: 4
+                    maxLength: 254
+                  gpgPublicKey:
+                    description: The GPG public key to encrypt the email
+                    type: string
+                    example: '-----BEGIN PGP PUBLIC KEY BLOCK--'
+                    pattern: ^[\s\S]*$
+                    minLength: 0
+                    maxLength: 1001
+                  notifyTTTech:
+                    description: Should TTTech be notified
+                    type: boolean
+                    example: true
+                example:
+                  tttechEmail: nerve-billing@tttech-industrial.com
+                  gpgPublicKey: '-----BEGIN PGP PUBLIC KEY BLOCK--'
+        '400':
+          description: Error response when updating usage report configuration
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: usage_report_005
+                httpCode: '400'
+                message: Something went wrong during configuration parameters update.
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+    post:
+      summary: Update Usage Reports Configuration
+      description: Update the configuration of Usage Reports
+      operationId: update_configuration
+      tags:
+      - USAGE_REPORTS
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              description: The updated configuration of Usage Reports
+              type: object
+              additionalProperties: false
+              required:
+              - notifyTTTech
+              properties:
+                notifyTTTech:
+                  description: Should TTTech be notified
+                  type: boolean
+                  example: true
+      responses:
+        '200':
+          description: Update the configuration of Usage Reports
+          content:
+            application/json:
+              schema:
+                description: The updated configuration of Usage Reports
+                type: object
+                additionalProperties: false
+                properties:
+                  updated:
+                    description: The configuration was updated
+                    type: boolean
+                    example: true
+                example:
+                  updated: true
+        '400':
+          description: Error response when updating usage report configuration
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: usage_report_005
+                httpCode: '400'
+                message: Something went wrong during configuration parameters update.
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_dna_006
+                message: Operation failed for unknown reason.
+components:
+  securitySchemes:
+    sessionId:
+      type: apiKey
+      in: header
+      name: sessionId
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    bearerAuth:
+      type: http
+      scheme: bearer

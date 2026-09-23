@@ -1,0 +1,410 @@
+openapi: 3.2.0
+info:
+  version: 3.1.0
+  description: 'Nerve Management System API to manage: -labels -nodes -workloads -notifications -capabilities'
+  title: Nerve Management System EMQX API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+servers:
+- url: https://trynerve1.nerve.cloud
+security:
+- sessionId: []
+tags:
+- name: EMQX
+  description: The operations to manage authentication and authorization of MQTT clients
+paths:
+  /mqtt/auth:
+    post:
+      summary: Authentication of the MQTT client
+      operationId: mqtt_auth
+      tags:
+      - EMQX
+      security: []
+      description: Used to verify the identity of a client who attempts to connect to the MQTT broker(EMQX).
+      x-internal: true
+      requestBody:
+        description: Required parameters to identify a client that attempts to connect to the MQTT broker (EMQX)
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              description: Request body for authenticating an MQTT client
+              required:
+              - clientid
+              - username
+              - password
+              properties:
+                clientid:
+                  description: Unique id which identifies a client that connects to the broker
+                  minLength: 1
+                  maxLength: 1001
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                username:
+                  description: Client username
+                  minLength: 1
+                  maxLength: 1001
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                password:
+                  description: Client password
+                  minLength: 1
+                  maxLength: 1001
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                initiator:
+                  description: Who made a request
+                  minLength: 1
+                  maxLength: 1000
+                  type:
+                  - string
+                  - 'null'
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+            example:
+              clientid: g-LOCALNODE021
+              username: LOCALNODE021
+              password: 7870ceb41a91f2e916aa06f628b325029a339d77
+              initiator: undefined
+      x-permissions:
+      - MQTT:ACCESS
+      responses:
+        '200':
+          description: MQTT client successfully authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Response for successful authentication of an MQTT client
+                additionalProperties: false
+                required:
+                - result
+                - is_superuser
+                properties:
+                  result:
+                    type: string
+                    description: Authentication result
+                    enum:
+                    - allow
+                    - deny
+                  is_superuser:
+                    type: boolean
+                    description: Indicates if the client is marked as a superuser
+                    default: false
+              example:
+                result: allow
+                is_superuser: false
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '503':
+          description: Request failed, this is the response received when the broker is not yet ready - some of resources have not been loaded.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: strat_emqtt_aacl_004
+                httpCode: '503'
+                message: Connection is not possible - EMQX broker is not yet ready.
+  /mqtt/acl:
+    post:
+      summary: Checks if MQTT client is authorized to publish and subscribe to a specific topic
+      operationId: mqtt_acl
+      tags:
+      - EMQX
+      security: []
+      description: Used to check if the client has permission to subscribe to or to publish messages on a specific topic.
+      x-internal: true
+      requestBody:
+        description: Required parameters to verify if a MQTT client has a permission to subscribe/publish to a specific topic
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Request body for authorizing an MQTT client action on a specific topic
+              required:
+              - clientid
+              - action
+              - topic
+              additionalProperties: false
+              properties:
+                clientid:
+                  description: Unique id which identifies a client that connects to the broker
+                  minLength: 1
+                  maxLength: 1001
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                action:
+                  type: string
+                  description: The name of the action.
+                  enum:
+                  - subscribe
+                  - publish
+                topic:
+                  description: The topic on which the client wants to subscribe to or to publish a message
+                  minLength: 1
+                  maxLength: 1000
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                initiator:
+                  description: Who made a request
+                  minLength: 1
+                  maxLength: 1000
+                  type:
+                  - string
+                  - 'null'
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+            example:
+              action: publish
+              clientid: g-LOCALNODE000
+              topic: oblo/64175da8bd0fd097b9f6997c/gtw/LOCALNODE000/ovdm/evt
+              initiator: undefined
+      x-permissions:
+      - MQTT:ACCESS
+      responses:
+        '200':
+          description: MQTT client is authorized to subscribe/publish to a specific topic.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Response for successful authorization of an MQTT client action on a specific topic
+                additionalProperties: false
+                required:
+                - result
+                properties:
+                  result:
+                    type: string
+                    description: Authorization result
+                    enum:
+                    - allow
+                    - deny
+              example:
+                result: allow
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+  /mqtt/actions:
+    post:
+      summary: API for MQTT broker to notify Management system of client subscription
+      operationId: mqtt_actions
+      tags:
+      - EMQX
+      security: []
+      description: Used by MQTT broker(EMQX) to notify Management system that a client has subscribed to a specific topic
+      x-internal: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Request body for notifying client subscription action
+              additionalProperties: false
+              required:
+              - clientid
+              - topic
+              - event
+              - qos
+              properties:
+                clientid:
+                  description: Unique id which identifies a client that connects to the broker
+                  minLength: 1
+                  maxLength: 1001
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                topic:
+                  description: The topic on which the client wants to subscribe to or to publish a message
+                  minLength: 1
+                  maxLength: 1000
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                event:
+                  description: Mqtt event (session.subscribed)
+                  minLength: 1
+                  maxLength: 1000
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                qos:
+                  type: string
+                  description: Quality of service (QoS) level
+                  enum:
+                  - '0'
+                  - '1'
+                  - '2'
+                initiator:
+                  description: Who made a request
+                  minLength: 1
+                  maxLength: 1000
+                  type:
+                  - string
+                  - 'null'
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+            example:
+              clientid: g-LOCALNODE000
+              event: session.subscribed
+              topic: nerve/node/LOCALNODE000/ovdm/req
+              qos: '0'
+              initiator: undefined
+      x-permissions:
+      - MQTT:ACTION
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            text/html:
+              schema:
+                description: Response for successful processing of the client subscription action
+                type: string
+                enum:
+                - Ignored
+                - Ok
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '500':
+          description: Request failed, this is the response received when something went wrong while processing a message.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: strat_emqtt_aacl_003
+                httpCode: '500'
+                message: Something went wrong in a action triggered by mqtt client action.
+components:
+  securitySchemes:
+    sessionId:
+      type: apiKey
+      in: header
+      name: sessionId
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    bearerAuth:
+      type: http
+      scheme: bearer

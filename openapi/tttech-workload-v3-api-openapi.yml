@@ -1,0 +1,1216 @@
+openapi: 3.2.0
+info:
+  version: 3.1.0
+  description: 'Nerve Management System API to manage: -labels -nodes -workloads -notifications -capabilities'
+  title: Nerve Management System WORKLOAD V3 API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+servers:
+- url: https://trynerve1.nerve.cloud
+security:
+- sessionId: []
+tags:
+- name: WORKLOAD_v3
+  description: The operations to manage workloads v3.
+paths:
+  /nerve/v3/workloads:
+    post:
+      summary: Create workload
+      operationId: create_workload_v3
+      tags:
+      - WORKLOAD_v3
+      description: Used to create a new workload
+      requestBody:
+        description: Defines workload object
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: An object containing all the information required to create a new workload
+              required:
+              - name
+              - type
+              additionalProperties: false
+              properties:
+                name:
+                  type: string
+                  description: Workload name
+                  minLength: 1
+                  maxLength: 40
+                  pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                type:
+                  description: Workload type
+                  type: string
+                  enum:
+                  - docker-compose
+                  - docker
+                description:
+                  description: Workload description field
+                  type: string
+                  minLength: 0
+                  maxLength: 300
+                  pattern: ^[\s\S]*$
+                disabled:
+                  description: Indicates if workload can be used in deployment or no
+                  type: boolean
+                internalDockerRegistry:
+                  description: Is workload using internal Docker Registry as an docker image source
+                  type: boolean
+      x-permissions:
+      - WORKLOAD:CREATE
+      responses:
+        '200':
+          description: Workload successfully created
+          content:
+            application/json:
+              schema:
+                description: workload basic info created with v3 routes
+                type: object
+                required:
+                - name
+                - type
+                - created
+                - lastChange
+                - disabled
+                - _id
+                additionalProperties: false
+                properties:
+                  name:
+                    type: string
+                    description: Workload name
+                    minLength: 1
+                    maxLength: 40
+                    pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                  type:
+                    description: Workload type
+                    type: string
+                    enum:
+                    - docker
+                    - vm
+                    - codesys
+                    - docker-compose
+                  lastChange:
+                    description: Information about last change of workload general data
+                    type: object
+                    required:
+                    - date
+                    additionalProperties: false
+                    properties:
+                      date:
+                        type: string
+                        format: date-time
+                        description: Creation date
+                        minLength: 8
+                        maxLength: 30
+                      user:
+                        type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+                        description: Users first and last name
+                        minLength: 1
+                        maxLength: 1000
+                  created:
+                    description: Information about workload creation
+                    type: object
+                    required:
+                    - date
+                    additionalProperties: false
+                    properties:
+                      date:
+                        type: string
+                        format: date-time
+                        description: Creation date
+                        minLength: 8
+                        maxLength: 30
+                      user:
+                        type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+                        description: Users first and last name
+                        minLength: 1
+                        maxLength: 1000
+                  _id:
+                    description: ID (from Management System) of the entry
+                    type: string
+                    pattern: ^[0-9a-fA-F]{24}$
+                    minLength: 24
+                    maxLength: 24
+                  disabled:
+                    description: Indicates if workload can be used in deployment or no
+                    type: boolean
+                  description:
+                    description: Workload description field
+                    type: string
+                    minLength: 0
+                    maxLength: 300
+                    pattern: ^[\s\S]*$
+                  internalDockerRegistry:
+                    description: Is workload using internal Docker Registry as an docker image source
+                    type: boolean
+              example:
+                _id: 5f7b1b3b7b3b7b3b7b3b7b3b
+                name: test-workload
+                type: docker
+                created:
+                  date: '2022-07-01T13:59:57.212Z'
+                  user: Demo Nerve
+                lastChange:
+                  date: '2022-06-16T10:37:57.622Z'
+                  user: Demo Nerve
+                description: test workload
+                disabled: false
+                internalDockerRegistry: true
+        '400':
+          description: Docker workload that is not using internal registry can not be created using V3 API
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '400'
+                errorCode: nerve_workload_236
+                message: Regular Docker workloads that are not using internal registry can not be created using V3 API route. Please use V2 API route for creating Docker workloads that are not using internal registry.
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '409':
+          description: Workload with this name already exists
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '000702'
+                httpCode: '409'
+                message: Workload with this name already exists
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred on the server side
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_workload_166
+                message: Failed to finalize request, unexpected error occurred.
+    get:
+      summary: Get list of all workloads
+      operationId: get_workloads_filtered_v3
+      tags:
+      - WORKLOAD_v3
+      description: This method is called to fetch all workloads from database
+      parameters:
+      - name: fName
+        in: query
+        description: Apply filtering by workload name, enter name or part of the name
+        allowReserved: true
+        schema:
+          type: string
+          pattern: ^[\x20-\x7E\t\n\r]*$
+          description: Apply filtering by workload name, enter name or part of the name
+          minLength: 0
+          maxLength: 1000
+      - name: fDisabled
+        in: query
+        description: Apply filtering by workload disabled property, enter true of false
+        allowReserved: true
+        schema:
+          type: boolean
+          description: Filter the list by disabled property
+      - name: fType
+        in: query
+        description: Apply filtering by workload type (docker, vm, codesys, docker-compose)
+        allowReserved: true
+        schema:
+          description: Workload type
+          type: string
+          enum:
+          - docker
+          - vm
+          - codesys
+          - docker-compose
+      - name: limit
+        in: query
+        description: Number of items per page of result.
+        schema:
+          description: Number of items in result set when paging is applied
+          type: integer
+          format: int32
+          default: 10
+          minimum: 1
+          maximum: 500
+      - name: page
+        in: query
+        description: Page of results to be returned, according to number of items per page defined in limit parameter.
+        schema:
+          description: Page (zero indexed) of results to get from backend
+          type: integer
+          format: int32
+          default: 0
+          minimum: 0
+          maximum: 1000
+      - name: orderBy
+        in: query
+        description: Order by workload name or created time
+        allowReserved: true
+        schema:
+          type: string
+          description: Order by workload name or created time
+          enum:
+          - name
+          - created
+      - name: sortOrder
+        in: query
+        description: Order by workload created field (desc or asc)
+        allowReserved: true
+        schema:
+          type: string
+          enum:
+          - desc
+          - asc
+      x-permissions:
+      - WORKLOAD:LIST
+      responses:
+        '200':
+          description: List of workloads that match the criteria
+          content:
+            application/json:
+              schema:
+                description: Response of get workloads filtered list
+                type: object
+                required:
+                - count
+                - data
+                properties:
+                  count:
+                    type: integer
+                    format: int32
+                    minimum: 0
+                    maximum: 1000000
+                    description: Number of results
+                  data:
+                    description: List of workloads that match the search criteria
+                    type: array
+                    minItems: 0
+                    maxItems: 1001
+                    items:
+                      description: workload basic info created with v3 routes
+                      type: object
+                      required:
+                      - name
+                      - type
+                      - created
+                      - lastChange
+                      - disabled
+                      - _id
+                      additionalProperties: false
+                      properties:
+                        name:
+                          type: string
+                          description: Workload name
+                          minLength: 1
+                          maxLength: 40
+                          pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                        type:
+                          description: Workload type
+                          type: string
+                          enum:
+                          - docker
+                          - vm
+                          - codesys
+                          - docker-compose
+                        lastChange:
+                          description: Information about last change of workload general data
+                          type: object
+                          required:
+                          - date
+                          additionalProperties: false
+                          properties:
+                            date:
+                              type: string
+                              format: date-time
+                              description: Creation date
+                              minLength: 8
+                              maxLength: 30
+                            user:
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              description: Users first and last name
+                              minLength: 1
+                              maxLength: 1000
+                        created:
+                          description: Information about workload creation
+                          type: object
+                          required:
+                          - date
+                          additionalProperties: false
+                          properties:
+                            date:
+                              type: string
+                              format: date-time
+                              description: Creation date
+                              minLength: 8
+                              maxLength: 30
+                            user:
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              description: Users first and last name
+                              minLength: 1
+                              maxLength: 1000
+                        _id:
+                          description: ID (from Management System) of the entry
+                          type: string
+                          pattern: ^[0-9a-fA-F]{24}$
+                          minLength: 24
+                          maxLength: 24
+                        disabled:
+                          description: Indicates if workload can be used in deployment or no
+                          type: boolean
+                        description:
+                          description: Workload description field
+                          type: string
+                          minLength: 0
+                          maxLength: 300
+                          pattern: ^[\s\S]*$
+                        internalDockerRegistry:
+                          description: Is workload using internal Docker Registry as an docker image source
+                          type: boolean
+              example:
+                count: 1
+                data:
+                - name: workload
+                  type: docker
+                  created:
+                    date: '2025-11-14T13:03:29.300Z'
+                    user: Demo Nerve
+                  lastChange:
+                    date: '2025-11-14T13:03:29.300Z'
+                    user: Demo Nerve
+                  disabled: true
+                  _id: 630320c1fc6ed10038ff8f21
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred on the server side
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_workload_166
+                message: Failed to finalize request, unexpected error occurred.
+  /nerve/v3/workloads/{workloadId}:
+    get:
+      summary: Get data of workload selected by ID
+      operationId: get_specific_workload_v3
+      tags:
+      - WORKLOAD_v3
+      description: Method is used to retrieve one specific workload by id
+      parameters:
+      - name: workloadId
+        in: path
+        required: true
+        description: Workload Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      x-permissions:
+      - WORKLOAD:VIEW
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                description: workload basic info created with v3 routes
+                type: object
+                required:
+                - name
+                - type
+                - created
+                - lastChange
+                - disabled
+                - _id
+                additionalProperties: false
+                properties:
+                  name:
+                    type: string
+                    description: Workload name
+                    minLength: 1
+                    maxLength: 40
+                    pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                  type:
+                    description: Workload type
+                    type: string
+                    enum:
+                    - docker
+                    - vm
+                    - codesys
+                    - docker-compose
+                  lastChange:
+                    description: Information about last change of workload general data
+                    type: object
+                    required:
+                    - date
+                    additionalProperties: false
+                    properties:
+                      date:
+                        type: string
+                        format: date-time
+                        description: Creation date
+                        minLength: 8
+                        maxLength: 30
+                      user:
+                        type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+                        description: Users first and last name
+                        minLength: 1
+                        maxLength: 1000
+                  created:
+                    description: Information about workload creation
+                    type: object
+                    required:
+                    - date
+                    additionalProperties: false
+                    properties:
+                      date:
+                        type: string
+                        format: date-time
+                        description: Creation date
+                        minLength: 8
+                        maxLength: 30
+                      user:
+                        type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+                        description: Users first and last name
+                        minLength: 1
+                        maxLength: 1000
+                  _id:
+                    description: ID (from Management System) of the entry
+                    type: string
+                    pattern: ^[0-9a-fA-F]{24}$
+                    minLength: 24
+                    maxLength: 24
+                  disabled:
+                    description: Indicates if workload can be used in deployment or no
+                    type: boolean
+                  description:
+                    description: Workload description field
+                    type: string
+                    minLength: 0
+                    maxLength: 300
+                    pattern: ^[\s\S]*$
+                  internalDockerRegistry:
+                    description: Is workload using internal Docker Registry as an docker image source
+                    type: boolean
+              example:
+                name: workload
+                type: docker
+                created:
+                  date: '2025-11-14T16:11:34.219Z'
+                  user: Demo Nerve
+                lastChange:
+                  date: '2025-11-14T16:11:34.219Z'
+                disabled: true
+                _id: 62befe27d82c98006ed99cbe
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Workload with specific ID does not exist in the db
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '000700'
+                httpCode: '404'
+                message: Workload you are looking for does not exist
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred on the server side
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_workload_166
+                message: Failed to finalize request, unexpected error occurred.
+    patch:
+      summary: Update data of workload selected by ID
+      operationId: update_workload_general_data_v3
+      tags:
+      - WORKLOAD_v3
+      description: This method is used to update general workload data (name, description)
+      parameters:
+      - name: workloadId
+        in: path
+        required: true
+        description: Workload Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Request body for updating a workload
+              minProperties: 1
+              additionalProperties: false
+              properties:
+                name:
+                  type: string
+                  description: Workload name
+                  minLength: 1
+                  maxLength: 40
+                  pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                description:
+                  description: Workload description field
+                  type: string
+                  minLength: 0
+                  maxLength: 300
+                  pattern: ^[\s\S]*$
+                disabled:
+                  description: Indicates if workload can be used in deployment or no
+                  type: boolean
+      x-permissions:
+      - WORKLOAD:EDIT
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                description: workload basic info created with v3 routes
+                type: object
+                required:
+                - name
+                - type
+                - created
+                - lastChange
+                - disabled
+                - _id
+                additionalProperties: false
+                properties:
+                  name:
+                    type: string
+                    description: Workload name
+                    minLength: 1
+                    maxLength: 40
+                    pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                  type:
+                    description: Workload type
+                    type: string
+                    enum:
+                    - docker
+                    - vm
+                    - codesys
+                    - docker-compose
+                  lastChange:
+                    description: Information about last change of workload general data
+                    type: object
+                    required:
+                    - date
+                    additionalProperties: false
+                    properties:
+                      date:
+                        type: string
+                        format: date-time
+                        description: Creation date
+                        minLength: 8
+                        maxLength: 30
+                      user:
+                        type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+                        description: Users first and last name
+                        minLength: 1
+                        maxLength: 1000
+                  created:
+                    description: Information about workload creation
+                    type: object
+                    required:
+                    - date
+                    additionalProperties: false
+                    properties:
+                      date:
+                        type: string
+                        format: date-time
+                        description: Creation date
+                        minLength: 8
+                        maxLength: 30
+                      user:
+                        type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+                        description: Users first and last name
+                        minLength: 1
+                        maxLength: 1000
+                  _id:
+                    description: ID (from Management System) of the entry
+                    type: string
+                    pattern: ^[0-9a-fA-F]{24}$
+                    minLength: 24
+                    maxLength: 24
+                  disabled:
+                    description: Indicates if workload can be used in deployment or no
+                    type: boolean
+                  description:
+                    description: Workload description field
+                    type: string
+                    minLength: 0
+                    maxLength: 300
+                    pattern: ^[\s\S]*$
+                  internalDockerRegistry:
+                    description: Is workload using internal Docker Registry as an docker image source
+                    type: boolean
+              example:
+                _id: 62befe27d82c98006ed99cbe
+                name: workload
+                type: docker
+                created:
+                  date: '2025-11-14T16:11:34.219Z'
+                  user: Demo Nerve
+                lastChange:
+                  date: '2025-11-14T16:11:34.219Z'
+                disabled: true
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Workload with specific ID does not exist in the db
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '000700'
+                httpCode: '404'
+                message: Workload you are looking for does not exist
+        '409':
+          description: Workload with this name already exists
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '000702'
+                httpCode: '409'
+                message: Workload with this name already exists
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred on the server side
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_workload_166
+                message: Failed to finalize request, unexpected error occurred.
+    delete:
+      summary: Delete workload selected by ID
+      operationId: delete_workload_v3
+      tags:
+      - WORKLOAD_v3
+      description: Used to delete specific workload by ID
+      parameters:
+      - name: workloadId
+        in: path
+        required: true
+        description: Workload Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      x-permissions:
+      - WORKLOAD:DELETE
+      responses:
+        '204':
+          description: The resource was deleted successfully
+        '400':
+          description: Request failed, this is the response received when try to delete workload/version when there is ongoing version export
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                wl_version_delete_err:
+                  value:
+                    errorCode: nerve_workload_248
+                    httpCode: '400'
+                    message: Export version is in progress, deletion of WL or Version is not possible.
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Workload with specific ID does not exist in the db
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '000700'
+                httpCode: '404'
+                message: Workload you are looking for does not exist
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred on the server side
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_workload_166
+                message: Failed to finalize request, unexpected error occurred.
+components:
+  securitySchemes:
+    sessionId:
+      type: apiKey
+      in: header
+      name: sessionId
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    bearerAuth:
+      type: http
+      scheme: bearer

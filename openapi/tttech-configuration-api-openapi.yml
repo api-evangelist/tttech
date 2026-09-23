@@ -1,0 +1,1239 @@
+openapi: 3.2.0
+info:
+  version: 2.10.0
+  description: 'Nerve OVDM API to manage:
+
+    - node configuration
+
+    - system configuration
+
+    - system network configuration
+
+    - workloads
+
+    - remote connections
+
+    - dna'
+  title: Nerve Node CONFIGURATION API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+security:
+- cookieAuth: []
+tags:
+- name: Configuration
+  description: Node configuration operations (onboarding, retrieving the Management system version, retrieving the node's secure ID, etc.)
+paths:
+  /api/setup/configurations:
+    get:
+      summary: Get the current node configuration
+      tags:
+      - Configuration
+      operationId: get_node_configuration
+      description: 'Used to retrieve the current node configuration.
+
+        If the node is not connected (onboarded) to any Management system, the node information fields (cloud URL and serial number) will be present but empty.'
+      x-permissions:
+      - CONFIGURATION:VIEW
+      responses:
+        '200':
+          description: The current node configuration returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object representing the current node configuration
+                required:
+                - protocol
+                - timezone
+                - serialNumber
+                - cloudUrl
+                additionalProperties: false
+                properties:
+                  protocol:
+                    type: string
+                    description: The name of protocol used for MQTT. Only WSS is supported.
+                    enum:
+                    - wss
+                  timezone:
+                    description: The timezone or empty if it isn't defined
+                    type: object
+                    required:
+                    - name
+                    additionalProperties: false
+                    properties:
+                      name:
+                        type:
+                        - string
+                        - 'null'
+                        description: The name of timezone
+                        minLength: 0
+                        maxLength: 1001
+                        pattern: .*
+                  serialNumber:
+                    oneOf:
+                    - description: The serial number of the node
+                      type: string
+                      maxLength: 12
+                      minLength: 12
+                      pattern: ([A-Z0-9]){12}
+                    - type: string
+                      description: Empty string
+                      enum:
+                      - ''
+                      minLength: 0
+                      maxLength: 0
+                      pattern: ^$
+                  cloudUrl:
+                    type: string
+                    description: The url of Management System where node is connected or an empty string if node is not yet connected(onboarded)
+              example:
+                cloudUrl: angels.dev.nerve.cloud
+                serialNumber: 0000000000NS
+                protocol: wss
+                timezone:
+                  name: Etc/UTC
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '500':
+          description: Response received when an unexpected error occurred while reading node configuration. Failed to read configuration.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+    post:
+      summary: Configure node
+      tags:
+      - Configuration
+      operationId: set_node_configuration
+      description: Used to configure the node (connect the node to a Management system)
+      x-permissions:
+      - CONFIGURATION:EDIT
+      requestBody:
+        required: true
+        description: Node configuration request payload
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Object representing the new node configuration to set
+              required:
+              - protocol
+              - cloudUrl
+              - serialNumber
+              - timezone
+              additionalProperties: false
+              properties:
+                protocol:
+                  type: string
+                  description: The name of protocol used for MQTT. Only WSS is supported.
+                  enum:
+                  - wss
+                cloudUrl:
+                  type: string
+                  description: Domain of Management system
+                  minLength: 0
+                  maxLength: 1001
+                  pattern: .*
+                serialNumber:
+                  description: The serial number of the node
+                  type: string
+                  maxLength: 12
+                  minLength: 12
+                  pattern: ([A-Z0-9]){12}
+                timezone:
+                  description: Timezone name information
+                  type: object
+                  required:
+                  - name
+                  additionalProperties: false
+                  properties:
+                    name:
+                      type:
+                      - string
+                      - 'null'
+                      description: The name of timezone
+                      minLength: 0
+                      maxLength: 1001
+                      pattern: .*
+            example:
+              cloudUrl: angels.dev.nerve.cloud
+              serialNumber: 0000000000NS
+              protocol: wss
+              timezone:
+                name: Europe/Bucharest
+      responses:
+        '200':
+          description: Request successful.
+          content:
+            application/json:
+              schema:
+                description: Object representing the response for a successful operation
+                oneOf:
+                - type: object
+                  required:
+                  - configurationUpdated
+                  additionalProperties: false
+                  properties:
+                    configurationUpdated:
+                      type: boolean
+                      description: Indicate if the configuration has been updated
+                - type: object
+                  required:
+                  - configurationUpdated
+                  - message
+                  - message_code
+                  additionalProperties: false
+                  properties:
+                    configurationUpdated:
+                      type: boolean
+                      description: Indicate if the configuration has been updated or not
+                    message:
+                      type: string
+                      description: Reason why configuration updates are failed/not possible
+                    message_code:
+                      type: string
+                      description: Error code
+                      enum:
+                      - NODE_UPDATE_IN_PROGRESS
+                      - WORKLOAD_INSTALLATION_IN_PROGRESS
+                      - CONFIGURATION_ALREADY_SET_MESSAGE
+                      - SET_TIMEZONE_FAIL
+                      - REBOOT_FAIL
+              examples:
+                configuration_updated:
+                  summary: Configuration is updated
+                  value:
+                    configurationUpdated: true
+                configuration_not_updated:
+                  summary: Configuration is not updated
+                  value:
+                    configurationUpdated: false
+                    message: spawn timedatectl ENOENT
+                    message_code: SET_TIMEZONE_FAIL
+        '400':
+          description: Bad request. Invalid parameters.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              example:
+                status: 400
+                msg: Invalid cloud url. Must be in FQDN format.
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Validation error.
+                required:
+                - status
+                - message
+                - errors
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  message:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: The validation error message
+                  errors:
+                    type: array
+                    minItems: 1
+                    maxItems: 1001
+                    description: Detailed description of what does not match the schema
+                    items:
+                      type: object
+                      properties:
+                        path:
+                          type: string
+                          minLength: 1
+                          maxLength: 1001
+                          description: Specified location within the document where the error occurred
+                        message:
+                          type: string
+                          minLength: 1
+                          maxLength: 1001
+                          description: Error message
+              example:
+                status: 415
+                message: unsupported media type text/plain
+                errors:
+                - path: /api/setup/configurations
+                  message: unsupported media type text/plain
+        '500':
+          description: Response received when the response does not match the schema or an unexpected error has occurred.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              example:
+                status: 500
+                msg: Expected a string but received a undefined
+  /api/setup/configurations/cloud-version:
+    get:
+      summary: Get Management system version(cloud version)
+      tags:
+      - Configuration
+      operationId: get_cloud_version
+      description: Used to obtain a version of the Management system.
+      x-permissions:
+      - CLOUD_VERSION:VIEW
+      parameters:
+      - name: url
+        in: query
+        required: true
+        description: Domain of Management system which version you want to obtain
+        schema:
+          type: string
+          minLength: 3
+          maxLength: 1001
+          pattern: .*
+      responses:
+        '200':
+          description: Request successful, version of provided Management system returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing 'currentVersion' property, which represents the version of Management system
+                required:
+                - currentVersion
+                - gitCommit
+                - buildDate
+                additionalProperties: false
+                properties:
+                  currentVersion:
+                    type: string
+                    description: The version of Management system
+                  gitCommit:
+                    type: string
+                    description: Management system commit
+                  buildDate:
+                    type: string
+                    description: Management system build date
+              example:
+                currentVersion: 2.8.0
+                gitCommit: c93edd06c418491865aa477145d6caadfb001ac6
+                buildDate: '2024-06-27'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: Response is returned when Management system cannot be reached due to non-existent url (getaddrinfo ENOTFOUND).
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              example:
+                status: 404
+                msg: getaddrinfo ENOTFOUND test.dev.com
+        '500':
+          description: Response when the Management system version could not be returned due to an invalid response format.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              example:
+                status: 500
+                msg: Invalid response
+  /api/setup/configurations/secure-id:
+    get:
+      summary: Get node secure id
+      tags:
+      - Configuration
+      operationId: get_node_secure_id
+      description: Used to obtain a secure id of the node.
+      x-permissions:
+      - SECURE_ID:VIEW
+      responses:
+        '200':
+          description: Request successful. The secure id of the node returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing 'secureid' property, which represents the secure ID of the node
+                required:
+                - secureId
+                additionalProperties: false
+                properties:
+                  secureId:
+                    description: The secure ID of the node, or an empty string if the node is not onboarded.
+                    oneOf:
+                    - type: string
+                      description: Node secure id
+                      minLength: 16
+                      maxLength: 16
+                      pattern: ([A-Za-z]|\d){16}
+                    - type: string
+                      enum:
+                      - ''
+              example:
+                secureId: 52F4E8CA6B9BDADA
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '500':
+          description: Request failed. Failed to obtain the secure id or the response data does not match the schema.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                validation_err:
+                  value:
+                    status: 500
+                    message: 'validator message: /response/secureId must NOT have more than 16 characters'
+                    errors:
+                    - path: /response/secureId
+                      message: must NOT have more than 16 characters
+                      errorCode: maxLength.openapi.validation
+  /api/setup/configurations/secureId:
+    get:
+      summary: Get node secure id
+      tags:
+      - Configuration
+      operationId: get_node_secure_id_deprecated
+      description: 'Used to obtain a secure id of the node.
+
+        The ''/api/setup/configurations/secureId'' is **deprecated** and will no longer be supported. Switch to the new and improved ''/api/setup/configurations/secure-id''.'
+      deprecated: true
+      x-permissions:
+      - SECURE_ID:VIEW
+      responses:
+        '200':
+          description: Request successful. The secure id of the node returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing 'secureid' property, which represents the secure ID of the node
+                required:
+                - secureId
+                additionalProperties: false
+                properties:
+                  secureId:
+                    description: The secure ID of the node, or an empty string if the node is not onboarded.
+                    oneOf:
+                    - type: string
+                      description: Node secure id
+                      minLength: 16
+                      maxLength: 16
+                      pattern: ([A-Za-z]|\d){16}
+                    - type: string
+                      enum:
+                      - ''
+              example:
+                secureId: 52F4E8CA6B9BDADA
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '500':
+          description: Request failed. Failed to obtain the secure id or the response data does not match the schema.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                validation_err:
+                  value:
+                    status: 500
+                    message: 'validator message: /response/secureId must NOT have more than 16 characters'
+                    errors:
+                    - path: /response/secureId
+                      message: must NOT have more than 16 characters
+                      errorCode: maxLength.openapi.validation
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    basicAuth:
+      type: http
+      scheme: basic

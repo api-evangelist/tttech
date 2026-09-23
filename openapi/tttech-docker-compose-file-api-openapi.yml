@@ -1,0 +1,379 @@
+openapi: 3.2.0
+info:
+  version: 3.1.0
+  description: 'Nerve Management System API to manage: -labels -nodes -workloads -notifications -capabilities'
+  title: Nerve Management System DOCKER COMPOSE FILE API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+servers:
+- url: https://trynerve1.nerve.cloud
+security:
+- sessionId: []
+tags:
+- name: DOCKER_COMPOSE_FILE
+  description: The operations to manage docker compose file
+paths:
+  /nerve/v3/workloads/compose:
+    post:
+      summary: Upload and validate docker-compose file
+      operationId: v3_process_docker_compose_file
+      tags:
+      - DOCKER_COMPOSE_FILE
+      description: Method is used to upload the docker-compose file in order to perform a validation against the corresponding schema. As a result, the JSON representation of the uploaded docker compose file is returned if the file is valid otherwise an error is returned. Uploaded file is not stored, it is deleted after the process is completed.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              description: Schema for the request body used to upload and validate a docker-compose file
+              additionalProperties: false
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Docker-compose file to be validated. Allowed extensions are .yaml or .yml
+                internalDockerRegistry:
+                  description: Is workload using internal Docker Registry as an docker image source
+                  type: boolean
+      x-permissions:
+      - WORKLOAD:EDIT
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                description: JSON representation of the uploaded docker-compose file
+                required:
+                - services
+                properties:
+                  services:
+                    type: object
+                    minProperties: 1
+                    description: List of services defined in the docker-compose file
+              example:
+                version: '3.5'
+                services:
+                  nginx:
+                    container_name: compose_nginx
+                    image: docker-test.dev.nerve.cloud/registry/nginx:latest
+                    networks:
+                    - wan
+                    ports:
+                    - 8080:80
+                    volumes:
+                    - nginx_config:/etc/nginx/conf.d
+                    - nginx_logs:/var/log/nginx
+                    environment:
+                    - NGINX_PORT=80
+                    - NGINX_SSL_PORT=443
+                    restart: always
+                networks:
+                  wan:
+                    external: true
+        '400':
+          description: Request failed, this is the response received when provided file has wrong extension.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '400'
+                errorCode: nerve_workload_194
+                message: Wrong file extension, allowed extensions are .yaml or .yml
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '415'
+                message: Route params validation error
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred on the server side
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_workload_166
+                message: Failed to finalize request, unexpected error occurred.
+  /nerve/v3/workloads/compose/{workloadId}/versions/{versionId}/files/{fileId}:
+    get:
+      summary: Get content of the selected docker-compose file as string
+      operationId: v3_docker_compose_file_content
+      tags:
+      - DOCKER_COMPOSE_FILE
+      description: Get the file content of the specified Docker Compose file as a string. To upload a Compose file, please use POST /nerve/v3/workloads/{workloadId}/versions/{versionId}/files.
+      parameters:
+      - name: workloadId
+        in: path
+        required: true
+        description: Workload Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      - name: versionId
+        in: path
+        required: true
+        description: Workload version Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      - name: fileId
+        in: path
+        required: true
+        description: File id from workload version
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      x-permissions:
+      - WORKLOAD:EDIT
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            text/plain:
+              schema:
+                type: string
+                pattern: ^[\x20-\x7E\t\n\r]*$
+                description: Name of the exported file
+                minLength: 1
+                maxLength: 1000
+        '400':
+          description: The request failed because the provided file is of an unsupported type. Only Docker Compose files are accepted.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '400'
+                errorCode: nerve_workload_203
+                message: File is not docker-compose file.
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Request failed, this is the response received when specified file does not exist.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '404'
+                errorCode: nerve_workload_169
+                message: There is no file with specified file id. Please check your file id in the request API.
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred on the server side
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_workload_166
+                message: Failed to finalize request, unexpected error occurred.
+components:
+  securitySchemes:
+    sessionId:
+      type: apiKey
+      in: header
+      name: sessionId
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    bearerAuth:
+      type: http
+      scheme: bearer

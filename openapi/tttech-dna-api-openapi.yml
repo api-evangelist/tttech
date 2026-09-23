@@ -1,0 +1,3139 @@
+openapi: 3.2.0
+info:
+  title: Tttech DNA API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+  version: '1.0'
+  description: 'Operations tagged DNA across 2 of this provider''s published API definitions: tttech-nerve-management-system-openapi-original.json, tttech-nerve-node-openapi-original.json. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://trynerve1.nerve.cloud
+tags:
+- name: DNA
+  description: The operations to manage workload DNA configuration
+paths:
+  /nerve/dna/{serialNumber}/target:
+    get:
+      summary: Get target node configuration
+      description: 'Used to get the target node configuration. Required permission: **NERVE_DNA:VIEW**'
+      operationId: dna_target_configuration
+      tags:
+      - DNA
+      parameters:
+      - name: serialNumber
+        in: path
+        required: true
+        description: The serial number of the node which was specified during onboarding into the Nerve Management System.
+        schema:
+          description: The serial number of the node
+          type: string
+          maxLength: 12
+          minLength: 12
+          pattern: ([A-Z0-9]){12}
+      x-permissions:
+      - NERVE_DNA:VIEW
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                pattern: ^[\x20-\x7E\t\n\r]*$
+                description: Node configuration file
+                minLength: 1
+                maxLength: 1000
+                format: binary
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                pattern: ^[\x20-\x7E\t\n\r]*$
+                minLength: 1
+                maxLength: 1000
+                example: attachment; filename="config.zip"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00002'
+                httpCode: '400'
+                message: Bad request
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: nerve_dna_003
+                    httpCode: '401'
+                    message: You are not authorized.
+        '403':
+          description: You are missing permission to perform an action
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                missing_permission:
+                  value:
+                    errorCode: nerve_dna_004
+                    httpCode: '403'
+                    message: You are missing permission.
+        '404':
+          description: The resource is not found
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                node_not_available:
+                  value:
+                    httpCode: '404'
+                    errorCode: nerve_dna_008
+                    message: The node with specified serial number is not available.
+        '409':
+          description: The node does not have node DNA capability
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                node_missing_node_dna_capability:
+                  value:
+                    httpCode: '409'
+                    errorCode: nerve_dna_033
+                    message: Node DNA functionality is not supported on this node. No capability reported.
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                unknown_error:
+                  value:
+                    httpCode: '500'
+                    errorCode: nerve_dna_006
+                    message: Configuration operation failed for unknown reason.
+      security:
+      - sessionId: []
+    put:
+      summary: Apply target configuration to the selected node
+      description: 'Used to update the existing configuration of the selected node by using configuration file. Required permission: **NERVE_DNA:EDIT**'
+      operationId: apply_dna_configuration
+      tags:
+      - DNA
+      parameters:
+      - name: serialNumber
+        in: path
+        required: true
+        description: The serial number of the node which was specified during onboarding into the Nerve Management System.
+        schema:
+          description: The serial number of the node
+          type: string
+          maxLength: 12
+          minLength: 12
+          pattern: ([A-Z0-9]){12}
+      - in: query
+        name: continueInCaseOfRestart
+        schema:
+          type: boolean
+          default: false
+        description: Select whether the node should continue DNA reconfiguration when it comes online again. Available only for node with version >= 2.7.0
+      - in: query
+        name: restartAllWorkloads
+        schema:
+          type: boolean
+          default: true
+        description: If the flag is set to false, workloads will not be reset if they already exist on the node. Default value is true.
+      - name: removeDockerImages
+        in: query
+        schema:
+          type: boolean
+          default: true
+        description: If the flag is set to true, Docker images will be removed from the node. If set to false, the images will be retained. Docker images are removed from the node as part of the undeployment that is executed before the DNA file is applied,  to eliminate workloads that are not part of that DNA configuration. This setting applies specifically to workloads using the Management System Registry. Available only for nodes with version >= 2.10.0.
+      - in: query
+        name: signFile
+        description: Indicates whether the file should be signed by MS before it is applied to the node. Available only for nodes >= 3.1.0
+        schema:
+          type: boolean
+          default: false
+      requestBody:
+        description: Includes configuration file
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              additionalProperties: false
+              description: Request body for updating the node configuration
+              type: object
+              properties:
+                file:
+                  description: Configuration file for updating the node configuration
+                  type: string
+                  format: binary
+                  minLength: 1
+                  maxLength: 1000
+      x-permissions:
+      - NERVE_DNA:EDIT
+      responses:
+        '202':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object with DNA configuration initiation status message and tracking URI
+                additionalProperties: false
+                properties:
+                  message:
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                    description: Message describing the DNA configuration initiation operation
+                    minLength: 1
+                    maxLength: 1000
+                  tracking:
+                    type: string
+                    description: The URI for getting completion status of job
+                    pattern: ^\/nerve\/dna\/([A-Za-z]|\d){12}\/status$
+                    minLength: 1
+                    maxLength: 1000
+                required:
+                - message
+                - tracking
+              examples:
+                dna_configuration_initiated:
+                  value:
+                    message: DNA configuration initiated
+                    tracking: /nerve/dna/123456789012/status
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                error_upload_config_file:
+                  value:
+                    httpCode: '400'
+                    errorCode: nerve_dna_001
+                    message: File upload failed.
+                config_file_error:
+                  value:
+                    httpCode: '400'
+                    errorCode: nerve_dna_002
+                    message: Payload not defined.
+                continue_reconfiguration_not_supported:
+                  value:
+                    httpCode: '400'
+                    errorCode: nerve_dna_019
+                    message: Only nodes with version 2.7.0 and greater can continue DNA reconfiguration.
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: nerve_dna_003
+                    httpCode: '401'
+                    message: You are not authorized.
+        '403':
+          description: You are missing permission to perform an action
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                missing_permission:
+                  value:
+                    errorCode: nerve_dna_004
+                    httpCode: '403'
+                    message: You are missing permission.
+        '404':
+          description: The resource is not found
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                node_not_available:
+                  value:
+                    httpCode: '404'
+                    errorCode: nerve_dna_008
+                    message: The node with specified serial number is not available.
+        '409':
+          description: The node does not have node DNA capability
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                node_missing_node_dna_capability:
+                  value:
+                    httpCode: '409'
+                    errorCode: nerve_dna_033
+                    message: Node DNA functionality is not supported on this node. No capability reported.
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '415'
+                message: Route params validation error
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                unknown_error:
+                  value:
+                    httpCode: '500'
+                    errorCode: nerve_dna_006
+                    message: Configuration operation failed for unknown reason.
+      security:
+      - sessionId: []
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /nerve/dna/{serialNumber}/status:
+    get:
+      summary: Get configuration status
+      description: 'Used to get the current status of DNA configuration. Required permission: **NERVE_DNA:VIEW**'
+      operationId: dna_configuration_status
+      tags:
+      - DNA
+      parameters:
+      - name: serialNumber
+        in: path
+        required: true
+        description: The serial number of the node which was specified during onboarding into the Nerve Management System.
+        schema:
+          description: The serial number of the node
+          type: string
+          maxLength: 12
+          minLength: 12
+          pattern: ([A-Z0-9]){12}
+      x-permissions:
+      - NERVE_DNA:VIEW
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                description: The DNA configuration status info
+                type: object
+                additionalProperties: false
+                properties:
+                  status:
+                    type: string
+                    description: The current state of DNA configuration
+                    enum:
+                    - APPLIED
+                    - UNDEFINED
+                    - INITIAL
+                    - RECONFIGURING
+                    - CANCELING
+                    - MODIFIED
+                  message:
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                    description: The message describing configuration status
+                    minLength: 1
+                    maxLength: 1000
+                  fileName:
+                    type: string
+                    description: The name of the DNA configuration file (target configuration)
+                    pattern: ^[a-zA-Z0-9._() -]*\.(yaml|YAML|yml|YML|zip|ZIP)$
+                    minLength: 1
+                    maxLength: 1000
+                  progress:
+                    description: The progress of DNA node configuration
+                    type: object
+                    properties:
+                      percentage:
+                        type: integer
+                        format: int32
+                        description: The progress in percentage
+                        minimum: 0
+                        maximum: 100
+                      message:
+                        type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+                        description: More detail about the current step in the configuration process
+                        minLength: 1
+                        maxLength: 1000
+                  updated:
+                    type: string
+                    description: Date and time in ISO 8601 format
+                    format: date-time
+                    pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
+                    minLength: 24
+                    maxLength: 24
+                  timezone:
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                    description: The timezone setup on node
+                    minLength: 1
+                    maxLength: 1001
+                  user:
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                    description: The name of the user who did the last change
+                    minLength: 1
+                    maxLength: 1000
+                  initiatedFrom:
+                    type: string
+                    description: The application from which the DNA configuration was done
+                    enum:
+                    - NODE-LOCAL-UI
+                    - NERVE-MS
+                  signed:
+                    type: boolean
+                    description: Indicates whether the DNA file was signed by the Management System prior to sending the apply request to the node.
+                    default: false
+                  integrity:
+                    type: object
+                    description: Object representing the result of a workload integrity check, including whether the check passed and when it was executed
+                    required:
+                    - status
+                    properties:
+                      status:
+                        type: string
+                        description: "Workload integrity check status.\n  - valid: Integrity check passed.\n  - invalid: Integrity check failed.\n  - unknown: Integrity could not be determined. No reference hash exists to validate against (e.g., legacy DNA, or failed hash calculation).\n  - not_applicable: Integrity check does not apply in this state (e.g., DNA is not applied at all).\n  - unavailable: Integrity status is unavailable or unreliable, such as during DNA reconfiguration or cancellation.\n"
+                        enum:
+                        - valid
+                        - invalid
+                        - unknown
+                        - not_applicable
+                        - unavailable
+                      checkedAt:
+                        description: The time indicating when the workload integrity check was performed
+                        format: date-time
+                  signature:
+                    type: string
+                    description: "DNA file signature verification result. values:\n  - valid: The signature was successfully verified.\n  - invalid: Signature verification failed. Possible reasons: signature file missing, corrupted, or an error occurred during verification (e.g., failed to download public key or a read error).\n  - skipped: Signature verification was not performed because it was not applicable (DNA file is not signed at all).\n"
+                    enum:
+                    - valid
+                    - invalid
+                    - skipped
+                required:
+                - status
+                - message
+              examples:
+                initial_state:
+                  value:
+                    status: INITIAL
+                    message: Default configuration.
+                configuration_in_progress:
+                  value:
+                    status: RECONFIGURING
+                    message: Configuration in progress.
+                    fileName: my-config.zip
+                    progress:
+                      percentage: 56
+                      message: Installing sample-name workload of type docker
+                    updated: '2023-01-12T09:36:15.363Z'
+                    timezone: Europe/Belgrade
+                    user: John Doe
+                    initiatedFrom: NERVE-MS
+                configuration_canceling:
+                  value:
+                    status: CANCELING
+                    message: Canceling configuration in progress.
+                    fileName: my-config.zip
+                    user: Tom Hanks
+                    initiatedFrom: NERVE-MS
+                configuration_applied:
+                  value:
+                    status: APPLIED
+                    message: Configuration succeeded.
+                    fileName: my-config.zip
+                    progress:
+                      percentage: 100
+                      message: Done
+                    updated: '2023-01-12T09:36:15.363Z'
+                    timezone: Europe/Vienna
+                    user: Jane Doe
+                    initiatedFrom: NODE-LOCAL-UI
+                configuration_canceled:
+                  value:
+                    status: UNDEFINED
+                    message: Configuration has been canceled.
+                    fileName: my-config.zip
+                    progress:
+                      percentage: 95
+                      message: Downloading nginx-1 workload of type docker
+                    updated: '2023-01-12T09:36:15.363Z'
+                    timezone: America/Toronto
+                    user: Bruce Willis
+                    initiatedFrom: NERVE-MS
+                configuration_failed:
+                  value:
+                    status: UNDEFINED
+                    message: Configuration failed.
+                    fileName: my-config.zip
+                    progress:
+                      percentage: 95
+                      message: Initiate download of image nginxx:latest
+                    updated: '2023-01-12T09:36:15.363Z'
+                    user: Julia Roberts
+                    timezone: America/Chicago
+                    initiatedFrom: NERVE-MS
+                configuration_modified:
+                  value:
+                    status: MODIFIED
+                    message: The configuration from the file is applied and then modifed.
+                    fileName: my-config.zip
+                    updated: '2023-01-12T09:36:15.363Z'
+                    timezone: Europe/London
+                    user: Johnny Depp
+                    initiatedFrom: NERVE-MS
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00002'
+                httpCode: '400'
+                message: Bad request
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: nerve_dna_003
+                    httpCode: '401'
+                    message: You are not authorized.
+        '403':
+          description: You are missing permission to perform an action
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                missing_permission:
+                  value:
+                    errorCode: nerve_dna_004
+                    httpCode: '403'
+                    message: You are missing permission.
+        '404':
+          description: The resource is not found
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                node_not_available:
+                  value:
+                    httpCode: '404'
+                    errorCode: nerve_dna_008
+                    message: The node with specified serial number is not available.
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                unknown_error:
+                  value:
+                    httpCode: '500'
+                    errorCode: nerve_dna_006
+                    message: Configuration operation failed for unknown reason.
+      security:
+      - sessionId: []
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /nerve/dna/{serialNumber}/target/cancel:
+    patch:
+      summary: Cancel DNA configuration in progress
+      description: 'Used to cancel the DNA configuration operation which is in progress. Required permission: **NERVE_DNA:EDIT**'
+      operationId: cancel_dna_configuration
+      tags:
+      - DNA
+      parameters:
+      - name: serialNumber
+        in: path
+        required: true
+        description: The serial number of the node which was specified during onboarding into the Nerve Management System.
+        schema:
+          description: The serial number of the node
+          type: string
+          maxLength: 12
+          minLength: 12
+          pattern: ([A-Z0-9]){12}
+      x-permissions:
+      - NERVE_DNA:EDIT
+      responses:
+        '202':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Response for DNA configuration cancellation
+                additionalProperties: false
+                properties:
+                  message:
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                    description: Message describing the DNA configuration cancellation operation
+                    minLength: 1
+                    maxLength: 1000
+                  tracking:
+                    type: string
+                    description: The URI for getting completion status of job
+                    pattern: ^\/nerve\/dna\/([A-Za-z]|\d){12}\/status$
+                    minLength: 1
+                    maxLength: 1000
+                required:
+                - message
+                - tracking
+              examples:
+                dna_config_cancel_initiated:
+                  value:
+                    message: DNA configuration cancellation initiated
+                    tracking: /nerve/dna/123456789012/status
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                config_not_in_progress:
+                  value:
+                    httpCode: '400'
+                    errorCode: nerve_dna_007
+                    message: Unable to complete cancel operation, because there is no configuration in-progress.
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: nerve_dna_003
+                    httpCode: '401'
+                    message: You are not authorized.
+        '403':
+          description: You are missing permission to perform an action
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                missing_permission:
+                  value:
+                    errorCode: nerve_dna_004
+                    httpCode: '403'
+                    message: You are missing permission.
+        '404':
+          description: The resource is not found
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                node_not_available:
+                  value:
+                    httpCode: '404'
+                    errorCode: nerve_dna_008
+                    message: The node with specified serial number is not available.
+        '409':
+          description: The node is offline
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                node_not_available:
+                  value:
+                    httpCode: '409'
+                    errorCode: nerve_dna_011
+                    message: The node with specified serial number is currently offline.
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                unknown_error:
+                  value:
+                    httpCode: '500'
+                    errorCode: nerve_dna_006
+                    message: Configuration operation failed for unknown reason.
+        '504':
+          description: The response did not received in time
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                node_not_available:
+                  value:
+                    httpCode: '504'
+                    errorCode: nerve_dna_012
+                    message: The timeout for response message expired.
+      security:
+      - sessionId: []
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /nerve/dna/{serialNumber}/current:
+    get:
+      summary: Get current node configuration
+      description: 'Used to get the current node configuration. Required permission: **NERVE_DNA:VIEW**'
+      operationId: dna_current_configuration
+      tags:
+      - DNA
+      parameters:
+      - name: serialNumber
+        in: path
+        required: true
+        description: The serial number of the node which was specified during onboarding into the Nerve Management System.
+        schema:
+          description: The serial number of the node
+          type: string
+          maxLength: 12
+          minLength: 12
+          pattern: ([A-Z0-9]){12}
+      x-permissions:
+      - NERVE_DNA:VIEW
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                pattern: ^[\x20-\x7E\t\n\r]*$
+                description: Node configuration file
+                minLength: 1
+                maxLength: 1000
+                format: binary
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                pattern: ^[\x20-\x7E\t\n\r]*$
+                minLength: 1
+                maxLength: 1000
+                example: attachment; filename="config.zip"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                config_in_progress:
+                  value:
+                    httpCode: '400'
+                    errorCode: nerve_dna_005
+                    message: The current configuration not available while configuration is in-progress. Try again later.
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: nerve_dna_003
+                    httpCode: '401'
+                    message: You are not authorized.
+        '403':
+          description: You are missing permission to perform an action
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                missing_permission:
+                  value:
+                    errorCode: nerve_dna_004
+                    httpCode: '403'
+                    message: You are missing permission.
+        '404':
+          description: The resource is not found
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                node_not_available:
+                  value:
+                    httpCode: '404'
+                    errorCode: nerve_dna_008
+                    message: The node with specified serial number is not available.
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                unknown_error:
+                  value:
+                    httpCode: '500'
+                    errorCode: nerve_dna_006
+                    message: Configuration operation failed for unknown reason.
+      security:
+      - sessionId: []
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /nerve/dna/{serialNumber}/target/re-apply:
+    put:
+      summary: Re-apply target configuration to the selected node
+      description: 'Used to re-apply the target configuration which was previously uploaded to the node. Required permission: **NERVE_DNA:EDIT**'
+      operationId: re_apply_dna_configuration
+      tags:
+      - DNA
+      parameters:
+      - name: serialNumber
+        in: path
+        required: true
+        description: The serial number of the node which was specified during onboarding into the Nerve Management System.
+        schema:
+          description: The serial number of the node
+          type: string
+          maxLength: 12
+          minLength: 12
+          pattern: ([A-Z0-9]){12}
+      - in: query
+        name: continueInCaseOfRestart
+        schema:
+          type: boolean
+          default: false
+        description: Select whether the node should continue DNA reconfiguration when it comes online again. Available only for node with version >= 2.10.0
+      - in: query
+        name: restartAllWorkloads
+        schema:
+          type: boolean
+          default: true
+        description: If the flag is set to false, workloads will not be reset if they already exist on the node. Default value is true. Available only for node with version >= 2.10.0
+      - name: removeDockerImages
+        in: query
+        schema:
+          type: boolean
+          default: true
+        description: If the flag is set to true, Docker images will be removed from the node. If set to false, the images will be retained. Docker images are removed from the node as part of the undeployment that is executed before the DNA file is applied,  to eliminate workloads that are not part of that DNA configuration. This setting applies specifically to workloads using the Management System Registry. Available only for nodes with version >= 2.10.0.
+      x-permissions:
+      - NERVE_DNA:EDIT
+      responses:
+        '202':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object with DNA configuration initiation status message and tracking URI
+                additionalProperties: false
+                properties:
+                  message:
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                    description: Message describing the DNA configuration initiation operation
+                    minLength: 1
+                    maxLength: 1000
+                  tracking:
+                    type: string
+                    description: The URI for getting completion status of job
+                    pattern: ^\/nerve\/dna\/([A-Za-z]|\d){12}\/status$
+                    minLength: 1
+                    maxLength: 1000
+                required:
+                - message
+                - tracking
+              examples:
+                dna_configuration_initiated:
+                  value:
+                    message: DNA configuration initiated
+                    tracking: /nerve/dna/123456789012/status
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                error_upload_config_file:
+                  value:
+                    httpCode: '400'
+                    errorCode: nerve_dna_001
+                    message: File upload failed.
+                config_file_error:
+                  value:
+                    httpCode: '400'
+                    errorCode: nerve_dna_002
+                    message: Payload not defined.
+                continue_reconfiguration_not_supported:
+                  value:
+                    httpCode: '400'
+                    errorCode: nerve_dna_019
+                    message: Only nodes with version 2.7.0 and greater can continue DNA reconfiguration.
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: nerve_dna_003
+                    httpCode: '401'
+                    message: You are not authorized.
+        '403':
+          description: You are missing permission to perform an action
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                missing_permission:
+                  value:
+                    errorCode: nerve_dna_004
+                    httpCode: '403'
+                    message: You are missing permission.
+        '404':
+          description: The resource is not found
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                node_not_available:
+                  value:
+                    httpCode: '404'
+                    errorCode: nerve_dna_008
+                    message: The node with specified serial number is not available.
+        '409':
+          description: The node is offline
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                node_not_available:
+                  value:
+                    httpCode: '409'
+                    errorCode: nerve_dna_011
+                    message: The node with specified serial number is currently offline.
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                unknown_error:
+                  value:
+                    httpCode: '500'
+                    errorCode: nerve_dna_006
+                    message: Configuration operation failed for unknown reason.
+        '504':
+          description: The response did not received in time
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                node_not_available:
+                  value:
+                    httpCode: '504'
+                    errorCode: nerve_dna_012
+                    message: The timeout for response message expired.
+      security:
+      - sessionId: []
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /api/dna/target:
+    get:
+      tags:
+      - DNA
+      summary: Get target node configuration
+      description: Used to get the target node configuration.
+      operationId: get_dna_target_configuration
+      x-permissions:
+      - DNA:TARGET
+      responses:
+        '200':
+          description: Successful operation
+          headers:
+            Content-Disposition:
+              description: attachment; filename="config.zip"
+              schema:
+                type: string
+                description: Value of the Content-Disposition header
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+                description: Represents binary data encoded as a string
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+      security:
+      - cookieAuth: []
+    put:
+      tags:
+      - DNA
+      x-permissions:
+      - DNA:APPLY
+      summary: Apply target configuration
+      description: Used to update the existing configuration of the selected node by using configuration file.
+      operationId: apply_dna_configuration
+      parameters:
+      - name: continueInCaseOfRestart
+        in: query
+        description: The node will continue DNA reconfiguration when it comes back online. This option is available only for nodes with version >= 2.7.0.
+        schema:
+          type: boolean
+          default: false
+      - name: restartAllWorkloads
+        in: query
+        description: The default value is true and in that case all existing workloads on the node will be restarted. If the flag is false, existing workloads on the node will not be restarted. Available for node with version >= 2.9.0
+        schema:
+          type: boolean
+          default: true
+      - name: removeDockerImages
+        in: query
+        schema:
+          type: boolean
+          default: true
+        description: If the flag is set to true, Docker images will be removed from the node. If set to false, the images will be retained. Docker images are removed from the node as part of the undeployment that is executed before the DNA file is applied,  to eliminate workloads that are not part of that DNA configuration. This setting applies specifically to workloads using the Management System Registry. Available only for nodes with version >= 2.10.0.
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              description: Object contains 'file' property, which represents the file to be uploaded
+              properties:
+                file:
+                  type: string
+                  description: The file to upload.
+                  format: binary
+        required: true
+      responses:
+        '202':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                example:
+                  message: DNA configuration initiated
+                  tracking: /api/dna/status
+                description: Representing a successful response with HTTP status code 202 (Accepted)
+                required:
+                - message
+                - tracking
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Action initiated message
+                  tracking:
+                    pattern: ^\/api\/dna\/status$
+                    type: string
+                    description: The URI for getting completion status of job
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Validation error.
+                required:
+                - status
+                - message
+                - errors
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  message:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: The validation error message
+                  errors:
+                    type: array
+                    minItems: 1
+                    maxItems: 1001
+                    description: Detailed description of what does not match the schema
+                    items:
+                      type: object
+                      properties:
+                        path:
+                          type: string
+                          minLength: 1
+                          maxLength: 1001
+                          description: Specified location within the document where the error occurred
+                        message:
+                          type: string
+                          minLength: 1
+                          maxLength: 1001
+                          description: Error message
+              example:
+                status: 415
+                message: unsupported media type text/plain
+                errors:
+                - path: /api/setup/configurations
+                  message: unsupported media type text/plain
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+      security:
+      - cookieAuth: []
+  /api/dna/status:
+    get:
+      tags:
+      - DNA
+      summary: Get configuration status
+      description: Used to get the current status of DNA configuration.
+      operationId: dna_configuration_status
+      x-permissions:
+      - DNA:STATUS
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                required:
+                - message
+                - status
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: The current state of DNA configuration
+                    enum:
+                    - APPLIED
+                    - INITIAL
+                    - UNDEFINED
+                    - RECONFIGURING
+                    - CANCELING
+                    - MODIFIED
+                  message:
+                    type: string
+                    description: The message describing configuration status
+                  fileName:
+                    pattern: ^[a-zA-Z0-9-_.]*\.(yaml|YAML|yml|YML|zip|ZIP)$
+                    type: string
+                    description: The name of the DNA configuration file (target configuration)
+                  progress:
+                    type: object
+                    properties:
+                      percentage:
+                        maximum: 100
+                        minimum: 0
+                        type: integer
+                        description: The progress in percentage.
+                      message:
+                        type: string
+                        description: More detail about the current step in the configuration process.
+                    description: The progress of DNA node configuration
+                  updated:
+                    type: string
+                    format: date-time
+                    description: The date and time of the last change (UTC time)
+                  timezone:
+                    type: string
+                    description: The timezone setup on node
+                  user:
+                    type: string
+                    description: The name of the user who did the last change
+                  initiatedFrom:
+                    type: string
+                    description: The application from which the DNA configuration was done
+                    enum:
+                    - NODE-LOCAL-UI
+                    - NERVE-MS
+                description: The DNA configuration status info
+              example:
+                status: RECONFIGURING
+                message: Configuration in progress.
+                fileName: my-config.zip
+                progress:
+                  percentage: 56
+                  message: Installing sample-name workload of type docker
+                updated: '2023-01-12T09:36:10.528Z'
+                timezone: Europe/Vienna
+                user: John Doe
+                initiatedFrom: NERVE-MS
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+      security:
+      - cookieAuth: []
+  /api/dna/target/cancel:
+    patch:
+      tags:
+      - DNA
+      summary: Cancel DNA configuration in progress
+      description: Used to cancel the DNA configuration operation which is in progress.
+      operationId: cancel_dna_configuration
+      x-permissions:
+      - DNA:CANCEL
+      responses:
+        '202':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                example:
+                  message: DNA configuration cancellation initiated
+                  tracking: /api/dna/status
+                description: Representing a successful response with HTTP status code 202 (Accepted)
+                required:
+                - message
+                - tracking
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Action initiated message
+                  tracking:
+                    pattern: ^\/api\/dna\/status$
+                    type: string
+                    description: The URI for getting completion status of job
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+      security:
+      - cookieAuth: []
+  /api/dna/current:
+    get:
+      tags:
+      - DNA
+      summary: Get current node configuration
+      description: Used to get the current node configuration.
+      operationId: dna_current_configuration
+      x-permissions:
+      - DNA:CURRENT
+      responses:
+        '200':
+          description: Successful operation
+          headers:
+            Content-Disposition:
+              description: attachment; filename="test_dna.yaml"
+              schema:
+                type: string
+                description: Value of the Content-Disposition header
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+                description: Represents binary data encoded as a string
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+      security:
+      - cookieAuth: []
+  /api/dna/target/re-apply:
+    put:
+      tags:
+      - DNA
+      summary: Re-apply target configuration
+      description: Used to re-apply the target configuration which was previously uploaded to the node
+      operationId: re_apply_dna_configuration
+      parameters:
+      - name: continueInCaseOfRestart
+        in: query
+        description: The node will continue DNA reconfiguration when it comes back online. This option is available only for nodes with version >= 2.10.0.
+        schema:
+          type: boolean
+          default: false
+      - name: restartAllWorkloads
+        in: query
+        description: The default value is true and in that case all existing workloads on the node will be restarted. If the flag is false, existing workloads on the node will not be restarted. Available for node with version >= 2.10.0
+        schema:
+          type: boolean
+          default: true
+      - name: removeDockerImages
+        in: query
+        schema:
+          type: boolean
+          default: true
+        description: If the flag is set to true, Docker images will be removed from the node. If set to false, the images will be retained. Docker images are removed from the node as part of the undeployment that is executed before the DNA file is applied,  to eliminate workloads that are not part of that DNA configuration. This setting applies specifically to workloads using the Management System Registry. Available only for nodes with version >= 2.10.0.
+      x-permissions:
+      - DNA:RE-APPLY
+      responses:
+        '202':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                example:
+                  message: DNA re-apply configuration initiated
+                  tracking: /api/dna/status
+                description: Representing a successful response with HTTP status code 202 (Accepted)
+                required:
+                - message
+                - tracking
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Action initiated message
+                  tracking:
+                    pattern: ^\/api\/dna\/status$
+                    type: string
+                    description: The URI for getting completion status of job
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The requested resource is temporarily unavailable. The node is not connected to the Management System and cannot retrieve the required workloads to proceed with the 're-apply' target configuration.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                node_offline:
+                  value:
+                    status: 404
+                    msg: Node is not connected to the cloud
+      security:
+      - cookieAuth: []
+components:
+  securitySchemes:
+    sessionId:
+      type: apiKey
+      in: header
+      name: sessionId
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    bearerAuth:
+      type: http
+      scheme: bearer
+x-refined-from:
+- tttech-nerve-management-system-openapi-original.json
+- tttech-nerve-node-openapi-original.json

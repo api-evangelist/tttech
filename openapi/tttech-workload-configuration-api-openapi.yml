@@ -1,0 +1,326 @@
+openapi: 3.2.0
+info:
+  version: 3.1.0
+  description: 'Nerve Management System API to manage: -labels -nodes -workloads -notifications -capabilities'
+  title: Nerve Management System WORKLOAD CONFIGURATION API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+servers:
+- url: https://trynerve1.nerve.cloud
+security:
+- sessionId: []
+tags:
+- name: WORKLOAD_CONFIGURATION
+  description: The operations to manage workload configurations
+paths:
+  /nerve/nodes/{serialNumber}/workloads/{deviceId}/configurations:
+    post:
+      summary: Apply configuration to docker workload
+      description: 'The method is used to apply configuration to docker workloads. Required permission: **WORKLOAD_CONFIGURATION:APPLY**'
+      operationId: apply_docker_workload_configuration
+      tags:
+      - WORKLOAD_CONFIGURATION
+      parameters:
+      - name: serialNumber
+        in: path
+        required: true
+        description: The serial number of the node which was specified during onboarding into the Nerve Management System.
+        schema:
+          description: The serial number of the node
+          type: string
+          maxLength: 12
+          minLength: 12
+          pattern: ([A-Z0-9]){12}
+      - name: deviceId
+        in: path
+        required: true
+        description: Unique identifier of the deployed workload. device is a term previously used for workloads.
+        schema:
+          type: string
+          description: Id of the deployed workload
+          pattern: ^\d+$
+          minLength: 3
+          maxLength: 4
+      requestBody:
+        description: Defines workload configuration
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              additionalProperties: false
+              type: object
+              description: Defines the configuration to be applied to the workload
+              properties:
+                file:
+                  description: File containing the workload configuration to be applied
+                  type: string
+                  format: binary
+                  minLength: 1
+                  maxLength: 1000
+                data:
+                  type: object
+                  description: 'Information about workload and version(stringify JSON object). Example how to setup data field in request body: * Key: data * Value: ''{"action":"apply","volume":{"name":"config","path":"/usr/share/nginx/"},"restartOnConfigurationUpdate":false}'' Note: Before apply configuration, volume has to be created on this workload. After volume is created, workload shall be (re)deployed.'
+                  additionalProperties: false
+                  properties:
+                    action:
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                      description: Action to perform. Value is 'apply'.
+                      minLength: 1
+                      maxLength: 1000
+                    restartOnConfigurationUpdate:
+                      description: Should workload be restarted after the configuration is applied
+                      type: boolean
+                    volume:
+                      description: Volume used
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: Name of volume
+                          minLength: 1
+                          maxLength: 1000
+                        path:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: Volume path
+                          minLength: 1
+                          maxLength: 1000
+                    workloadId:
+                      description: ID (from Management System) of the entry
+                      type: string
+                      pattern: ^[0-9a-fA-F]{24}$
+                      minLength: 24
+                      maxLength: 24
+                    versionId:
+                      description: ID (from Management System) of the entry
+                      type: string
+                      pattern: ^[0-9a-fA-F]{24}$
+                      minLength: 24
+                      maxLength: 24
+                  required:
+                  - action
+                  - volume
+                  - restartOnConfigurationUpdate
+      x-permissions:
+      - WORKLOAD_CONFIGURATION:APPLY
+      responses:
+        '204':
+          description: successful operation, configuration applied
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                error_upload_config_file:
+                  value:
+                    httpCode: '400'
+                    errorCode: nerve_workload_configuration_002
+                    message: File upload failed.
+                payload_not_defined:
+                  value:
+                    httpCode: '400'
+                    errorCode: nerve_workload_configuration_006
+                    message: Payload not defined.
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                workload_not_found:
+                  value:
+                    httpCode: '404'
+                    errorCode: nerve_workload_configuration_015
+                    message: Workload for which configuration update is requested does not exist on the system.
+        '409':
+          description: Conflict
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                configuration_update_unsupported:
+                  value:
+                    httpCode: '409'
+                    errorCode: nerve_workload_configuration_018
+                    message: Configuration update is only supported for docker and docker-compose workloads.
+                configuration_update_not_allowed:
+                  value:
+                    httpCode: '409'
+                    errorCode: nerve_workload_configuration_019
+                    message: Configuration update is not possible for workload that is in REMOVING or REMOVING_FAILED status.
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '415'
+                message: Route params validation error
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                failed_to_generate_download_link:
+                  value:
+                    httpCode: '500'
+                    errorCode: nerve_workload_configuration_013
+                    message: Failed to generate configuration download link.
+                unknown_error:
+                  value:
+                    httpCode: '500'
+                    errorCode: nerve_workload_configuration_003
+                    message: Apply configuration failed with unknown reason.
+components:
+  securitySchemes:
+    sessionId:
+      type: apiKey
+      in: header
+      name: sessionId
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    bearerAuth:
+      type: http
+      scheme: bearer

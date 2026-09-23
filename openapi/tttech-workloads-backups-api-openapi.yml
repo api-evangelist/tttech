@@ -1,0 +1,1348 @@
+openapi: 3.2.0
+info:
+  version: 2.10.0
+  description: 'Nerve OVDM API to manage:
+
+    - node configuration
+
+    - system configuration
+
+    - system network configuration
+
+    - workloads
+
+    - remote connections
+
+    - dna'
+  title: Nerve Node WORKLOADS BACKUPS API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+security:
+- cookieAuth: []
+tags:
+- name: WORKLOADS BACKUPS
+paths:
+  /api/workloads/{deviceId}/backups:
+    get:
+      summary: Get backups for the specified VM workload
+      operationId: get_vm_backups_history
+      tags:
+      - WORKLOADS BACKUPS
+      x-permissions:
+      - BACKUP:LIST
+      description: Used to obtain the list of previously created backups of the provided VM workload
+      parameters:
+      - name: deviceId
+        in: path
+        required: true
+        description: Unique identifier of the deployed workload. Device is a term used for workloads.
+        schema:
+          type: string
+          description: Id of the deployed workload
+          pattern: ^\d+$
+          minLength: 1
+          maxLength: 1001
+      responses:
+        '200':
+          description: List of previously created backups(creation history) for the specific VM workload
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing the list of backup creations for a specific VM workload.
+                required:
+                - backups
+                additionalProperties: false
+                properties:
+                  backups:
+                    type: array
+                    description: Objects representing information about previous backups created
+                    items:
+                      type: object
+                      additionalProperties: false
+                      required:
+                      - name
+                      - started
+                      - status
+                      - localRepository
+                      - serialNumber
+                      properties:
+                        name:
+                          type: string
+                          description: The name of VM workload backup
+                          pattern: (\s^)|(^[^\u0000-\u001f\u007f-\u009f]*$)
+                          minLength: 1
+                          maxLength: 1001
+                        started:
+                          type: integer
+                          description: Time when backup creation started (in milliseconds)
+                        status:
+                          type: string
+                          description: Status of backup creation operation
+                          enum:
+                          - COMPLETED
+                          - FAILED
+                          - STOPPING
+                          - IN_PROGRESS
+                          - ABORTED
+                        serialNumber:
+                          description: The serial number of the node
+                          type: string
+                          maxLength: 12
+                          minLength: 12
+                          pattern: ([A-Z0-9]){12}
+                        progress:
+                          type: integer
+                          description: Operation progress
+                          minimum: 0
+                          maximum: 100
+                        vmStateBeforeBackup:
+                          type: string
+                          description: State of VM before proceed with backup creation
+                          enum:
+                          - RUNNING
+                          - STOPPING
+                          - STOPPED
+                          - SUSPENDED
+                        finished:
+                          type: integer
+                          description: Time when backup creation completed(in milliseconds)
+                        error:
+                          type: string
+                          description: Reason why VM backup creation failed
+                        localRepository:
+                          type: object
+                          additionalProperties: false
+                          description: Information about the local repository that is used to store VM backups
+                          required:
+                          - url
+                          - protocol
+                          properties:
+                            url:
+                              type: string
+                              description: Url of HTTP server
+                            user:
+                              type:
+                              - string
+                              - 'null'
+                              description: User for authentication to the HTTP server
+                            password:
+                              type:
+                              - string
+                              - 'null'
+                              description: Password for authentication to the HTTP server
+                            protocol:
+                              type: string
+                              description: Protocol used for communication with the local repository
+                              enum:
+                              - nfs
+                            options:
+                              type: string
+                              description: Nfs server options
+                    minItems: 0
+                    maxItems: 1001
+              examples:
+                vm_backups:
+                  value:
+                    backups:
+                    - name: MMARKOVIC001-vm with snapshot-backup 29-4-2024 8:58:34 GMT+2
+                      started: 1714373918785
+                      status: COMPLETED
+                      localRepository:
+                        url: 10.85.10.94:/nfs_shared
+                        user: null
+                        password: null
+                        protocol: nfs
+                        options: rw,nolock
+                      serialNumber: MMARKOVIC001
+                      vmStateBeforeBackup: STOPPED
+                      progress: 100
+                      finished: 1714373979899
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+        '500':
+          description: Failed to obtain list of backups or the response data does not match the schema.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                invalid_response:
+                  value:
+                    status: 500
+                    msg: Invalid response
+                backup_not_supported:
+                  value:
+                    status: 500
+                    msg: BACKUP_NOT_SUPPORTED_FOR_THAT_WORKLOAD_TYPE
+    post:
+      summary: Create backup for specified VM workload
+      operationId: create_vm_backup
+      tags:
+      - WORKLOADS BACKUPS
+      x-permissions:
+      - BACKUP:CREATE
+      description: Used to initiated the creation of backup for provided VM workload.
+      parameters:
+      - name: deviceId
+        in: path
+        required: true
+        description: Unique identifier of the deployed workload. Device is a term used for workloads.
+        schema:
+          type: string
+          description: Id of the deployed workload
+          pattern: ^\d+$
+          minLength: 1
+          maxLength: 1001
+      requestBody:
+        required: true
+        description: Object contains name of the backup
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Object containing the name of the backup to be created
+              additionalProperties: false
+              required:
+              - name
+              properties:
+                name:
+                  type: string
+                  description: The name of VM workload backup
+                  pattern: (\s^)|(^[^\u0000-\u001f\u007f-\u009f]*$)
+                  minLength: 1
+                  maxLength: 1001
+            examples:
+              vm_snapshot_with_just_name_req:
+                value:
+                  name: MMARKOVIC001-vm with snapshot-backup 29-4-2024 8:58:34 GMT+2
+      responses:
+        '202':
+          description: VM backup creation was successfully initiated
+          content:
+            application/json:
+              schema:
+                description: Object contains the vm backup name used in requests for creating a new VM backup or restarting the failed one
+                type: object
+                required:
+                - name
+                - message
+                additionalProperties: false
+                properties:
+                  name:
+                    type: string
+                    description: The name of VM workload backup
+                    pattern: (\s^)|(^[^\u0000-\u001f\u007f-\u009f]*$)
+                    minLength: 1
+                    maxLength: 1001
+                  message:
+                    type: string
+                    description: Message indicating that the action is initiated
+              examples:
+                vm_snapshot_revert:
+                  value:
+                    name: MMARKOVIC001-vm with snapshot-backup 29-4-2024 8:58:34 GMT+2
+                    message: Creating a backup for vmwithsnapshot has been initiated
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+        '500':
+          description: Failed to initiate creation of backup or the response data does not match the schema.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                invalid_response:
+                  value:
+                    status: 500
+                    msg: Invalid response
+                backup_not_supported:
+                  value:
+                    status: 500
+                    msg: BACKUP_NOT_SUPPORTED_FOR_THAT_WORKLOAD_TYPE
+                backup_not_possible:
+                  value:
+                    status: 500
+                    msg: BACKUP_NOT_POSSIBLE_NODE_UPDATE_IS_IN_PROGRESS
+                backup_already_exists:
+                  value:
+                    status: 500
+                    msg: BACKUP_WITH_PROVIDED_NAME_ALREADY_EXISTS
+  /api/workloads/{deviceId}/backups/restart:
+    post:
+      summary: Restart creation of VM backup
+      operationId: restart_vm_backup_creation
+      tags:
+      - WORKLOADS BACKUPS
+      x-permissions:
+      - BACKUP:RESTART
+      description: Used to restart VM backup creation
+      parameters:
+      - name: deviceId
+        in: path
+        required: true
+        description: Unique identifier of the deployed workload. Device is a term used for workloads.
+        schema:
+          type: string
+          description: Id of the deployed workload
+          pattern: ^\d+$
+          minLength: 1
+          maxLength: 1001
+      requestBody:
+        required: true
+        description: Object contains name of the snapshot
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Object containing information about the VM backup that needs to be re-created
+              additionalProperties: false
+              required:
+              - name
+              properties:
+                name:
+                  type: string
+                  description: The name of VM workload backup
+                  pattern: (\s^)|(^[^\u0000-\u001f\u007f-\u009f]*$)
+                  minLength: 1
+                  maxLength: 1001
+            examples:
+              vm_snapshot_with_just_name_req:
+                value:
+                  name: MMARKOVIC001-vm with snapshot-backup 29-4-2024 8:58:34 GMT+2
+      responses:
+        '200':
+          description: Message that the backup creation for provided VM workload is restarted
+          content:
+            application/json:
+              schema:
+                description: Object contains the vm backup name used in requests for creating a new VM backup or restarting the failed one
+                type: object
+                required:
+                - name
+                - message
+                additionalProperties: false
+                properties:
+                  name:
+                    type: string
+                    description: The name of VM workload backup
+                    pattern: (\s^)|(^[^\u0000-\u001f\u007f-\u009f]*$)
+                    minLength: 1
+                    maxLength: 1001
+                  message:
+                    type: string
+                    description: Message indicating that the action is initiated
+              examples:
+                vm_snapshot_revert:
+                  value:
+                    name: MMARKOVIC001-vm with snapshot-backup 29-4-2024 8:58:34 GMT+2
+                    message: Backup MMARKOVIC001-vm with snapshot-backup 29-4-2024 8:58:34 GMT+2 for vm with snapshot is restarted
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+        '500':
+          description: Failed to restart VM backup or the response data does not match the schema.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                invalid_response:
+                  value:
+                    status: 500
+                    msg: Invalid response
+                not_allowed_while_previous_in_progress:
+                  value:
+                    status: 500
+                    msg: BACKUP_RESTART_NOT_POSSIBLE_UNTIL_PREVIOUS_ONE_IS_COMPLETED
+                only_failed_can_be_restarted:
+                  value:
+                    status: 500
+                    msg: ONLY_BACKUP_WITH_FAILED_STATUS_MAY_BE_RESTART
+  /api/workloads/backups/deploy:
+    post:
+      summary: Deploy the selected backup from the local repository
+      operationId: deploy_vm_backups
+      tags:
+      - WORKLOADS BACKUPS
+      x-permissions:
+      - BACKUP:DEPLOY
+      description: Used to deploy selected backup from the local repository
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Object containing data about the VM backup to deploy on the node
+              additionalProperties: false
+              required:
+              - name
+              - deployAsBackup
+              properties:
+                name:
+                  type: string
+                  description: The name of VM workload backup
+                  pattern: (\s^)|(^[^\u0000-\u001f\u007f-\u009f]*$)
+                  minLength: 1
+                  maxLength: 1001
+                deployAsBackup:
+                  type: boolean
+                  description: Flag that determines if the backed up vm is going to be deployed as a clone or as a backup.
+            examples:
+              vm_as_backup:
+                value:
+                  name: 0000000000NS-vm with snapshot-backup 29-4-2024 14:42:37 GMT+2
+                  deployAsBackup: true
+              vm_as_clone:
+                value:
+                  name: 0000000000NS-vm with snapshot-backup 29-4-2024 14:42:37 GMT+2
+                  deployAsBackup: false
+      responses:
+        '200':
+          description: List of previously created backups(creation history) for the specific VM workload
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Workload object
+                additionalProperties: false
+                required:
+                - uniqueId
+                - id
+                - versionId
+                - type
+                - workloadName
+                - status
+                - deployTime
+                - deployAsBackup
+                properties:
+                  uniqueId:
+                    description: Randomly generated uuid using uuidv4 library
+                    type: string
+                    minLength: 36
+                    maxLength: 36
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  id:
+                    oneOf:
+                    - description: ID (from Management System) of the entry
+                      type: string
+                      pattern: ^[0-9a-fA-F]{24}$
+                      minLength: 24
+                      maxLength: 24
+                    - description: ID created as workloadId(from database)-uniqueId(randomly generated uuid when workload is queued).
+                      type: string
+                      pattern: ^[0-9a-fA-F]{24}-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      minLength: 61
+                      maxLength: 61
+                  versionId:
+                    oneOf:
+                    - description: ID (from Management System) of the entry
+                      type: string
+                      pattern: ^[0-9a-fA-F]{24}$
+                      minLength: 24
+                      maxLength: 24
+                    - description: ID created as workloadId(from database)-uniqueId(randomly generated uuid when workload is queued).
+                      type: string
+                      pattern: ^[0-9a-fA-F]{24}-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      minLength: 61
+                      maxLength: 61
+                  workloadName:
+                    type: string
+                    description: Workload name
+                    minLength: 1
+                    maxLength: 40
+                    pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                  status:
+                    type: string
+                    description: Status of workload in queue
+                    enum:
+                    - New
+                    - Reserved
+                    - Queued
+                    - Downloading
+                    - Downloaded
+                    - Installed
+                    - Removing
+                    - Removing_failed
+                  type:
+                    type: string
+                    description: Workload type
+                    enum:
+                    - vm
+                    - docker
+                    - codesys
+                    - docker-compose
+                  deployTime:
+                    type: integer
+                    description: Time when workload has been deployed (in milliseconds).
+                  deployAsBackup:
+                    type: boolean
+                    description: Flag that determines if the backed up vm is going to be deployed as a clone or as a backup.
+              examples:
+                vm_backups_deploy:
+                  value:
+                    uniqueId: da844570-fe20-4b65-8110-f391899853d1
+                    id: 661fda47608ed214c9e858e3-a48ad0c8-dd0c-4326-9c92-f02e13a82d6f
+                    versionId: 661fda47608ed214c9e858e4-a48ad0c8-dd0c-4326-9c92-f02e13a82d6f
+                    type: vm
+                    workloadName: vm with snapshot
+                    status: Queued
+                    deployTime: 1714395012408
+                    deployAsBackup: false
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The VM backup file not found. The local repository is not defined(configured), and the node cannot retrieve the requested VM backup file.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                local_repository_not_defined:
+                  value:
+                    status: 404
+                    msg: Local repository is not defined.
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Validation error.
+                required:
+                - status
+                - message
+                - errors
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  message:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: The validation error message
+                  errors:
+                    type: array
+                    minItems: 1
+                    maxItems: 1001
+                    description: Detailed description of what does not match the schema
+                    items:
+                      type: object
+                      properties:
+                        path:
+                          type: string
+                          minLength: 1
+                          maxLength: 1001
+                          description: Specified location within the document where the error occurred
+                        message:
+                          type: string
+                          minLength: 1
+                          maxLength: 1001
+                          description: Error message
+              example:
+                status: 415
+                message: unsupported media type text/plain
+                errors:
+                - path: /api/setup/configurations
+                  message: unsupported media type text/plain
+        '500':
+          description: Failed to deploy workload from backups repository or the response data does not match the schema.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                invalid_response:
+                  value:
+                    status: 500
+                    msg: Invalid response
+                update_not_supported:
+                  value:
+                    status: 500
+                    msg: Workload update for virtual machines is not supported.
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    basicAuth:
+      type: http
+      scheme: basic

@@ -1,0 +1,347 @@
+openapi: 3.2.0
+info:
+  version: 2.10.0
+  description: 'Nerve OVDM API to manage:
+
+    - node configuration
+
+    - system configuration
+
+    - system network configuration
+
+    - workloads
+
+    - remote connections
+
+    - dna'
+  title: Nerve Node WORKLOADS NETWORKS API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+security:
+- cookieAuth: []
+tags:
+- name: WORKLOADS NETWORKS
+paths:
+  /api/workloads/{deviceId}/network-details:
+    get:
+      tags:
+      - WORKLOADS NETWORKS
+      summary: Gets network interface information of VM workload
+      description: Provides detailed information about network interfaces of the specified VM workload
+      operationId: get_workload_network_details
+      x-permissions:
+      - WORKLOAD_NETWORK_DETAILS:VIEW
+      parameters:
+      - name: deviceId
+        in: path
+        required: true
+        description: Unique identifier of the deployed workload. Device is a term used for workloads.
+        schema:
+          type: string
+          description: Id of the deployed workload
+          pattern: ^\d+$
+          minLength: 1
+          maxLength: 1001
+      responses:
+        '200':
+          description: Successfully fetched network details of a VM workload
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing the list of network interfaces of a VM workload.
+                required:
+                - interfaces
+                additionalProperties: false
+                properties:
+                  interfaces:
+                    type: array
+                    description: List of network interfaces of a VM workload.
+                    minItems: 0
+                    maxItems: 1001
+                    items:
+                      required:
+                      - interface_name
+                      - type
+                      - source
+                      - mac_address
+                      - ip_address
+                      - received_bytes
+                      - transmitted_bytes
+                      properties:
+                        interface_name:
+                          description: Name of the network interface
+                          type: string
+                        type:
+                          description: Type of the network interface
+                          type: string
+                          enum:
+                          - bridge
+                          - network
+                        source:
+                          description: Name of the source (host) network interface
+                          type: string
+                        mac_address:
+                          description: MAC address
+                          type: string
+                        ip_address:
+                          type:
+                          - array
+                          - 'null'
+                          description: List of IP addresses
+                          minItems: 0
+                          maxItems: 1001
+                          items:
+                            type: object
+                            required:
+                            - addr
+                            - prefix
+                            - type
+                            properties:
+                              addr:
+                                description: IP address.
+                                type: string
+                              prefix:
+                                description: Prefix of IP address.
+                                type: integer
+                              type:
+                                description: Type of IP address.
+                                type: integer
+                            additionalProperties: false
+                        received_bytes:
+                          description: Number of bytes received
+                          type: string
+                        transmitted_bytes:
+                          description: Number of bytes transmitted
+                          type: string
+                      additionalProperties: false
+              example:
+                interfaces:
+                - interface_name: vnet3
+                  type: network
+                  source: default
+                  mac_address: 52:54:00:48:4b:6e
+                  ip_address:
+                  - addr: 192.168.122.30
+                    prefix: 24
+                    type: 0
+                  received_bytes: '10091'
+                  transmitted_bytes: '4258'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: Workload not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                vm_workload_not_found:
+                  value:
+                    status: 404
+                    msg: Workload with the provided device ID not found
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    basicAuth:
+      type: http
+      scheme: basic

@@ -1,0 +1,1222 @@
+openapi: 3.2.0
+info:
+  version: 3.1.0
+  description: 'Nerve Management System API to manage: -labels -nodes -workloads -notifications -capabilities'
+  title: Nerve Management System LABEL API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+servers:
+- url: https://trynerve1.nerve.cloud
+security:
+- sessionId: []
+tags:
+- name: Label
+  description: The operations to manage labels
+paths:
+  /nerve/labels:
+    post:
+      summary: Create label
+      operationId: create_label
+      tags:
+      - Label
+      description: Create a new label. A label helps to organize your workloads and nodes. After creation it needs to be assigned to a node or workload.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: The key-value pair representing a label.
+              properties:
+                key:
+                  description: Definition of a label key property
+                  type: string
+                  minLength: 1
+                  maxLength: 40
+                  pattern: ^[a-zA-Z0-9_-]*$
+                value:
+                  description: Definition of a label value property
+                  type: string
+                  minLength: 1
+                  maxLength: 40
+                  pattern: ^[^\s]*$
+              required:
+              - key
+              - value
+            examples:
+              label:
+                value:
+                  key: node
+                  value: mfn-100
+        required: true
+      x-permissions:
+      - LABEL:CREATE
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                description: A single label delivered from the backend.
+                allOf:
+                - type: object
+                  description: The key-value pair representing a label.
+                  properties:
+                    key:
+                      description: Definition of a label key property
+                      type: string
+                      minLength: 1
+                      maxLength: 40
+                      pattern: ^[a-zA-Z0-9_-]*$
+                    value:
+                      description: Definition of a label value property
+                      type: string
+                      minLength: 1
+                      maxLength: 40
+                      pattern: ^[^\s]*$
+                  required:
+                  - key
+                  - value
+                - description: ID (from Management System) of the entry. Can be a string or an object.
+                  oneOf:
+                  - description: ID (from Management System) of the entry
+                    type: string
+                    pattern: ^[0-9a-fA-F]{24}$
+                    minLength: 24
+                    maxLength: 24
+                  - type: object
+                - type: object
+                  properties:
+                    createdAt:
+                      description: Date and time when label was initially created.
+                      anyOf:
+                      - type: string
+                        format: date-time
+                        minLength: 8
+                        maxLength: 30
+                      - type: object
+              examples:
+                label_rsp:
+                  value:
+                    key: hardware
+                    value: mfn-100
+                    createdAt: '2022-03-14T15:27:58.780Z'
+                    _id: 63ca8b3379623c0702ebb6dc
+                    __v: 0
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '409':
+          description: A label with the key-value pair already exists.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                label_create_err:
+                  value:
+                    errorCode: nerve_label_001
+                    httpCode: '409'
+                    message: A label with the key-value already exists.
+  /nerve/labels/{label_id}:
+    delete:
+      summary: Delete the selected label
+      operationId: delete_label
+      tags:
+      - Label
+      description: Delete one specific label. Be sure it is not assigned to any other entry.
+      parameters:
+      - name: label_id
+        in: path
+        required: true
+        description: 'Label ID. '
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      x-permissions:
+      - LABEL:DELETE
+      responses:
+        '200':
+          description: The label was successfully deleted.
+          content:
+            application/json:
+              schema:
+                description: Result of the last operation on the database as dbms returns it.
+                properties:
+                  ok:
+                    description: Flags if the operation was success (1)
+                    type: number
+                  n:
+                    description: Number of items
+                    type: number
+                  nModified:
+                    description: Number of modified items in the database
+                    type: number
+              examples:
+                label_deleted:
+                  value:
+                    n: 0
+                    nModified: 0
+                    ok: 1
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: A label with the specified ID was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                label_not_found:
+                  value:
+                    errorCode: nerve_label_014
+                    httpCode: '404'
+                    message: The label was not found.
+    get:
+      summary: Get the selected label
+      operationId: get_label
+      tags:
+      - Label
+      description: Get details about one specific label.
+      parameters:
+      - name: label_id
+        in: path
+        required: true
+        description: 'Label ID. '
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      x-permissions:
+      - LABEL:VIEW
+      responses:
+        '200':
+          description: The label was successfully fetched.
+          content:
+            application/json:
+              schema:
+                description: A single label delivered from the backend.
+                allOf:
+                - type: object
+                  description: The key-value pair representing a label.
+                  properties:
+                    key:
+                      description: Definition of a label key property
+                      type: string
+                      minLength: 1
+                      maxLength: 40
+                      pattern: ^[a-zA-Z0-9_-]*$
+                    value:
+                      description: Definition of a label value property
+                      type: string
+                      minLength: 1
+                      maxLength: 40
+                      pattern: ^[^\s]*$
+                  required:
+                  - key
+                  - value
+                - description: ID (from Management System) of the entry. Can be a string or an object.
+                  oneOf:
+                  - description: ID (from Management System) of the entry
+                    type: string
+                    pattern: ^[0-9a-fA-F]{24}$
+                    minLength: 24
+                    maxLength: 24
+                  - type: object
+                - type: object
+                  properties:
+                    createdAt:
+                      description: Date and time when label was initially created.
+                      anyOf:
+                      - type: string
+                        format: date-time
+                        minLength: 8
+                        maxLength: 30
+                      - type: object
+              examples:
+                label_get:
+                  value:
+                    key: hardware
+                    value: mfn-100
+                    createdAt: '2022-03-14T15:27:58.780Z'
+                    _id: 63ca8b3379623c0702ebb6dc
+                    __v: 0
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: A label with the specified ID was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                label_not_found:
+                  value:
+                    errorCode: nerve_label_014
+                    httpCode: '404'
+                    message: The label was not found.
+    patch:
+      summary: Update the selected label
+      operationId: update_label
+      tags:
+      - Label
+      description: Update details of one specified label.
+      parameters:
+      - name: label_id
+        in: path
+        required: true
+        description: 'Label ID. '
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: The key-value pair representing a label.
+              properties:
+                key:
+                  description: Definition of a label key property
+                  type: string
+                  minLength: 1
+                  maxLength: 40
+                  pattern: ^[a-zA-Z0-9_-]*$
+                value:
+                  description: Definition of a label value property
+                  type: string
+                  minLength: 1
+                  maxLength: 40
+                  pattern: ^[^\s]*$
+              required:
+              - key
+              - value
+            examples:
+              label_req:
+                value:
+                  key: node
+                  value: mfn-100
+        required: true
+      x-permissions:
+      - LABEL:EDIT
+      responses:
+        '200':
+          description: The label was successfully updated.
+          content:
+            application/json:
+              schema:
+                description: A single label delivered from the backend.
+                allOf:
+                - type: object
+                  description: The key-value pair representing a label.
+                  properties:
+                    key:
+                      description: Definition of a label key property
+                      type: string
+                      minLength: 1
+                      maxLength: 40
+                      pattern: ^[a-zA-Z0-9_-]*$
+                    value:
+                      description: Definition of a label value property
+                      type: string
+                      minLength: 1
+                      maxLength: 40
+                      pattern: ^[^\s]*$
+                  required:
+                  - key
+                  - value
+                - description: ID (from Management System) of the entry. Can be a string or an object.
+                  oneOf:
+                  - description: ID (from Management System) of the entry
+                    type: string
+                    pattern: ^[0-9a-fA-F]{24}$
+                    minLength: 24
+                    maxLength: 24
+                  - type: object
+                - type: object
+                  properties:
+                    createdAt:
+                      description: Date and time when label was initially created.
+                      anyOf:
+                      - type: string
+                        format: date-time
+                        minLength: 8
+                        maxLength: 30
+                      - type: object
+              examples:
+                label_rsp:
+                  value:
+                    key: hardware
+                    value: mfn-100
+                    createdAt: '2022-03-14T15:27:58.780Z'
+                    _id: 63ca8b3379623c0702ebb6dc
+                    __v: 0
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: A label with the specified ID was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                label_not_found:
+                  value:
+                    errorCode: nerve_label_014
+                    httpCode: '404'
+                    message: The label was not found.
+        '409':
+          description: A label with the key-value pair already exists.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                label_create_err:
+                  value:
+                    errorCode: nerve_label_001
+                    httpCode: '409'
+                    message: A label with the key-value already exists.
+  /nerve/labels/list:
+    get:
+      summary: Get a list of labels
+      operationId: get_labels
+      tags:
+      - Label
+      description: Get a list of all labels. The list is returned paged.
+      parameters:
+      - name: limit
+        in: query
+        description: Number of items per page of the result.
+        schema:
+          description: Number of items in result set when paging is applied
+          type: integer
+          format: int32
+          default: 10
+          minimum: 1
+          maximum: 500
+      - name: page
+        in: query
+        required: false
+        description: The number of the page to be returned. Items per page is defined by the limit parameter.
+        schema:
+          description: Page (zero indexed) of results to get from backend
+          type: integer
+          format: int32
+          default: 0
+          minimum: 0
+          maximum: 1000
+      - name: filterBy
+        in: query
+        description: Defines a name for the filter. If not defined, no filter is set and all labels will be displayed.
+        allowReserved: true
+        required: false
+        schema:
+          type: object
+          additionalProperties: false
+          maxProperties: 1
+          properties:
+            key:
+              type: string
+              description: Filter the list by key name.
+              pattern: ^(?!.*\x00).*$
+              minLength: 0
+              maxLength: 1000
+            value:
+              type: string
+              description: Filter the list by value name.
+              pattern: ^(?!.*\x00).*$
+              minLength: 0
+              maxLength: 1000
+        style: deepObject
+        explode: true
+        examples:
+          filter_by_key:
+            summary: Filter a list of labels by key
+            value:
+              key: key name
+              pattern: ^(?!.*\x00).*$
+              minLength: 0
+              maxLength: 1000
+      - name: order
+        in: query
+        description: 'How to sort the result by selected category; ascending or descending. Possible categories: **key**, **value**, **createdAt**. Possible sort options: **asc**, **desc**.'
+        allowReserved: true
+        required: false
+        schema:
+          type: object
+          additionalProperties: false
+          properties:
+            key:
+              description: Sort the results by the label key
+              type: string
+              enum:
+              - asc
+              - desc
+            value:
+              description: Sort the results by the label value
+              type: string
+              enum:
+              - asc
+              - desc
+            createdAt:
+              description: Sort the results by the time of label creation
+              type: string
+              enum:
+              - asc
+              - desc
+        style: deepObject
+        explode: true
+        examples:
+          key_ascending:
+            summary: Sort by key in ascending order.
+            value:
+              key: asc
+          value_desc:
+            summary: Sort by value in descending order.
+            value:
+              value: desc
+          createdAt_desc:
+            summary: Sort by created time in descending order.
+            value:
+              createdAt: desc
+      x-permissions:
+      - LABEL:LIST
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                description: Paged list of labels.
+                properties:
+                  count:
+                    type: number
+                    minimum: 0
+                    description: Number of results returned.
+                  data:
+                    type: array
+                    minItems: 0
+                    maxItems: 1001
+                    items:
+                      description: A single label delivered from the backend.
+                      allOf:
+                      - type: object
+                        description: The key-value pair representing a label.
+                        properties:
+                          key:
+                            description: Definition of a label key property
+                            type: string
+                            minLength: 1
+                            maxLength: 40
+                            pattern: ^[a-zA-Z0-9_-]*$
+                          value:
+                            description: Definition of a label value property
+                            type: string
+                            minLength: 1
+                            maxLength: 40
+                            pattern: ^[^\s]*$
+                        required:
+                        - key
+                        - value
+                      - description: ID (from Management System) of the entry. Can be a string or an object.
+                        oneOf:
+                        - description: ID (from Management System) of the entry
+                          type: string
+                          pattern: ^[0-9a-fA-F]{24}$
+                          minLength: 24
+                          maxLength: 24
+                        - type: object
+                      - type: object
+                        properties:
+                          createdAt:
+                            description: Date and time when label was initially created.
+                            anyOf:
+                            - type: string
+                              format: date-time
+                              minLength: 8
+                              maxLength: 30
+                            - type: object
+                    description: List of labels matching given search criteria.
+                required:
+                - count
+                - data
+              examples:
+                labels:
+                  value:
+                    count: 2
+                    data:
+                    - createdAt: '2022-03-14T18:57:33.457Z'
+                      key: hw
+                      value: mfn-100
+                      _id: 63ca8b3379623c0702ebb6dc
+                      __v: 0
+                    - createdAt: '2022-03-14T18:57:12.113Z'
+                      key: hw
+                      value: simantec
+                      _id: 63ca8b2c79623c0702ebb6b0
+                      __v: 0
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_dna_006
+                message: Operation failed for unknown reason.
+  /nerve/labels/group:
+    get:
+      summary: Get labels grouped by their keys
+      operationId: get_label_group
+      tags:
+      - Label
+      description: Get a list of labels, that is grouped by their individual label keys. The groups are returned paged.
+      parameters:
+      - name: limit
+        in: query
+        description: Number of items per page of the result.
+        schema:
+          description: Number of items in result set when paging is applied
+          type: integer
+          format: int32
+          default: 10
+          minimum: 1
+          maximum: 500
+      - name: page
+        in: query
+        required: false
+        description: The number of the page to be returned. Items per page is defined by the limit parameter.
+        schema:
+          description: Page (zero indexed) of results to get from backend
+          type: integer
+          format: int32
+          default: 0
+          minimum: 0
+          maximum: 1000
+      - name: filterBy
+        in: query
+        description: Defines a name for the filter. If not defined, no filter is set and all labels will be displayed.
+        allowReserved: true
+        required: false
+        schema:
+          type: object
+          additionalProperties: false
+          maxProperties: 1
+          properties:
+            key:
+              type: string
+              description: Filter the list by key name.
+              pattern: ^(?!.*\x00).*$
+              minLength: 0
+              maxLength: 1000
+            value:
+              type: string
+              description: Filter the list by value name.
+              pattern: ^(?!.*\x00).*$
+              minLength: 0
+              maxLength: 1000
+        style: deepObject
+        explode: true
+        examples:
+          filter_by_key:
+            summary: Filter a list of labels by key
+            value:
+              key: key name
+              pattern: ^(?!.*\x00).*$
+              minLength: 0
+              maxLength: 1000
+      x-permissions:
+      - LABEL:GROUP
+      responses:
+        '200':
+          description: The groups were successfully fetched.
+          content:
+            application/json:
+              schema:
+                description: Paged list of label groups (group is a set of labels having same key).
+                properties:
+                  count:
+                    type: number
+                    minimum: 0
+                    description: Number of items in result-set.
+                  data:
+                    description: Array of groups.
+                    type: array
+                    minItems: 0
+                    maxItems: 1001
+                    items:
+                      properties:
+                        _id:
+                          description: Definition of a label key property
+                          type: string
+                          minLength: 1
+                          maxLength: 40
+                          pattern: ^[a-zA-Z0-9_-]*$
+                        key:
+                          description: Definition of a label key property
+                          type: string
+                          minLength: 1
+                          maxLength: 40
+                          pattern: ^[a-zA-Z0-9_-]*$
+                        count:
+                          type: number
+                          description: Number of labels matching given key.
+                        keys:
+                          description: Array of keys (always contains only one key)
+                          type: array
+                          minItems: 0
+                          maxItems: 1001
+                          items:
+                            type: object
+                            properties:
+                              key:
+                                description: Definition of a label key property
+                                type: string
+                                minLength: 1
+                                maxLength: 40
+                                pattern: ^[a-zA-Z0-9_-]*$
+                        labels:
+                          description: Array of labels that share same key.
+                          type: array
+                          minItems: 0
+                          maxItems: 1001
+                          items:
+                            type: object
+                            description: The key-value pair representing a label.
+                            properties:
+                              key:
+                                description: Definition of a label key property
+                                type: string
+                                minLength: 1
+                                maxLength: 40
+                                pattern: ^[a-zA-Z0-9_-]*$
+                              value:
+                                description: Definition of a label value property
+                                type: string
+                                minLength: 1
+                                maxLength: 40
+                                pattern: ^[^\s]*$
+                            required:
+                            - key
+                            - value
+                      required:
+                      - count
+                      - key
+                      - labels
+                required:
+                - count
+                - data
+              examples:
+                label_group:
+                  value:
+                    count: 2
+                    data:
+                    - _id: hw
+                      key: hw
+                      count: 2
+                      keys:
+                      - key: hw
+                      labels:
+                      - key: hw
+                        value: mfn-100
+                      - key: hw
+                        value: siemens
+                    - _id: sw
+                      key: sw
+                      count: 1
+                      keys:
+                      - key: sw
+                      labels:
+                      - key: sw
+                        value: debian
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+components:
+  securitySchemes:
+    sessionId:
+      type: apiKey
+      in: header
+      name: sessionId
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    bearerAuth:
+      type: http
+      scheme: bearer

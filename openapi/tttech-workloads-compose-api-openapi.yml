@@ -1,0 +1,669 @@
+openapi: 3.2.0
+info:
+  version: 2.10.0
+  description: 'Nerve OVDM API to manage:
+
+    - node configuration
+
+    - system configuration
+
+    - system network configuration
+
+    - workloads
+
+    - remote connections
+
+    - dna'
+  title: Nerve Node WORKLOADS COMPOSE API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+security:
+- cookieAuth: []
+tags:
+- name: WORKLOADS COMPOSE
+paths:
+  /api/workloads/{deviceId}/compose-services-details:
+    get:
+      tags:
+      - WORKLOADS COMPOSE
+      summary: Get detailed information about docker-compose workload services
+      description: Get detailed information about services of a docker-compose workload, including service names, container names, image names, environment variables, networks, ports, , restart policies and statuses of all services.
+      operationId: get_compose_services_details
+      x-permissions:
+      - WORKLOAD_COMPOSE_SERVICE:VIEW
+      parameters:
+      - name: deviceId
+        in: path
+        required: true
+        description: Unique identifier of the deployed workload. Device is a term used for workloads.
+        schema:
+          type: string
+          description: Id of the deployed workload
+          pattern: ^\d+$
+          minLength: 1
+          maxLength: 1001
+      responses:
+        '200':
+          description: Successfully fetched docker-compose workload services details
+          content:
+            application/json:
+              schema:
+                type: object
+                description: A list of docker-compose services along with the status of each service
+                required:
+                - servicesInformation
+                - statuses
+                properties:
+                  servicesInformation:
+                    description: Information about compose services and specific docker inspect outputs for each service container
+                    type: array
+                    minItems: 0
+                    maxItems: 1001
+                    items:
+                      type: object
+                      required:
+                      - containerName
+                      - envs
+                      - imageName
+                      - networks
+                      - ports
+                      - restartPolicy
+                      - serviceName
+                      - volumes
+                      properties:
+                        containerName:
+                          description: Name of the service container
+                          type: string
+                        envs:
+                          description: Environment variables used by the Docker container
+                          type: array
+                          minItems: 0
+                          maxItems: 1001
+                          items:
+                            type: string
+                        imageName:
+                          description: Name of the Docker image with the path to it in the repository, and the tag
+                          type: string
+                        networks:
+                          description: Network names
+                          type: array
+                          minItems: 0
+                          maxItems: 1001
+                          items:
+                            type: string
+                        ports:
+                          description: Port definitions
+                          type: array
+                          minItems: 0
+                          maxItems: 1001
+                          items:
+                            description: Port mapping defined in the Docker Compose file.
+                            type: object
+                            required:
+                            - containerPort
+                            - hostPort
+                            - protocol
+                            properties:
+                              containerPort:
+                                description: Port inside the container mapped to host port.
+                                type: string
+                              hostPort:
+                                description: Port on the host mapped to the defined container port. If it is not defined, any available port will be used.
+                                type: string
+                              protocol:
+                                description: Protocol used over this port.
+                                type: string
+                            additionalProperties: false
+                        restartPolicy:
+                          description: Restart policy of the Docker container
+                          type: string
+                          enum:
+                          - 'no'
+                          - on-failure
+                          - always
+                          - unless-stopped
+                          - ''
+                        serviceName:
+                          description: Name of the service defined in the Docker Compose file
+                          type: string
+                        volumes:
+                          description: Volume definitions
+                          type: array
+                          minItems: 0
+                          maxItems: 1001
+                          items:
+                            description: Docker volume defined in the Docker Compose file.
+                            type: object
+                            required:
+                            - name
+                            - destination
+                            properties:
+                              name:
+                                description: Name of the volume.
+                                type: string
+                              destination:
+                                description: Path to the volume inside the container.
+                                type: string
+                            additionalProperties: false
+                      additionalProperties: false
+                  statuses:
+                    description: Information about current status of each service
+                    type: object
+                    required:
+                    - services
+                    properties:
+                      services:
+                        type: array
+                        minItems: 1
+                        maxItems: 50
+                        description: List of compose services
+                        items:
+                          type: object
+                          required:
+                          - containerName
+                          - message
+                          - state
+                          - timestamp
+                          properties:
+                            containerName:
+                              description: Name of the Docker container
+                              type: string
+                            message:
+                              description: Service status message
+                              type: string
+                            state:
+                              description: Service state code
+                              type: integer
+                            timestamp:
+                              description: Timestamp of last state change in Unix epoch format
+                              type: integer
+                          additionalProperties: false
+                    additionalProperties: false
+                additionalProperties: false
+              example:
+                servicesInformation:
+                - containerName: container_1
+                  serviceName: service_1
+                  imageName: path/to/image_1:tag
+                  envs:
+                  - ENV_VAR_1=value_1
+                  - ENV_VAR_2=value_2
+                  volumes:
+                  - name: volume_1
+                    destination: path/to/volume_1
+                  ports:
+                  - containerPort: '5555'
+                    protocol: tcp
+                    hostPort: '5555'
+                  networks:
+                  - network_1
+                  restartPolicy: unless-stopped
+                - containerName: container_2
+                  serviceName: service_2
+                  imageName: path/to/image_2:tag
+                  envs:
+                  - ENV_VAR_3=value_3
+                  volumes:
+                  - name: volume_2
+                    destination: path/to/volume_2
+                  - name: volume_3
+                    destination: path/to/volume_3
+                  ports:
+                  - containerPort: '6666'
+                    protocol: tcp
+                    hostPort: '6666'
+                  networks:
+                  - network_2
+                  restartPolicy: always
+                statuses:
+                  services:
+                  - containerName: container_1
+                    state: 8
+                    message: container_running
+                    timestamp: 1713262099295
+                  - containerName: container_2
+                    state: 8
+                    message: container_running
+                    timestamp: 1713262099297
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+  /api/workloads/{deviceId}/compose-service-docker-inspect/{name}:
+    get:
+      tags:
+      - WORKLOADS COMPOSE
+      summary: Get docker inspect output for specified compose service Docker container
+      description: Gets all data returned by running the docker inspect command for the specified Docker container.
+      operationId: compose_service_inspect
+      x-permissions:
+      - WORKLOAD_COMPOSE_SERVICE:INSPECT
+      parameters:
+      - name: deviceId
+        in: path
+        required: true
+        description: Unique identifier of the deployed workload. Device is a term used for workloads.
+        schema:
+          type: string
+          description: Id of the deployed workload
+          pattern: ^\d+$
+          minLength: 1
+          maxLength: 1001
+      - name: name
+        in: path
+        required: true
+        description: Name of the Docker container.
+        schema:
+          type: string
+          description: Docker container name
+          minLength: 2
+          maxLength: 100
+          pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]+$
+      responses:
+        '200':
+          description: Docker container information returned by the docker inspect command.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing the output from the 'docker inspect' command
+              example:
+                Id: 3069330c23e1c84f0ff2ae5db01aca3901b765c97ec6dd0e95879fdeb6ebe3be
+                Created: '2024-04-25T22:09:52.802305466Z'
+                Path: run_gateway.sh
+                Args:
+                - user_config/gateway_config.json
+                State:
+                  Status: running
+                  Running: true
+                  Paused: false
+                  Restarting: false
+                  OOMKilled: false
+                  Dead: false
+                  Pid: 111206
+                  ExitCode: 0
+                  Error: ''
+                  StartedAt: '2024-04-25T22:09:57.163741048Z'
+                  FinishedAt: '0001-01-01T00:00:00Z'
+                Image: sha256:c97df1d5942158d34eb259376bd234aefacf90224246e3a6f8a8147004a2b5ad
+                ResolvConfPath: /opt/data/var/lib/docker/containers/3069330c23e1c84f0ff2ae5db01aca3901b765c97ec6dd0e95879fdeb6ebe3be/resolv.conf
+                HostnamePath: /opt/data/var/lib/docker/containers/3069330c23e1c84f0ff2ae5db01aca3901b765c97ec6dd0e95879fdeb6ebe3be/hostname
+                HostsPath: /opt/data/var/lib/docker/containers/3069330c23e1c84f0ff2ae5db01aca3901b765c97ec6dd0e95879fdeb6ebe3be/hosts
+                LogPath: /opt/data/var/lib/docker/containers/3069330c23e1c84f0ff2ae5db01aca3901b765c97ec6dd0e95879fdeb6ebe3be/3069330c23e1c84f0ff2ae5db01aca3901b765c97ec6dd0e95879fdeb6ebe3be-json.log
+                Name: /nerve-ds-node_gateway_1
+                RestartCount: 0
+                Driver: overlay2
+                Platform: linux
+                MountLabel: ''
+                ProcessLabel: ''
+                AppArmorProfile: ''
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    basicAuth:
+      type: http
+      scheme: basic

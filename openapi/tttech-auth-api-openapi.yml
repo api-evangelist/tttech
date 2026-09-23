@@ -1,0 +1,3002 @@
+openapi: 3.2.0
+info:
+  title: Tttech AUTH API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+  version: '1.0'
+  description: 'Operations tagged AUTH across 2 of this provider''s published API definitions: tttech-nerve-management-system-openapi-original.json, tttech-nerve-node-openapi-original.json. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://trynerve1.nerve.cloud
+tags:
+- name: Auth
+  description: The operations to manage authentication and authorization of MS users
+paths:
+  /auth/log-agents:
+    get:
+      summary: Verify that a log agent has access to logs
+      description: 'Internal endpoint for verifying a log agent, not intended for direct end-user usage. Verifies if request sender is authorized - basic authentication of log agent (filebeat, metricbeat, fluent-bit). Checks if it is running on authorized node (added to MS) by checking credentials (user: node Serial Number; pass: node Secure ID)'
+      operationId: log_agents
+      tags:
+      - Auth
+      x-internal: true
+      security:
+      - basicAuth: []
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '204':
+          description: The log agent is verified
+          headers:
+            x-auth-user:
+              description: Header containing the name of the log agent
+              schema:
+                type: string
+                pattern: ^[\x20-\x7E\t\n\r]*$
+                description: Name of the log agent
+                minLength: 0
+                maxLength: 1000
+            x-auth-role:
+              description: Header containing comma-separated OpenSearch roles assigned to the log agent
+              schema:
+                description: Comma-separated OpenSearch roles
+                minLength: 0
+                maxLength: 1000
+                type: string
+                pattern: ^[\x20-\x7E\t\n\r]*$
+        '401':
+          description: You are not authorized.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_auth_017
+                httpCode: '401'
+                message: Not authorized to access logs.
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00004'
+                httpCode: '404'
+                message: Not found
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /auth/login:
+    post:
+      summary: Login user
+      description: Authenticates user credentials and creates a session
+      operationId: login
+      tags:
+      - Auth
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: User login credentials
+              required:
+              - identity
+              - secret
+              additionalProperties: false
+              properties:
+                identity:
+                  type: string
+                  pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                  description: Username of an user
+                  minLength: 1
+                  maxLength: 1000
+                secret:
+                  type: string
+                  description: User password
+                  minLength: 1
+                  maxLength: 1001
+                  pattern: .*
+                externalLogin:
+                  type: boolean
+                  description: Flag indicating if the login was performed from outside the Management System (deprecated)
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User logged in on the Management System
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      oneOf:
+                      - description: Logged local user
+                        allOf:
+                        - type: object
+                          description: Data shared by Management System users of all types
+                          required:
+                          - _id
+                          - firstName
+                          - lastName
+                          - roles
+                          - type
+                          - email
+                          - openSearchRoles
+                          - sessionId
+                          - permissions
+                          properties:
+                            _id:
+                              description: ID (from Management System) of the entry
+                              type: string
+                              pattern: ^[0-9a-fA-F]{24}$
+                              minLength: 24
+                              maxLength: 24
+                            firstName:
+                              type: string
+                              description: User's first name
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                              minLength: 2
+                              maxLength: 40
+                            lastName:
+                              type: string
+                              description: User's last name
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                              minLength: 2
+                              maxLength: 40
+                            passwordExpiryDaysLeft:
+                              type: integer
+                              format: int32
+                              description: Number of days left until the user's password expires.
+                              minimum: 1
+                              maximum: 7
+                            profileImgURL:
+                              type:
+                              - string
+                              - 'null'
+                              description: URL of the user profile image
+                              pattern: ^(|\/[a-f0-9]{32}\/[a-f0-9]{32}\.(png|jpg|jpeg))$
+                              minLength: 0
+                              maxLength: 1000
+                            roles:
+                              type: array
+                              description: List of roles assigned to the user
+                              items:
+                                type: string
+                                description: Role name
+                                pattern: ^[a-zA-Z0-9-_ ]*$
+                                minLength: 1
+                                maxLength: 64
+                              minItems: 1
+                              maxItems: 1000
+                            type:
+                              type: string
+                              description: User type - local Management System user or LDAP user
+                              enum:
+                              - local
+                              - ldap
+                            email:
+                              description: User's contact email address
+                              type: string
+                              format: email
+                              pattern: ^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$
+                              minLength: 4
+                              maxLength: 254
+                            openSearchRoles:
+                              description: Comma-separated OpenSearch roles
+                              minLength: 0
+                              maxLength: 1000
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                            sessionId:
+                              type: string
+                              description: ID of the session assigned to the user after successful login
+                              pattern: ^[a-f0-9]{24}-[a-f0-9]{64}$
+                              minLength: 89
+                              maxLength: 89
+                            permissions:
+                              type: object
+                              description: Permissions assigned to the user in object format, where each key represents the name of the permission and its value is a boolean indicating if the user has that permission
+                              additionalProperties:
+                                type: boolean
+                        - type: object
+                          required:
+                          - username
+                          - auth
+                          properties:
+                            username:
+                              description: Username of a local user in email format
+                              type: string
+                              format: email
+                              pattern: ^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$
+                              minLength: 4
+                              maxLength: 254
+                            auth:
+                              description: User data related to authentication
+                              required:
+                              - _id
+                              - identity
+                              - activated
+                              - mfaEnabled
+                              properties:
+                                _id:
+                                  description: ID (from Management System) of the entry
+                                  type: string
+                                  pattern: ^[0-9a-fA-F]{24}$
+                                  minLength: 24
+                                  maxLength: 24
+                                identity:
+                                  description: Username of a local user in email format
+                                  type: string
+                                  format: email
+                                  pattern: ^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$
+                                  minLength: 4
+                                  maxLength: 254
+                                activated:
+                                  type: string
+                                  description: Date and time in ISO 8601 format
+                                  format: date-time
+                                  pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
+                                  minLength: 24
+                                  maxLength: 24
+                                mfaEnabled:
+                                  type: boolean
+                                  description: Flag indicating if multi-factor authentication is enabled for the user
+                      - description: Logged LDAP user
+                        allOf:
+                        - type: object
+                          description: Data shared by Management System users of all types
+                          required:
+                          - _id
+                          - firstName
+                          - lastName
+                          - roles
+                          - type
+                          - email
+                          - openSearchRoles
+                          - sessionId
+                          - permissions
+                          properties:
+                            _id:
+                              description: ID (from Management System) of the entry
+                              type: string
+                              pattern: ^[0-9a-fA-F]{24}$
+                              minLength: 24
+                              maxLength: 24
+                            firstName:
+                              type: string
+                              description: User's first name
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                              minLength: 2
+                              maxLength: 40
+                            lastName:
+                              type: string
+                              description: User's last name
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                              minLength: 2
+                              maxLength: 40
+                            passwordExpiryDaysLeft:
+                              type: integer
+                              format: int32
+                              description: Number of days left until the user's password expires.
+                              minimum: 1
+                              maximum: 7
+                            profileImgURL:
+                              type:
+                              - string
+                              - 'null'
+                              description: URL of the user profile image
+                              pattern: ^(|\/[a-f0-9]{32}\/[a-f0-9]{32}\.(png|jpg|jpeg))$
+                              minLength: 0
+                              maxLength: 1000
+                            roles:
+                              type: array
+                              description: List of roles assigned to the user
+                              items:
+                                type: string
+                                description: Role name
+                                pattern: ^[a-zA-Z0-9-_ ]*$
+                                minLength: 1
+                                maxLength: 64
+                              minItems: 1
+                              maxItems: 1000
+                            type:
+                              type: string
+                              description: User type - local Management System user or LDAP user
+                              enum:
+                              - local
+                              - ldap
+                            email:
+                              description: User's contact email address
+                              type: string
+                              format: email
+                              pattern: ^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$
+                              minLength: 4
+                              maxLength: 254
+                            openSearchRoles:
+                              description: Comma-separated OpenSearch roles
+                              minLength: 0
+                              maxLength: 1000
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                            sessionId:
+                              type: string
+                              description: ID of the session assigned to the user after successful login
+                              pattern: ^[a-f0-9]{24}-[a-f0-9]{64}$
+                              minLength: 89
+                              maxLength: 89
+                            permissions:
+                              type: object
+                              description: Permissions assigned to the user in object format, where each key represents the name of the permission and its value is a boolean indicating if the user has that permission
+                              additionalProperties:
+                                type: boolean
+                        - type: object
+                          required:
+                          - username
+                          - ldap
+                          properties:
+                            username:
+                              type: string
+                              description: Username of an LDAP user
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                              minLength: 2
+                              maxLength: 1000
+                            ldap:
+                              type: object
+                              description: User data related to LDAP
+                              required:
+                              - _id
+                              - fileName
+                              - dn
+                              additionalProperties: false
+                              properties:
+                                _id:
+                                  description: ID (from Management System) of the entry
+                                  type: string
+                                  pattern: ^[0-9a-fA-F]{24}$
+                                  minLength: 24
+                                  maxLength: 24
+                                fileName:
+                                  type: string
+                                  description: Name of the LDAP configuration file
+                                  pattern: ^[a-zA-Z0-9_\-\s]+$
+                                  minLength: 1
+                                  maxLength: 1000
+                                dn:
+                                  type: string
+                                  description: Distinguished name of the LDAP user in the format of a comma-separated list of key-value pairs
+                                  pattern: ^[\x20-\x7E\t\n\r]*$
+                                  minLength: 1
+                                  maxLength: 1000
+                - type: object
+                  description: User logged in on a node
+                  required:
+                  - username
+                  - firstName
+                  - lastName
+                  - permissions
+                  - email
+                  additionalProperties: false
+                  properties:
+                    username:
+                      anyOf:
+                      - description: Username of a local user in email format
+                        type: string
+                        format: email
+                        pattern: ^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$
+                        minLength: 4
+                        maxLength: 254
+                      - type: string
+                        description: Username of an LDAP user
+                        pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                        minLength: 2
+                        maxLength: 1000
+                    firstName:
+                      type: string
+                      description: User's first name
+                      pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                      minLength: 2
+                      maxLength: 40
+                    lastName:
+                      type: string
+                      description: User's last name
+                      pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                      minLength: 2
+                      maxLength: 40
+                    permissions:
+                      type: array
+                      description: Node access permissions assigned to the user
+                      items:
+                        type: string
+                        enum:
+                        - NODE:ADMIN_ACCOUNT
+                        - NODE:VIEWER_ACCOUNT
+                        - NODE:RC_CONTROLLER_ACCOUNT
+                        - NODE:CUSTOM_ACCOUNT
+                      minItems: 0
+                      maxItems: 4
+                    email:
+                      description: User's contact email address
+                      type: string
+                      format: email
+                      pattern: ^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$
+                      minLength: 4
+                      maxLength: 254
+                    passwordExpiryDaysLeft:
+                      type: integer
+                      format: int32
+                      description: Number of days left until the user's password expires.
+                      minimum: 1
+                      maximum: 7
+                - type: object
+                  description: Object containing data used to redirect the user to the multi-factor authentication activation or validation page after entering the correct username and password
+                  required:
+                  - mfa
+                  additionalProperties: false
+                  properties:
+                    mfa:
+                      oneOf:
+                      - type: object
+                        description: Object containing the token used to activate user's multi-factor authentication
+                        required:
+                        - activationToken
+                        additionalProperties: false
+                        properties:
+                          activationToken:
+                            type: string
+                            description: Token used to activate or reset user's multi-factor authentication, or reset password
+                            pattern: ^[a-fA-F0-9]{64}$
+                            minLength: 64
+                            maxLength: 64
+                      - type: object
+                        description: Object containing the ID of the multi-factor authentication validation session
+                        required:
+                        - validationId
+                        additionalProperties: false
+                        properties:
+                          validationId:
+                            type: string
+                            description: ID of the multi-factor authentication validation session
+                            pattern: ^mfa-[a-f0-9]{64}$
+                            minLength: 68
+                            maxLength: 68
+              examples:
+                logged_user_local:
+                  value:
+                    user:
+                      _id: 6697b2d3691634c8f73311f2
+                      firstName: Demo
+                      lastName: Nerve
+                      username: demo@nerve.com
+                      profileImgURL: /3a87abb281b8f9857f37aa7f870041b3/3a87abb281b8f9857f37aa7f870041b3.png
+                      roles:
+                      - User
+                      type: local
+                      auth:
+                        _id: 6697b2d3691634c8f73311f2
+                        identity: demo@nerve.com
+                        activated: '2000-01-01T00:00:00.000Z'
+                        mfaEnabled: true
+                      email: demo@nerve.com
+                      openSearchRoles: first_open_search_role,second_open_search_role
+                      sessionId: 6697b2d3691634c8f73311f2-8facd6e4d4b1fff1409191764d9958f9ec512b73b9e7a0a22c17ca780ffc04a7
+                      permissions:
+                        GLOBAL:GENERAL: true
+                        NODE:VIEW: true
+                        NODE:SET_DATA: false
+                        NERVE_DNA:EDIT: false
+                        NERVE_DNA:VIEW: true
+                        LABEL:CREATE: false
+                        LABEL:DELETE: false
+                        LABEL:GROUP: false
+                        LABEL:VIEW: false
+                        LABEL:LIST: false
+                logged_user_ldap:
+                  value:
+                    user:
+                      _id: 6697b2d3691634c8f73311f2
+                      firstName: Demo
+                      lastName: Nerve
+                      username: dnerve
+                      profileImgURL: null
+                      roles:
+                      - Datapath - ldap
+                      - Logs - ldap
+                      type: ldap
+                      ldap:
+                        _id: 6697b2d3691634c8f73311f2
+                        fileName: ldap
+                        dn: cn=dnerve,ou=users,dc=nerve,dc=com
+                      email: demo@nerve.com
+                      openSearchRoles: first_open_search_role,second_open_search_role
+                      sessionId: 6697b2d3691634c8f73311f2-8facd6e4d4b1fff1409191764d9958f9ec512b73b9e7a0a22c17ca780ffc04a7
+                      permissions:
+                        GLOBAL:GENERAL: true
+                        NODE:VIEW: true
+                        NODE:SET_DATA: false
+                        NERVE_DNA:EDIT: false
+                        NERVE_DNA:VIEW: true
+                        LABEL:CREATE: false
+                        LABEL:DELETE: false
+                        LABEL:GROUP: false
+                        LABEL:VIEW: false
+                        LABEL:LIST: false
+                logged_user_node:
+                  value:
+                    username: dnerve
+                    firstName: Demo
+                    lastName: Nerve
+                    permissions:
+                    - NODE:VIEWER_ACCOUNT
+                    - NODE:RC_CONTROLLER_ACCOUNT
+                    email: demo@nerve.com
+                    passwordExpiryDaysLeft: 3
+                login_mfa_activation:
+                  value:
+                    mfa:
+                      activationToken: 8efaf18ca5ded2d19a5c1c8b45e3320f5a408fbb3fee9d554757c203b5481e5b
+                login_mfa_validation:
+                  value:
+                    mfa:
+                      validationId: mfa-7c5cd837a8a1abc2de8ca7b73fe0fde40575562ddc89ffeff09ed6fb812e1cd6
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '401':
+          description: You are not authorized.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_auth_017
+                httpCode: '401'
+                message: Not authorized to access logs.
+        '403':
+          description: Login failed.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00013'
+                httpCode: '403'
+                message: Login failed. Please check your username and password, or activate your account if you haven't done so
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00004'
+                httpCode: '404'
+                message: Not found
+        '406':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00012'
+                httpCode: '406'
+                message: Invalid credentials
+        '429':
+          description: Brute force protection error, too many failed requests were made
+          content:
+            application/json:
+              schema:
+                allOf:
+                - description: Generic error response returned from the server in case of a failed operation.
+                  properties:
+                    errorCode:
+                      description: String that is used as a key for appropriate translation on the front-end application.
+                      type: string
+                      minLength: 4
+                      maxLength: 100
+                      pattern: ^[a-zA-Z0-9_-]*$
+                    httpCode:
+                      description: Http error code assigned to the error.
+                      type: string
+                      minLength: 3
+                      maxLength: 3
+                      pattern: ^[0-9]*$
+                    message:
+                      description: Error message in English.
+                      minLength: 5
+                      maxLength: 512
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                properties:
+                  content:
+                    type: object
+                    description: Additional information about the error
+                    properties:
+                      retryAfter:
+                        type: integer
+                        format: int64
+                        description: Time in seconds after which the user can retry the request
+                        minimum: 0
+                        maximum: 31536000
+              example:
+                errorCode: nerve_auth_001
+                httpCode: '429'
+                message: Too many failed requests made! This account or IP address has been temporarily blocked. Please try again later.
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /auth/logout:
+    get:
+      summary: Logout user
+      description: Invalidates user's session
+      operationId: logout
+      tags:
+      - Auth
+      x-permissions:
+      - GLOBAL:GENERAL
+      responses:
+        '204':
+          description: The user has been successfully logged out
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+      security:
+      - sessionId: []
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /auth/mfa/activate/{activationToken}:
+    post:
+      summary: Activate user multi-factor authentication
+      description: Uses an authentication token sent to the user's email to activate multi-factor authentication
+      operationId: mfa_activate
+      tags:
+      - Auth
+      security: []
+      parameters:
+      - name: activationToken
+        in: path
+        description: The multi-factor authentication activation token sent to user's email in a link
+        required: true
+        schema:
+          type: string
+          description: Token used to activate or reset user's multi-factor authentication, or reset password
+          pattern: ^[a-fA-F0-9]{64}$
+          minLength: 64
+          maxLength: 64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Object containing user's multi-factor authentication secret
+              required:
+              - mfaSecret
+              additionalProperties: false
+              properties:
+                mfaSecret:
+                  type: string
+                  description: Multi-factor authentication secret in Base32 format
+                  pattern: ^[A-Z2-7]{32}$
+                  minLength: 32
+                  maxLength: 32
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '204':
+          description: Successfully activated multi-factor authentication and set secret for user
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00002'
+                httpCode: '400'
+                message: Bad request
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00004'
+                httpCode: '404'
+                message: Not found
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /auth/mfa/generate/{generationToken}:
+    get:
+      summary: Generates user's multi-factor authentication secret and QR code URL
+      description: Generates a multi-factor authentication secret during activation or reset, returning an otpauth URL. This URL can be used to display a QR code for scanning with an authenticator app.
+      operationId: mfa_generate
+      tags:
+      - Auth
+      security: []
+      parameters:
+      - name: generationToken
+        in: path
+        description: The multi-factor authentication generation token sent to the user's email in a link
+        required: true
+        schema:
+          type: string
+          description: Token used to activate or reset user's multi-factor authentication, or reset password
+          pattern: ^[a-fA-F0-9]{64}$
+          minLength: 64
+          maxLength: 64
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing user's multi-factor authentication secret and QR code URL
+                required:
+                - mfaSecret
+                - mfaUrl
+                additionalProperties: false
+                properties:
+                  mfaSecret:
+                    type: string
+                    description: Multi-factor authentication secret in Base32 format
+                    pattern: ^[A-Z2-7]{32}$
+                    minLength: 32
+                    maxLength: 32
+                  mfaUrl:
+                    type: string
+                    description: URL for the QR code to scan with an authenticator app
+                    pattern: ^otpauth:\/\/totp\/([a-zA-Z0-9.-]+):([a-zA-Z0-9%._@-]+)\?issuer=([a-zA-Z0-9.-]+)&secret=([A-Z2-7]{16,})&algorithm=([A-Z0-9]+)&digits=(\d+)&period=(\d+)$
+                    minLength: 0
+                    maxLength: 1000
+              example:
+                mfaSecret: 3N2UQLMGKFO66TLRCW5RS2ZU7QSLRSGZ
+                mfaUrl: otpauth://totp/demo.nerve.com:demo%40nerve.com?issuer=demo.nerve.com&secret=3N2UQLMGKFO66TLRCW5RS2ZU7QSLRSGZ&algorithm=SHA1&digits=6&period=30
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00002'
+                httpCode: '400'
+                message: Bad request
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00004'
+                httpCode: '404'
+                message: Not found
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /auth/mfa/is-enabled:
+    get:
+      summary: Check if multi-factor authentication is enabled on Management System
+      description: Check if multi-factor authentication is enabled globally on the Management System instance
+      operationId: mfa_is_enabled
+      tags:
+      - Auth
+      security: []
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Multi-factor authentication status on the Management System
+                required:
+                - isEnabled
+                additionalProperties: false
+                properties:
+                  isEnabled:
+                    type: boolean
+                    description: Flag indicating if multi-factor authentication is enabled on the Management System instance
+              example:
+                isEnabled: true
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /auth/mfa/reset/{resetToken}:
+    post:
+      summary: Reset user multi-factor authentication secret
+      description: Uses a reset token sent to the user's email to reset their multi-factor authentication secret
+      operationId: mfa_reset
+      tags:
+      - Auth
+      security: []
+      parameters:
+      - name: resetToken
+        in: path
+        description: The multi-factor authentication reset token sent to user's email in a link
+        required: true
+        schema:
+          type: string
+          description: Token used to activate or reset user's multi-factor authentication, or reset password
+          pattern: ^[a-fA-F0-9]{64}$
+          minLength: 64
+          maxLength: 64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Object containing user's multi-factor authentication secret
+              required:
+              - mfaSecret
+              additionalProperties: false
+              properties:
+                mfaSecret:
+                  type: string
+                  description: Multi-factor authentication secret in Base32 format
+                  pattern: ^[A-Z2-7]{32}$
+                  minLength: 32
+                  maxLength: 32
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '204':
+          description: Successfully reset multi-factor authentication secret for user
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00002'
+                httpCode: '400'
+                message: Bad request
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00004'
+                httpCode: '404'
+                message: Not found
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /auth/mfa/validate:
+    post:
+      summary: Validate multi-factor authentication code and login user
+      operationId: mfa_validate
+      tags:
+      - Auth
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Object containing data required to validate user's multi-factor authentication and complete the login process
+              required:
+              - validationId
+              - authCode
+              additionalProperties: false
+              properties:
+                validationId:
+                  type: string
+                  description: ID of the multi-factor authentication validation session
+                  pattern: ^mfa-[a-f0-9]{64}$
+                  minLength: 68
+                  maxLength: 68
+                authCode:
+                  type: string
+                  description: Six-digit multi-factor authentication code
+                  pattern: ^[0-9]{6}$
+                  minLength: 6
+                  maxLength: 6
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Logged local user with enabled multi-factor authentication
+                required:
+                - user
+                additionalProperties: false
+                properties:
+                  user:
+                    description: Logged local user
+                    allOf:
+                    - type: object
+                      description: Data shared by Management System users of all types
+                      required:
+                      - _id
+                      - firstName
+                      - lastName
+                      - roles
+                      - type
+                      - email
+                      - openSearchRoles
+                      - sessionId
+                      - permissions
+                      properties:
+                        _id:
+                          description: ID (from Management System) of the entry
+                          type: string
+                          pattern: ^[0-9a-fA-F]{24}$
+                          minLength: 24
+                          maxLength: 24
+                        firstName:
+                          type: string
+                          description: User's first name
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                          minLength: 2
+                          maxLength: 40
+                        lastName:
+                          type: string
+                          description: User's last name
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                          minLength: 2
+                          maxLength: 40
+                        passwordExpiryDaysLeft:
+                          type: integer
+                          format: int32
+                          description: Number of days left until the user's password expires.
+                          minimum: 1
+                          maximum: 7
+                        profileImgURL:
+                          type:
+                          - string
+                          - 'null'
+                          description: URL of the user profile image
+                          pattern: ^(|\/[a-f0-9]{32}\/[a-f0-9]{32}\.(png|jpg|jpeg))$
+                          minLength: 0
+                          maxLength: 1000
+                        roles:
+                          type: array
+                          description: List of roles assigned to the user
+                          items:
+                            type: string
+                            description: Role name
+                            pattern: ^[a-zA-Z0-9-_ ]*$
+                            minLength: 1
+                            maxLength: 64
+                          minItems: 1
+                          maxItems: 1000
+                        type:
+                          type: string
+                          description: User type - local Management System user or LDAP user
+                          enum:
+                          - local
+                          - ldap
+                        email:
+                          description: User's contact email address
+                          type: string
+                          format: email
+                          pattern: ^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$
+                          minLength: 4
+                          maxLength: 254
+                        openSearchRoles:
+                          description: Comma-separated OpenSearch roles
+                          minLength: 0
+                          maxLength: 1000
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                        sessionId:
+                          type: string
+                          description: ID of the session assigned to the user after successful login
+                          pattern: ^[a-f0-9]{24}-[a-f0-9]{64}$
+                          minLength: 89
+                          maxLength: 89
+                        permissions:
+                          type: object
+                          description: Permissions assigned to the user in object format, where each key represents the name of the permission and its value is a boolean indicating if the user has that permission
+                          additionalProperties:
+                            type: boolean
+                    - type: object
+                      required:
+                      - username
+                      - auth
+                      properties:
+                        username:
+                          description: Username of a local user in email format
+                          type: string
+                          format: email
+                          pattern: ^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$
+                          minLength: 4
+                          maxLength: 254
+                        auth:
+                          description: User data related to authentication
+                          required:
+                          - _id
+                          - identity
+                          - activated
+                          - mfaEnabled
+                          properties:
+                            _id:
+                              description: ID (from Management System) of the entry
+                              type: string
+                              pattern: ^[0-9a-fA-F]{24}$
+                              minLength: 24
+                              maxLength: 24
+                            identity:
+                              description: Username of a local user in email format
+                              type: string
+                              format: email
+                              pattern: ^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$
+                              minLength: 4
+                              maxLength: 254
+                            activated:
+                              type: string
+                              description: Date and time in ISO 8601 format
+                              format: date-time
+                              pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
+                              minLength: 24
+                              maxLength: 24
+                            mfaEnabled:
+                              type: boolean
+                              description: Flag indicating if multi-factor authentication is enabled for the user
+              example:
+                user:
+                  _id: 6697b2d3691634c8f73311f2
+                  firstName: Demo
+                  lastName: Nerve
+                  username: demo@nerve.com
+                  profileImgURL: /3a87abb281b8f9857f37aa7f870041b3/3a87abb281b8f9857f37aa7f870041b3.png
+                  roles:
+                  - User
+                  type: local
+                  auth:
+                    _id: 6697b2d3691634c8f73311f2
+                    identity: demo@nerve.com
+                    activated: '2000-01-01T00:00:00.000Z'
+                    mfaEnabled: true
+                  email: demo@nerve.com
+                  openSearchRoles: first_open_search_role,second_open_search_role
+                  sessionId: 6697b2d3691634c8f73311f2-8facd6e4d4b1fff1409191764d9958f9ec512b73b9e7a0a22c17ca780ffc04a7
+                  permissions:
+                    GLOBAL:GENERAL: true
+                    NODE:VIEW: true
+                    NODE:SET_DATA: false
+                    NERVE_DNA:EDIT: false
+                    NERVE_DNA:VIEW: true
+                    LABEL:CREATE: false
+                    LABEL:DELETE: false
+                    LABEL:GROUP: false
+                    LABEL:VIEW: false
+                    LABEL:LIST: false
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00002'
+                httpCode: '400'
+                message: Bad request
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00004'
+                httpCode: '404'
+                message: Not found
+        '406':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00012'
+                httpCode: '406'
+                message: Invalid credentials
+        '409':
+          description: This authentication code has already been used
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_auth_025
+                httpCode: '409'
+                message: This authentication code has already been used.
+        '429':
+          description: Brute force protection error, too many failed requests were made
+          content:
+            application/json:
+              schema:
+                allOf:
+                - description: Generic error response returned from the server in case of a failed operation.
+                  properties:
+                    errorCode:
+                      description: String that is used as a key for appropriate translation on the front-end application.
+                      type: string
+                      minLength: 4
+                      maxLength: 100
+                      pattern: ^[a-zA-Z0-9_-]*$
+                    httpCode:
+                      description: Http error code assigned to the error.
+                      type: string
+                      minLength: 3
+                      maxLength: 3
+                      pattern: ^[0-9]*$
+                    message:
+                      description: Error message in English.
+                      minLength: 5
+                      maxLength: 512
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                properties:
+                  content:
+                    type: object
+                    description: Additional information about the error
+                    properties:
+                      retryAfter:
+                        type: integer
+                        format: int64
+                        description: Time in seconds after which the user can retry the request
+                        minimum: 0
+                        maximum: 31536000
+              example:
+                errorCode: nerve_auth_001
+                httpCode: '429'
+                message: Too many failed requests made! This account or IP address has been temporarily blocked. Please try again later.
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /auth/password/is-reset/{resetToken}:
+    get:
+      summary: Check if user password is already reset
+      description: Checks if the reset token sent to user's email has already been used to reset their password
+      operationId: password_is_reset
+      tags:
+      - Auth
+      security: []
+      parameters:
+      - name: resetToken
+        in: path
+        description: The password reset token sent to the user's email in a link
+        required: true
+        schema:
+          type: string
+          description: Token used to activate or reset user's multi-factor authentication, or reset password
+          pattern: ^[a-fA-F0-9]{64}$
+          minLength: 64
+          maxLength: 64
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                description: User password reset status
+                required:
+                - isReset
+                additionalProperties: false
+                properties:
+                  isReset:
+                    type: boolean
+                    description: Flag indicating if the user password has already been reset
+              example:
+                isReset: true
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /auth/password/reset/{resetToken}:
+    post:
+      summary: Reset user password
+      description: Sets user's password to a new value
+      operationId: password_reset
+      tags:
+      - Auth
+      security: []
+      parameters:
+      - name: resetToken
+        in: path
+        description: The password reset token sent to the user's email in a link
+        required: true
+        schema:
+          type: string
+          description: Token used to activate or reset user's multi-factor authentication, or reset password
+          pattern: ^[a-fA-F0-9]{64}$
+          minLength: 64
+          maxLength: 64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: User's chosen password and confirmation to ensure it was entered correctly
+              required:
+              - secret
+              - confirmation
+              additionalProperties: false
+              properties:
+                secret:
+                  type: string
+                  description: User password
+                  minLength: 1
+                  maxLength: 1001
+                  pattern: .*
+                confirmation:
+                  type: string
+                  description: User password
+                  minLength: 1
+                  maxLength: 1001
+                  pattern: .*
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '204':
+          description: Successfully reset user password.
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00002'
+                httpCode: '400'
+                message: Bad request
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00004'
+                httpCode: '404'
+                message: Not found
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /auth/profile/activate/{activationToken}:
+    post:
+      summary: Activate user profile and set password
+      description: Uses an authentication token sent to the user's email to activate the user's profile and set a password
+      operationId: profile_activate
+      tags:
+      - Auth
+      security: []
+      parameters:
+      - name: activationToken
+        in: path
+        description: The profile activation token sent to the user's email in a link
+        required: true
+        schema:
+          type: string
+          description: Token used to activate user's profile
+          pattern: ^[a-fA-F0-9]{66}$
+          minLength: 66
+          maxLength: 66
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: User's chosen password and confirmation to ensure it was entered correctly
+              required:
+              - secret
+              - confirmation
+              additionalProperties: false
+              properties:
+                secret:
+                  type: string
+                  description: User password
+                  minLength: 1
+                  maxLength: 1001
+                  pattern: .*
+                confirmation:
+                  type: string
+                  description: User password
+                  minLength: 1
+                  maxLength: 1001
+                  pattern: .*
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '200':
+          description: Successfully activated user profile. Returns activation token for multi-factor authentication.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Token used to activate user's multi-factor authentication
+                required:
+                - mfaActivationToken
+                additionalProperties: false
+                properties:
+                  mfaActivationToken:
+                    type:
+                    - string
+                    - 'null'
+                    description: Token used to activate or reset user's multi-factor authentication, or reset password
+                    pattern: ^[a-fA-F0-9]{64}$
+                    minLength: 64
+                    maxLength: 64
+              example:
+                mfaActivationToken: 60d74683dac6b049bddcf493881d62c4168c0a7b559329dc837c57ac4a67fa67
+        '204':
+          description: Successfully activated user profile. Returned when multi-factor authentication is not enabled.
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00002'
+                httpCode: '400'
+                message: Bad request
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00004'
+                httpCode: '404'
+                message: Not found
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /auth/profile/is-activated/{activationToken}:
+    get:
+      summary: Check if user profile is already activated
+      description: Checks if the activation token sent to user's email has already been used to activate their profile
+      operationId: profile_is_activated
+      tags:
+      - Auth
+      security: []
+      parameters:
+      - name: activationToken
+        in: path
+        description: The profile activation token sent to the user's email in a link
+        required: true
+        schema:
+          type: string
+          description: Token used to activate user's profile
+          pattern: ^[a-fA-F0-9]{66}$
+          minLength: 66
+          maxLength: 66
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                description: User profile activation status
+                required:
+                - isActivated
+                additionalProperties: false
+                properties:
+                  isActivated:
+                    type:
+                    - boolean
+                    - 'null'
+                    description: Flag indicating if the user profile has already been activated
+              example:
+                isActivated: true
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /auth/reset-credentials:
+    post:
+      summary: Request a reset credentials email
+      description: Request an email with a password reset link, and a link for multi-factor authentication secret reset if multi-factor authentication is enabled
+      operationId: reset_credentials
+      tags:
+      - Auth
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Contains the email address of the user requesting reset of their credentials
+              required:
+              - email
+              additionalProperties: false
+              properties:
+                email:
+                  description: User's email address
+                  type: string
+                  format: email
+                  pattern: ^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$
+                  minLength: 4
+                  maxLength: 254
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '200':
+          description: If an account exists for the provided email address, instructions to reset your credentials will be sent shortly
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Successful response message
+                required:
+                - message
+                properties:
+                  message:
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                    description: Success message indicating that, if the email exists, instructions will be sent.
+                    minLength: 10
+                    maxLength: 115
+              example:
+                message: If an account exists for the provided email address, instructions to reset your credentials will be sent shortly.
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '429':
+          description: Too many requests
+          content:
+            application/json:
+              schema:
+                allOf:
+                - description: Generic error response returned from the server in case of a failed operation.
+                  properties:
+                    errorCode:
+                      description: String that is used as a key for appropriate translation on the front-end application.
+                      type: string
+                      minLength: 4
+                      maxLength: 100
+                      pattern: ^[a-zA-Z0-9_-]*$
+                    httpCode:
+                      description: Http error code assigned to the error.
+                      type: string
+                      minLength: 3
+                      maxLength: 3
+                      pattern: ^[0-9]*$
+                    message:
+                      description: Error message in English.
+                      minLength: 5
+                      maxLength: 512
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                properties:
+                  content:
+                    type: object
+                    description: Additional information about the error
+                    properties:
+                      retryAfter:
+                        type: integer
+                        format: int64
+                        description: Time in seconds after which the user can retry the request
+                        minimum: 0
+                        maximum: 31536000
+              example:
+                errorCode: nerve_auth_022
+                httpCode: '429'
+                message: Reset credentials requests have exceeded the allowed limit for this user. The reset email was not sent. Please try again later.
+                retryAfter: 120
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /auth/verify-user-access:
+    get:
+      summary: Verify that user has a specific permission
+      description: Internal endpoint used to verify that user has a specific permission, not intended for direct end-user usage.
+      operationId: verify_user_access
+      tags:
+      - Auth
+      x-internal: true
+      security:
+      - cookieAuth: []
+      - sessionId: []
+      parameters:
+      - name: permission
+        in: query
+        required: true
+        allowReserved: true
+        description: Name of the permission to check
+        schema:
+          type: string
+          description: Permission name
+          pattern: ^[A-Z_]+:[A-Z_]+$
+          minLength: 3
+          maxLength: 1000
+      responses:
+        '204':
+          description: The user session is valid
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /auth/verify-user-session:
+    get:
+      summary: Verify that user has access to OpenSearch dashboards
+      description: Internal endpoint for verifying a user's session, not intended for direct end-user usage. This route checks the session validity using either the sessionId stored in cookies or an authorization token in the request header to confirm whether the user has access to OpenSearch dashboards.
+      operationId: verify_user_session
+      tags:
+      - Auth
+      x-internal: true
+      security:
+      - cookieAuth: []
+      - basicAuth: []
+      x-permissions:
+      - AUTH:VERIFYSESSION
+      responses:
+        '204':
+          description: The user session is valid
+          headers:
+            x-auth-user:
+              description: Header containing user information
+              schema:
+                type: string
+                pattern: ^[\x20-\x7E\t\n\r]*$
+                description: First and last name of the user, separated by a space, or their username
+                minLength: 0
+                maxLength: 1000
+            x-auth-role:
+              description: Header containing comma-separated OpenSearch roles assigned to the user
+              schema:
+                description: Comma-separated OpenSearch roles
+                minLength: 0
+                maxLength: 1000
+                type: string
+                pattern: ^[\x20-\x7E\t\n\r]*$
+        '401':
+          description: You are not authorized.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_auth_017
+                httpCode: '401'
+                message: Not authorized to access logs.
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00004'
+                httpCode: '404'
+                message: Not found
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /auth/wstunnel-cli:
+    get:
+      summary: Verify that the wstunnel-cli is authorized to open a tunnel
+      description: Verify that the wstunnel CLI app (used by RTEM app) is authorized to open a tunnel
+      operationId: wstunnel_cli
+      tags:
+      - Auth
+      x-internal: true
+      security:
+      - basicAuth: []
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '204':
+          description: The wstunnel CLI app is verified
+        '401':
+          description: You are not authorized.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_auth_017
+                httpCode: '401'
+                message: Not authorized to access logs.
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00004'
+                httpCode: '404'
+                message: Not found
+        '429':
+          description: Brute force protection error, too many failed requests were made
+          content:
+            application/json:
+              schema:
+                allOf:
+                - description: Generic error response returned from the server in case of a failed operation.
+                  properties:
+                    errorCode:
+                      description: String that is used as a key for appropriate translation on the front-end application.
+                      type: string
+                      minLength: 4
+                      maxLength: 100
+                      pattern: ^[a-zA-Z0-9_-]*$
+                    httpCode:
+                      description: Http error code assigned to the error.
+                      type: string
+                      minLength: 3
+                      maxLength: 3
+                      pattern: ^[0-9]*$
+                    message:
+                      description: Error message in English.
+                      minLength: 5
+                      maxLength: 512
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                properties:
+                  content:
+                    type: object
+                    description: Additional information about the error
+                    properties:
+                      retryAfter:
+                        type: integer
+                        format: int64
+                        description: Time in seconds after which the user can retry the request
+                        minimum: 0
+                        maximum: 31536000
+              example:
+                errorCode: nerve_auth_001
+                httpCode: '429'
+                message: Too many failed requests made! This account or IP address has been temporarily blocked. Please try again later.
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /auth/password-policy:
+    get:
+      summary: Returns the current password policy settings
+      description: Returns the password policy settings defined in the configuration file.
+      operationId: password_policy
+      tags:
+      - Auth
+      x-internal: true
+      security: []
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Password policy settings on the Management System
+                required:
+                - maxLength
+                - minLength
+                - requireUppercase
+                - requireLowercase
+                - requireNumbers
+                - requireSpecialChars
+                additionalProperties: false
+                properties:
+                  maxLength:
+                    type: integer
+                    format: int32
+                    description: Maximum length of user passwords
+                    minimum: 1
+                    maximum: 100
+                  minLength:
+                    type: integer
+                    format: int32
+                    description: Minimum length of user passwords
+                    minimum: 1
+                    maximum: 100
+                  requireUppercase:
+                    type: boolean
+                    description: Flag indicating if at least one uppercase letter is required in user passwords
+                  requireLowercase:
+                    type: boolean
+                    description: Flag indicating if at least one lowercase letter is required in user passwords
+                  requireNumbers:
+                    type: boolean
+                    description: Flag indicating if at least one number is required in user passwords
+                  requireSpecialChars:
+                    type: boolean
+                    description: Flag indicating if at least one special character is required in user passwords
+              example:
+                maxLength: 100
+                minLength: 10
+                requireUppercase: false
+                requireLowercase: true
+                requireNumbers: true
+                requireSpecialChars: true
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /api/auth/login:
+    post:
+      tags:
+      - Auth
+      operationId: login
+      summary: Log in user
+      description: Log in user and set authorization cookie.
+      security: []
+      x-permissions:
+      - AUTH:LOGIN
+      requestBody:
+        required: true
+        description: Login credentials consisting of a username in email format and a password.
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Login credentials
+              required:
+              - username
+              - password
+              additionalProperties: false
+              properties:
+                username:
+                  description: User's username in email format
+                  type: string
+                  minLength: 1
+                  maxLength: 1001
+                password:
+                  description: User's password
+                  type: string
+                  minLength: 1
+                  maxLength: 1001
+            example:
+              username: demo@nerve.com
+              password: Passw0rd
+      responses:
+        '200':
+          description: User logged in successfully and cookie is set.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Logged user data
+                required:
+                - firstName
+                - lastName
+                - username
+                - email
+                - roles
+                - permissions
+                properties:
+                  username:
+                    description: User's username in email format used to log in
+                    type: string
+                  firstName:
+                    description: User's first name
+                    type: string
+                  lastName:
+                    description: User's last name
+                    type: string
+                  email:
+                    description: User's email address
+                    type: string
+                  roles:
+                    description: User's roles.
+                    type: string
+                  permissions:
+                    description: User's permissions in object format, where the keys represent permission names and the values are set to TRUE.
+                    type: object
+                additionalProperties: false
+              example:
+                firstName: Demo
+                lastName: Nerve
+                username: demo@nerve.com
+                email: demo@nerve.com
+                roles: admin
+                permissions:
+                  UI_NODE_CONFIGURATION:VIEW: true
+                  CONFIGURATION:VIEW: true
+                  CLOUD_VERSION:VIEW: true
+                  SECURE_ID:VIEW: true
+                  UI_NODE_CONFIGURATION:EDIT: true
+                  CONFIGURATION:EDIT: true
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+                description: Set-Cookie header
+                example: authorization=a1B2c3.d5e6f7g8h9i0.j_k-l1m2n3o; Max-Age=3600; Path=/; Expires=Wed, 01 Jan 2024 00:00:00 GMT; HttpOnly
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+              examples:
+                invalid_credentials:
+                  value:
+                    status: 400
+                    msg: invalid_credentials
+                default_admin_account_deactivated:
+                  value:
+                    status: 400
+                    msg: default_admin_account_is_deactivated_use_your_personal_credentials_to_log_in
+        '403':
+          description: Access Denied. User(with Management System credentials) does not have required permissions to access this application.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Message associated with HTTP status code
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    description: HTTP status code
+                    enum:
+                    - 403
+                  msg:
+                    description: Response message
+                    enum:
+                    - access_denied_user_does_not_have_permission_to_access_this_application
+        '429':
+          description: Too many requests made, user temporarily blocked.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Message associated with HTTP status code
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    description: HTTP status code
+                    enum:
+                    - 429
+                  msg:
+                    description: Response message
+                    enum:
+                    - auth_brute_force_too_many_failed_requests
+  /api/auth/logged-user:
+    get:
+      tags:
+      - Auth
+      operationId: get_logged_user
+      summary: Get currently logged in user data from database
+      description: Get logged in user from database.
+      x-permissions:
+      - AUTH:VIEW
+      responses:
+        '200':
+          description: User successfully fetched from database.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Logged user data
+                required:
+                - firstName
+                - lastName
+                - username
+                - email
+                - roles
+                - permissions
+                properties:
+                  username:
+                    description: User's username in email format used to log in
+                    type: string
+                  firstName:
+                    description: User's first name
+                    type: string
+                  lastName:
+                    description: User's last name
+                    type: string
+                  email:
+                    description: User's email address
+                    type: string
+                  roles:
+                    description: User's roles.
+                    type: string
+                  permissions:
+                    description: User's permissions in object format, where the keys represent permission names and the values are set to TRUE.
+                    type: object
+                additionalProperties: false
+              example:
+                username: demo@nerve.com
+                firstName: Demo
+                lastName: Nerve
+                email: demo@nerve.com
+                roles: admin
+                permissions:
+                  UI_NODE_CONFIGURATION:VIEW: true
+                  CONFIGURATION:VIEW: true
+                  CLOUD_VERSION:VIEW: true
+                  SECURE_ID:VIEW: true
+                  UI_NODE_CONFIGURATION:EDIT: true
+                  CONFIGURATION:EDIT: true
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+      security:
+      - cookieAuth: []
+  /api/auth/logout:
+    get:
+      tags:
+      - Auth
+      operationId: logout
+      summary: Logs out user
+      description: Logs out currently logged in user.
+      x-permissions:
+      - AUTH:LOGOUT
+      responses:
+        '204':
+          description: User successfully logged out.
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+      security:
+      - cookieAuth: []
+components:
+  securitySchemes:
+    sessionId:
+      type: apiKey
+      in: header
+      name: sessionId
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    bearerAuth:
+      type: http
+      scheme: bearer
+x-refined-from:
+- tttech-nerve-management-system-openapi-original.json
+- tttech-nerve-node-openapi-original.json

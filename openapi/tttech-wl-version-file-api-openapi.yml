@@ -1,0 +1,2214 @@
+openapi: 3.2.0
+info:
+  version: 3.1.0
+  description: 'Nerve Management System API to manage: -labels -nodes -workloads -notifications -capabilities'
+  title: Nerve Management System WL VERSION FILE API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+servers:
+- url: https://trynerve1.nerve.cloud
+security:
+- sessionId: []
+tags:
+- name: WL_VERSION_FILE
+  description: The operations to manage workload files of specific versions v3
+paths:
+  /nerve/v3/workloads/{workloadId}/versions/{versionId}/files:
+    post:
+      summary: Add file to the selected workload version
+      operationId: add_file_v3
+      tags:
+      - WL_VERSION_FILE
+      description: Add a file to workload version
+      parameters:
+      - name: workloadId
+        in: path
+        required: true
+        description: Workload Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      - name: versionId
+        in: path
+        required: true
+        description: Workload version Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      requestBody:
+        description: File information. For details on the submission form fields please refer to the schema **v3_add_edit_file** at the end of the file.
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              description: Schema for uploading and validating a docker-compose file
+              additionalProperties: false
+              type: object
+              properties:
+                type:
+                  description: Type of workload file being submitted
+                  type: string
+                  enum:
+                  - compose
+                  - docker-image
+                origin:
+                  description: From where file comes to MS
+                  type: string
+                  enum:
+                  - docker-repo
+                  - upload
+                  - clone
+                source:
+                  description: Value depends on origin field - If origin is docker repo, it is image name or image url - If origin is upload, it is name of the form field which carries file - If origin is clone, it is the ID of the file being cloned
+                  minLength: 1
+                  maxLength: 1000
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                username:
+                  description: If source requires authentication, it is username to be used
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+                  pattern: ^[^\u0000-\u001f\u007f-\u009f:]*$
+                password:
+                  description: If source requires authentication, it is password to be used
+                  minLength: 1
+                  maxLength: 1000
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                file:
+                  type: string
+                  description: File to be uploaded
+                  format: binary
+                  minLength: 1
+                  maxLength: 1000
+      x-permissions:
+      - WORKLOAD:EDIT
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                - description: File information
+                  type: object
+                  required:
+                  - type
+                  - origin
+                  - source
+                  properties:
+                    type:
+                      description: Type of workload file being submitted
+                      type: string
+                      enum:
+                      - compose
+                      - docker-image
+                    origin:
+                      description: From where file comes to MS
+                      type: string
+                      enum:
+                      - docker-repo
+                      - upload
+                      - clone
+                    source:
+                      description: Value depends on origin field - If origin is docker repo, it is image name or image url - If origin is upload, it is name of the form field which carries file - If origin is clone, it is the ID of the file being cloned
+                      minLength: 1
+                      maxLength: 1000
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                    name:
+                      description: Name of the archived file or name of the docker image (docker and docker-compose workloads that are using registry)
+                      minLength: 1
+                      maxLength: 1000
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                    originalName:
+                      description: Name of the uploaded file or name of the docker image (docker and docker-compose workloads that are using registry)
+                      minLength: 0
+                      maxLength: 1000
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                - type: object
+                  required:
+                  - _id
+                  - status
+                  properties:
+                    _id:
+                      description: ID (from Management System) of the entry
+                      type: string
+                      pattern: ^[0-9a-fA-F]{24}$
+                      minLength: 24
+                      maxLength: 24
+                    status:
+                      description: File download status
+                      type: string
+                      enum:
+                      - downloading
+                      - available
+                      - failed
+                      - cancelled
+                      - pending
+                    lastError:
+                      description: Error that occurred when fetching file. Only set in case when 'status' is set to 'failed'
+                      type: string
+                      minLength: 0
+                      maxLength: 1000
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                    username:
+                      description: If source requires authentication, it is username to be used
+                      type: string
+                      minLength: 1
+                      maxLength: 1000
+                      pattern: ^[^\u0000-\u001f\u007f-\u009f:]*$
+              example:
+                _id: 62befe27d82c98006ed99cbe
+                status: downloading
+                type: docker-image
+                origin: docker-repo
+                source: nginx:latest
+        '400':
+          description: Expected file to be uploaded with file data, missing binary file in API request
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                file_missing_in_request:
+                  value:
+                    errorCode: nerve_workload_177
+                    httpCode: '400'
+                    message: Failed to add/edit file to workload version. File not uploaded. Please check that file is not missing in your API request.
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: 'Request failed, this is the response received when: - Specified workload does not exist - Specified version does not exist'
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                workload_not_found:
+                  value:
+                    errorCode: '000700'
+                    httpCode: '404'
+                    message: Workload you are looking for does not exist
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '415'
+                message: Route params validation error
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred on the server side
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_workload_166
+                message: Failed to finalize request, unexpected error occurred.
+        '501':
+          description: Request failed, this is the response received when the action cannot be performed due to a missing implementation in the V3 API version for the type of workload provided
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '501'
+                errorCode: nerve_workload_167
+                message: Action is not supported for provided workload type. The V3 API for workloads/versions/files is available only for docker-compose workload type(other workload types are not supported yet).
+    get:
+      summary: Get list of files for the selected version of the selected workload
+      operationId: get_files_v3
+      tags:
+      - WL_VERSION_FILE
+      description: Fetch information about all files from specific workload version
+      parameters:
+      - name: workloadId
+        in: path
+        required: true
+        description: Workload Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      - name: versionId
+        in: path
+        required: true
+        description: Workload version Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      x-permissions:
+      - WORKLOAD:VIEW
+      responses:
+        '200':
+          description: List of files for specific workload version
+          content:
+            application/json:
+              schema:
+                description: Response for get all files request
+                type: object
+                required:
+                - count
+                - files
+                properties:
+                  count:
+                    type: integer
+                    format: int32
+                    minimum: 0
+                    maximum: 1000000
+                    description: Number of results
+                  files:
+                    description: List of files
+                    type: array
+                    minItems: 0
+                    maxItems: 51
+                    items:
+                      allOf:
+                      - description: File information
+                        type: object
+                        required:
+                        - type
+                        - origin
+                        - source
+                        properties:
+                          type:
+                            description: Type of workload file being submitted
+                            type: string
+                            enum:
+                            - compose
+                            - docker-image
+                          origin:
+                            description: From where file comes to MS
+                            type: string
+                            enum:
+                            - docker-repo
+                            - upload
+                            - clone
+                          source:
+                            description: Value depends on origin field - If origin is docker repo, it is image name or image url - If origin is upload, it is name of the form field which carries file - If origin is clone, it is the ID of the file being cloned
+                            minLength: 1
+                            maxLength: 1000
+                            type: string
+                            pattern: ^[\x20-\x7E\t\n\r]*$
+                          name:
+                            description: Name of the archived file or name of the docker image (docker and docker-compose workloads that are using registry)
+                            minLength: 1
+                            maxLength: 1000
+                            type: string
+                            pattern: ^[\x20-\x7E\t\n\r]*$
+                          originalName:
+                            description: Name of the uploaded file or name of the docker image (docker and docker-compose workloads that are using registry)
+                            minLength: 0
+                            maxLength: 1000
+                            type: string
+                            pattern: ^[\x20-\x7E\t\n\r]*$
+                      - type: object
+                        required:
+                        - _id
+                        - status
+                        properties:
+                          _id:
+                            description: ID (from Management System) of the entry
+                            type: string
+                            pattern: ^[0-9a-fA-F]{24}$
+                            minLength: 24
+                            maxLength: 24
+                          status:
+                            description: File download status
+                            type: string
+                            enum:
+                            - downloading
+                            - available
+                            - failed
+                            - cancelled
+                            - pending
+                          lastError:
+                            description: Error that occurred when fetching file. Only set in case when 'status' is set to 'failed'
+                            type: string
+                            minLength: 0
+                            maxLength: 1000
+                            pattern: ^[\x20-\x7E\t\n\r]*$
+                          username:
+                            description: If source requires authentication, it is username to be used
+                            type: string
+                            minLength: 1
+                            maxLength: 1000
+                            pattern: ^[^\u0000-\u001f\u007f-\u009f:]*$
+              example:
+                count: 1
+                files:
+                - _id: 62befe27d82c98006ed99cbe
+                  status: downloading
+                  type: compose
+                  origin: docker-repo
+                  source: nginx:latest
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: 'Request failed, this is the response received when: - Specified workload does not exist - Specified version does not exist'
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                workload_not_found:
+                  value:
+                    errorCode: '000700'
+                    httpCode: '404'
+                    message: Workload you are looking for does not exist
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred on the server side
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_workload_166
+                message: Failed to finalize request, unexpected error occurred.
+        '501':
+          description: Request failed, this is the response received when the action cannot be performed due to a missing implementation in the V3 API version for the type of workload provided
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '501'
+                errorCode: nerve_workload_167
+                message: Action is not supported for provided workload type. The V3 API for workloads/versions/files is available only for docker-compose workload type(other workload types are not supported yet).
+  /nerve/v3/workloads/{workloadId}/versions/{versionId}/files/{fileId}:
+    get:
+      summary: Get information of the selected file
+      operationId: get_file_v3
+      tags:
+      - WL_VERSION_FILE
+      description: Used to get information about specific file
+      parameters:
+      - name: workloadId
+        in: path
+        required: true
+        description: Workload Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      - name: versionId
+        in: path
+        required: true
+        description: Workload version Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      - name: fileId
+        in: path
+        required: true
+        description: File id from workload version
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      x-permissions:
+      - WORKLOAD:VIEW
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                - description: File information
+                  type: object
+                  required:
+                  - type
+                  - origin
+                  - source
+                  properties:
+                    type:
+                      description: Type of workload file being submitted
+                      type: string
+                      enum:
+                      - compose
+                      - docker-image
+                    origin:
+                      description: From where file comes to MS
+                      type: string
+                      enum:
+                      - docker-repo
+                      - upload
+                      - clone
+                    source:
+                      description: Value depends on origin field - If origin is docker repo, it is image name or image url - If origin is upload, it is name of the form field which carries file - If origin is clone, it is the ID of the file being cloned
+                      minLength: 1
+                      maxLength: 1000
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                    name:
+                      description: Name of the archived file or name of the docker image (docker and docker-compose workloads that are using registry)
+                      minLength: 1
+                      maxLength: 1000
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                    originalName:
+                      description: Name of the uploaded file or name of the docker image (docker and docker-compose workloads that are using registry)
+                      minLength: 0
+                      maxLength: 1000
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                - type: object
+                  required:
+                  - _id
+                  - status
+                  properties:
+                    _id:
+                      description: ID (from Management System) of the entry
+                      type: string
+                      pattern: ^[0-9a-fA-F]{24}$
+                      minLength: 24
+                      maxLength: 24
+                    status:
+                      description: File download status
+                      type: string
+                      enum:
+                      - downloading
+                      - available
+                      - failed
+                      - cancelled
+                      - pending
+                    lastError:
+                      description: Error that occurred when fetching file. Only set in case when 'status' is set to 'failed'
+                      type: string
+                      minLength: 0
+                      maxLength: 1000
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                    username:
+                      description: If source requires authentication, it is username to be used
+                      type: string
+                      minLength: 1
+                      maxLength: 1000
+                      pattern: ^[^\u0000-\u001f\u007f-\u009f:]*$
+              example:
+                _id: 62befe27d82c98006ed99cbe
+                status: downloading
+                type: docker-image
+                origin: docker-repo
+                source: nginx:latest
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: 'Request failed, this is the response received when: - Specified workload does not exist - Specified version does not exist - There are no any files defined for specific workload version. File list empty - Specified file does not exist'
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                version_not_found:
+                  value:
+                    errorCode: '000703'
+                    httpCode: '404'
+                    message: Workload version you are looking for does not exist
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred on the server side
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_workload_166
+                message: Failed to finalize request, unexpected error occurred.
+        '501':
+          description: Request failed, this is the response received when the action cannot be performed due to a missing implementation in the V3 API version for the type of workload provided
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '501'
+                errorCode: nerve_workload_167
+                message: Action is not supported for provided workload type. The V3 API for workloads/versions/files is available only for docker-compose workload type(other workload types are not supported yet).
+    patch:
+      summary: Edit the selected file
+      operationId: edit_file_v3
+      tags:
+      - WL_VERSION_FILE
+      description: Edit file
+      parameters:
+      - name: workloadId
+        in: path
+        required: true
+        description: Workload Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      - name: versionId
+        in: path
+        required: true
+        description: Workload version Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      - name: fileId
+        in: path
+        required: true
+        description: File id from workload version
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      requestBody:
+        description: File information. For details on the submission form fields please refer to the schema **v3_add_edit_file** at the end of the file.
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              additionalProperties: false
+              type: object
+              description: An object containing all the information required to edit a file
+              properties:
+                type:
+                  description: Type of workload file being submitted
+                  type: string
+                  enum:
+                  - compose
+                  - docker-image
+                origin:
+                  description: From where file comes to MS
+                  type: string
+                  enum:
+                  - docker-repo
+                  - upload
+                  - clone
+                source:
+                  description: Value depends on origin field - If origin is docker repo, it is image name or image url - If origin is upload, it is name of the form field which carries file - If origin is clone, it is the ID of the file being cloned
+                  minLength: 1
+                  maxLength: 1000
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                username:
+                  description: If source requires authentication, it is username to be used
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+                  pattern: ^[^\u0000-\u001f\u007f-\u009f:]*$
+                password:
+                  description: If source requires authentication, it is password to be used
+                  minLength: 1
+                  maxLength: 1000
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                file:
+                  type: string
+                  format: binary
+                  description: File to be uploaded
+                  minLength: 1
+                  maxLength: 1000
+      x-permissions:
+      - WORKLOAD:EDIT
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                allOf:
+                - description: File information
+                  type: object
+                  required:
+                  - type
+                  - origin
+                  - source
+                  properties:
+                    type:
+                      description: Type of workload file being submitted
+                      type: string
+                      enum:
+                      - compose
+                      - docker-image
+                    origin:
+                      description: From where file comes to MS
+                      type: string
+                      enum:
+                      - docker-repo
+                      - upload
+                      - clone
+                    source:
+                      description: Value depends on origin field - If origin is docker repo, it is image name or image url - If origin is upload, it is name of the form field which carries file - If origin is clone, it is the ID of the file being cloned
+                      minLength: 1
+                      maxLength: 1000
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                    name:
+                      description: Name of the archived file or name of the docker image (docker and docker-compose workloads that are using registry)
+                      minLength: 1
+                      maxLength: 1000
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                    originalName:
+                      description: Name of the uploaded file or name of the docker image (docker and docker-compose workloads that are using registry)
+                      minLength: 0
+                      maxLength: 1000
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                - type: object
+                  required:
+                  - _id
+                  - status
+                  properties:
+                    _id:
+                      description: ID (from Management System) of the entry
+                      type: string
+                      pattern: ^[0-9a-fA-F]{24}$
+                      minLength: 24
+                      maxLength: 24
+                    status:
+                      description: File download status
+                      type: string
+                      enum:
+                      - downloading
+                      - available
+                      - failed
+                      - cancelled
+                      - pending
+                    lastError:
+                      description: Error that occurred when fetching file. Only set in case when 'status' is set to 'failed'
+                      type: string
+                      minLength: 0
+                      maxLength: 1000
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                    username:
+                      description: If source requires authentication, it is username to be used
+                      type: string
+                      minLength: 1
+                      maxLength: 1000
+                      pattern: ^[^\u0000-\u001f\u007f-\u009f:]*$
+              example:
+                _id: 62befe27d82c98006ed99cbe
+                status: downloading
+                type: docker-image
+                origin: docker-repo
+                source: nginx:latest
+        '400':
+          description: 'Request failed, this is the response received when: - Failed to add/edit file. Value of ''type'' field in the API request needs to be ''compose'' or ''docker-image'' - Failed to add/edit file. Not supported file MIME type. For compose workload supported MIME types are : ''application/x-yaml'', ''text/yaml'', ''application/x-tar'', ''application/gzip'' - Failed to edit file. Edit file is not possible when file is in ''downloading'' status.'
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                version_not_found:
+                  value:
+                    errorCode: nerve_workload_181
+                    httpCode: '400'
+                    message: Failed to add/edit file to workload version. Value of 'type' field in the API request needs to be 'compose' or 'docker-image'.
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: 'Request failed, this is the response received when: - Specified workload does not exist - Specified version does not exist - There are no any files defined for specific workload version. File list empty - Specified file does not exist'
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                version_not_found:
+                  value:
+                    errorCode: '000703'
+                    httpCode: '404'
+                    message: Workload version you are looking for does not exist
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '415'
+                message: Route params validation error
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred on the server side
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_workload_166
+                message: Failed to finalize request, unexpected error occurred.
+        '501':
+          description: Request failed, this is the response received when the action cannot be performed due to a missing implementation in the V3 API version for the type of workload provided
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '501'
+                errorCode: nerve_workload_167
+                message: Action is not supported for provided workload type. The V3 API for workloads/versions/files is available only for docker-compose workload type(other workload types are not supported yet).
+    delete:
+      summary: Delete the selected file
+      operationId: delete_file_v3
+      tags:
+      - WL_VERSION_FILE
+      description: Used to delete file by ID
+      parameters:
+      - name: workloadId
+        in: path
+        required: true
+        description: Workload Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      - name: versionId
+        in: path
+        required: true
+        description: Workload version Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      - name: fileId
+        in: path
+        required: true
+        description: File id from workload version
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      x-permissions:
+      - WORKLOAD:EDIT
+      responses:
+        '204':
+          description: The resource was deleted successfully
+        '400':
+          description: Workload version is released, delete file actions are not possible
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                version_not_found:
+                  value:
+                    errorCode: nerve_workload_170
+                    httpCode: '400'
+                    message: Workload version is marked as released, requested action is not possible.
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: 'Request failed, this is the response received when: - Specified workload does not exist - Specified version does not exist - There are no any files defined for specific workload version. File list empty - Specified file does not exist'
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                version_not_found:
+                  value:
+                    errorCode: '000703'
+                    httpCode: '404'
+                    message: Workload version you are looking for does not exist
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred on the server side
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_workload_166
+                message: Failed to finalize request, unexpected error occurred.
+        '501':
+          description: Request failed, this is the response received when the action cannot be performed due to a missing implementation in the V3 API version for the type of workload provided
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '501'
+                errorCode: nerve_workload_167
+                message: Action is not supported for provided workload type. The V3 API for workloads/versions/files is available only for docker-compose workload type(other workload types are not supported yet).
+  /nerve/v3/workloads/{workloadId}/versions/{versionId}/files/{fileId}/cancel:
+    patch:
+      summary: Cancel download of the selected file
+      operationId: cancel_file_v3
+      tags:
+      - WL_VERSION_FILE
+      description: Cancel ongoing file download
+      parameters:
+      - name: workloadId
+        in: path
+        required: true
+        description: Workload Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      - name: versionId
+        in: path
+        required: true
+        description: Workload version Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      - name: fileId
+        in: path
+        required: true
+        description: File id from workload version
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      x-permissions:
+      - WORKLOAD:EDIT
+      responses:
+        '204':
+          description: successful operation
+        '400':
+          description: File download cancel not possible, file is not in downloading status
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                version_not_found:
+                  value:
+                    httpCode: '400'
+                    errorCode: nerve_workload_185
+                    message: Failed to cancel file download. File is not in downloading status, cancel action is not possible.
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: 'Request failed, this is the response received when: - Specified workload does not exist - Specified version does not exist - There are no any files defined for specific workload version. File list empty - Specified file does not exist'
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                version_not_found:
+                  value:
+                    errorCode: '000703'
+                    httpCode: '404'
+                    message: Workload version you are looking for does not exist
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred on the server side
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_workload_166
+                message: Failed to finalize request, unexpected error occurred.
+        '501':
+          description: Request failed, this is the response received when the action cannot be performed due to a missing implementation in the V3 API version for the type of workload provided
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '501'
+                errorCode: nerve_workload_167
+                message: Action is not supported for provided workload type. The V3 API for workloads/versions/files is available only for docker-compose workload type(other workload types are not supported yet).
+  /nerve/v3/workloads/{workloadId}/versions/{versionId}/files/cancel:
+    patch:
+      summary: Cancel all file downloads in-progress
+      operationId: cancel_all_files_v3
+      tags:
+      - WL_VERSION_FILE
+      description: Cancel all ongoing file downloads
+      parameters:
+      - name: workloadId
+        in: path
+        required: true
+        description: Workload Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      - name: versionId
+        in: path
+        required: true
+        description: Workload version Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      x-permissions:
+      - WORKLOAD:EDIT
+      responses:
+        '204':
+          description: successful operation
+        '400':
+          description: All files download cancel not possible. There are no files in downloading status
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                version_not_found:
+                  value:
+                    httpCode: '400'
+                    errorCode: nerve_workload_186
+                    message: Failed to cancel all file downloads. There are no files in downloading status.
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: 'Request failed, this is the response received when: - Specified workload does not exist - Specified version does not exist'
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                workload_not_found:
+                  value:
+                    errorCode: '000700'
+                    httpCode: '404'
+                    message: Workload you are looking for does not exist
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred on the server side
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_workload_166
+                message: Failed to finalize request, unexpected error occurred.
+        '501':
+          description: Request failed, this is the response received when the action cannot be performed due to a missing implementation in the V3 API version for the type of workload provided
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '501'
+                errorCode: nerve_workload_167
+                message: Action is not supported for provided workload type. The V3 API for workloads/versions/files is available only for docker-compose workload type(other workload types are not supported yet).
+  /nerve/v3/workloads/{workloadId}/versions/{versionId}/define-all-files:
+    post:
+      summary: Define all files for specified workload version
+      operationId: define_all_files_v3
+      tags:
+      - WL_VERSION_FILE
+      description: Define all files to workload version
+      parameters:
+      - name: workloadId
+        in: path
+        required: true
+        description: Workload Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      - name: versionId
+        in: path
+        required: true
+        description: Workload version Id
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      requestBody:
+        description: File information.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: An object containing all the information required to define all files for a specific workload version
+              required:
+              - files
+              additionalProperties: false
+              properties:
+                files:
+                  type: array
+                  description: List of files to be defined
+                  minItems: 1
+                  maxItems: 50
+                  items:
+                    type: object
+                    required:
+                    - type
+                    - origin
+                    - source
+                    additionalProperties: false
+                    properties:
+                      type:
+                        description: Type of workload file being defined
+                        type: string
+                        enum:
+                        - docker-image
+                      origin:
+                        description: From where file comes to MS
+                        type: string
+                        enum:
+                        - docker-repo
+                        - upload
+                        - clone
+                      source:
+                        description: Value depends on origin field - If origin is docker repo, it is image name or image url - If origin is upload, it is name of the form field which carries file - If origin is clone, it is the ID of the file being cloned
+                        minLength: 1
+                        maxLength: 1000
+                        type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+                      username:
+                        description: If source requires authentication, it is username to be used
+                        type: string
+                        minLength: 1
+                        maxLength: 1000
+                        pattern: ^[^\u0000-\u001f\u007f-\u009f:]*$
+                      password:
+                        description: If source requires authentication, it is password to be used
+                        minLength: 1
+                        maxLength: 1000
+                        type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+            example:
+              files:
+              - type: docker-image
+                origin: docker-repo
+                source: nginx:latest
+                username: username
+                password: password
+      x-permissions:
+      - WORKLOAD:EDIT
+      responses:
+        '200':
+          description: List of files for specific workload version
+          content:
+            application/json:
+              schema:
+                description: Response for get all files request
+                type: object
+                required:
+                - count
+                - files
+                properties:
+                  count:
+                    type: integer
+                    format: int32
+                    minimum: 0
+                    maximum: 1000000
+                    description: Number of results
+                  files:
+                    description: List of files
+                    type: array
+                    minItems: 0
+                    maxItems: 51
+                    items:
+                      allOf:
+                      - description: File information
+                        type: object
+                        required:
+                        - type
+                        - origin
+                        - source
+                        properties:
+                          type:
+                            description: Type of workload file being submitted
+                            type: string
+                            enum:
+                            - compose
+                            - docker-image
+                          origin:
+                            description: From where file comes to MS
+                            type: string
+                            enum:
+                            - docker-repo
+                            - upload
+                            - clone
+                          source:
+                            description: Value depends on origin field - If origin is docker repo, it is image name or image url - If origin is upload, it is name of the form field which carries file - If origin is clone, it is the ID of the file being cloned
+                            minLength: 1
+                            maxLength: 1000
+                            type: string
+                            pattern: ^[\x20-\x7E\t\n\r]*$
+                          name:
+                            description: Name of the archived file or name of the docker image (docker and docker-compose workloads that are using registry)
+                            minLength: 1
+                            maxLength: 1000
+                            type: string
+                            pattern: ^[\x20-\x7E\t\n\r]*$
+                          originalName:
+                            description: Name of the uploaded file or name of the docker image (docker and docker-compose workloads that are using registry)
+                            minLength: 0
+                            maxLength: 1000
+                            type: string
+                            pattern: ^[\x20-\x7E\t\n\r]*$
+                      - type: object
+                        required:
+                        - _id
+                        - status
+                        properties:
+                          _id:
+                            description: ID (from Management System) of the entry
+                            type: string
+                            pattern: ^[0-9a-fA-F]{24}$
+                            minLength: 24
+                            maxLength: 24
+                          status:
+                            description: File download status
+                            type: string
+                            enum:
+                            - downloading
+                            - available
+                            - failed
+                            - cancelled
+                            - pending
+                          lastError:
+                            description: Error that occurred when fetching file. Only set in case when 'status' is set to 'failed'
+                            type: string
+                            minLength: 0
+                            maxLength: 1000
+                            pattern: ^[\x20-\x7E\t\n\r]*$
+                          username:
+                            description: If source requires authentication, it is username to be used
+                            type: string
+                            minLength: 1
+                            maxLength: 1000
+                            pattern: ^[^\u0000-\u001f\u007f-\u009f:]*$
+              example:
+                count: 1
+                files:
+                - _id: 62befe27d82c98006ed99cbe
+                  status: downloading
+                  type: compose
+                  origin: docker-repo
+                  source: nginx:latest
+        '400':
+          description: 'Request failed, this is the response received when: - Compose file not added. Compose file needs to exist before list of needed files is defined - Provided list of files has duplicated docker images - Provided list of files does not match uploaded compose file. All different docker images from compose file needs to be defined in the files list'
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: 'Request failed, this is the response received when: - Specified workload does not exist - Specified version does not exist'
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                workload_not_found:
+                  value:
+                    errorCode: '000700'
+                    httpCode: '404'
+                    message: Workload you are looking for does not exist
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '415'
+                message: Route params validation error
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred on the server side
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_workload_166
+                message: Failed to finalize request, unexpected error occurred.
+        '501':
+          description: Request failed, this is the response received when the action cannot be performed due to a missing implementation in the V3 API version for the type of workload provided
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '501'
+                errorCode: nerve_workload_167
+                message: Action is not supported for provided workload type. The V3 API for workloads/versions/files is available only for docker-compose workload type(other workload types are not supported yet).
+components:
+  securitySchemes:
+    sessionId:
+      type: apiKey
+      in: header
+      name: sessionId
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    bearerAuth:
+      type: http
+      scheme: bearer

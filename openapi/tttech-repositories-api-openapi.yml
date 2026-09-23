@@ -1,0 +1,2095 @@
+openapi: 3.2.0
+info:
+  version: 2.10.0
+  description: 'Nerve OVDM API to manage:
+
+    - node configuration
+
+    - system configuration
+
+    - system network configuration
+
+    - workloads
+
+    - remote connections
+
+    - dna'
+  title: Nerve Node REPOSITORIES API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+security:
+- cookieAuth: []
+tags:
+- name: Repositories
+paths:
+  /api/repositories:
+    post:
+      summary: Create local repository
+      tags:
+      - Repositories
+      x-permissions:
+      - REPOSITORY:CREATED
+      description: Create a local repository to store backups.
+      operationId: create_local_repository
+      requestBody:
+        required: true
+        description: Create local repository.
+        content:
+          application/json:
+            schema:
+              oneOf:
+              - allOf:
+                - type: object
+                  description: Object containing required data to update specified local repository
+                  required:
+                  - path
+                  - protocol
+                  - type
+                  properties:
+                    path:
+                      description: Specifies the local path where the repository is located.
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                    type:
+                      description: Type of local repository
+                      type: string
+                      enum:
+                      - vmBackups
+                      - workloads
+                    protocol:
+                      description: Specifies the protocol to be used for communication with the local repository.
+                      type: string
+                      minLength: 3
+                      maxLength: 5
+                      pattern: ^(nfs|http|https)$
+                - type: object
+                  properties:
+                    protocol:
+                      type: string
+                      description: Specifies the protocol to be used for communication with the local repository.
+                      enum:
+                      - http
+                      - https
+                    user:
+                      type:
+                      - string
+                      - 'null'
+                      description: Username is used to authenticate local repository.
+                      minLength: 0
+                      maxLength: 1001
+                      pattern: .*
+                    password:
+                      type:
+                      - string
+                      - 'null'
+                      description: Password is used to authenticate local repository.
+                      minLength: 0
+                      maxLength: 1001
+                      pattern: .*
+              - allOf:
+                - type: object
+                  description: Object containing required data to update specified local repository
+                  required:
+                  - path
+                  - protocol
+                  - type
+                  properties:
+                    path:
+                      description: Specifies the local path where the repository is located.
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                    type:
+                      description: Type of local repository
+                      type: string
+                      enum:
+                      - vmBackups
+                      - workloads
+                    protocol:
+                      description: Specifies the protocol to be used for communication with the local repository.
+                      type: string
+                      minLength: 3
+                      maxLength: 5
+                      pattern: ^(nfs|http|https)$
+                - type: object
+                  properties:
+                    protocol:
+                      type: string
+                      description: Specifies the protocol to be used for communication with the local repository.
+                      enum:
+                      - nfs
+                    options:
+                      description: Specifies the options for the NFS server.
+                      type: string
+                      enum:
+                      - rw,nolock
+                      - ro,nolock
+                      - ''
+                      default: rw,nolock
+            example:
+              options: ro,nolock
+              path: 192.168.96.150:/nfs_shared
+              protocol: nfs
+              type: workloads
+      responses:
+        '201':
+          description: Successful operation. The local repository successfully created.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Information regarding the configured local repository
+                additionalProperties: false
+                properties:
+                  user:
+                    type:
+                    - string
+                    - 'null'
+                    description: Username is used to authenticate local repository.
+                    minLength: 0
+                    maxLength: 1001
+                    pattern: .*
+                  password:
+                    type:
+                    - string
+                    - 'null'
+                    description: Password is used to authenticate local repository.
+                    minLength: 0
+                    maxLength: 1001
+                    pattern: .*
+                  path:
+                    description: Specifies the local path where the repository is located.
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                  type:
+                    description: Type of local repository
+                    type: string
+                    enum:
+                    - vmBackups
+                    - workloads
+                  protocol:
+                    description: Specifies the protocol to be used for communication with the local repository.
+                    type: string
+                    enum:
+                    - nfs
+                    - http
+                    - https
+                  id:
+                    description: Id of the local repository
+                    oneOf:
+                    - type: integer
+                    - type: string
+                  isMounted:
+                    description: Indicates whether the directory is mounted to an NFS server or not.
+                    type: boolean
+                    default: false
+                  options:
+                    description: Specifies the options for the NFS server. These options determine various settings and behaviors for the NFS mount.  If the type of local repository is 'vmBackups', the default value is 'rw,nolock'. If the type of local repository is 'workloads', the default value is 'ro,nolock'.
+                    type:
+                    - string
+                    - 'null'
+                    default: rw,nolock
+              example:
+                id: 1
+                isMounted: false
+                options: ro,nolock
+                path: 192.168.96.150:/nfs_shared
+                protocol: nfs
+                type: workloads
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '500':
+          description: Response received when the response does not match the schema or an unexpected error has occurred.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+    get:
+      summary: Get list of repositories
+      tags:
+      - Repositories
+      x-permissions:
+      - REPOSITORY:LIST
+      description: Returns a list of all configured local repositories.
+      operationId: get_repository_list
+      responses:
+        '200':
+          description: Successful operation. The list of repositories returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing the list of all configured repositories.
+                required:
+                - repositories
+                additionalProperties: false
+                properties:
+                  repositories:
+                    type: array
+                    description: A list of all configured local repositories.
+                    minItems: 0
+                    maxItems: 1001
+                    items:
+                      type: object
+                      additionalProperties: false
+                      properties:
+                        priority:
+                          type:
+                          - number
+                          - 'null'
+                          description: Priority is used to sort or rank local repositories.
+                        user:
+                          type:
+                          - string
+                          - 'null'
+                          description: Username is used to authenticate local repository.
+                          minLength: 0
+                          maxLength: 1001
+                          pattern: .*
+                        password:
+                          type:
+                          - string
+                          - 'null'
+                          description: Password is used to authenticate local repository.
+                          minLength: 0
+                          maxLength: 1001
+                          pattern: .*
+                        path:
+                          description: Specifies the local path where the repository is located.
+                          type: string
+                          minLength: 1
+                          maxLength: 1001
+                        type:
+                          description: Type of local repository
+                          type: string
+                          enum:
+                          - vmBackups
+                          - workloads
+                        protocol:
+                          description: Specifies the protocol to be used for communication with the local repository.
+                          type: string
+                          enum:
+                          - nfs
+                          - http
+                          - https
+                        id:
+                          description: Id of the local repository
+                          oneOf:
+                          - type: integer
+                          - type: string
+                        isMounted:
+                          description: Indicates whether the directory is mounted to an NFS server or not.
+                          type: boolean
+                          default: false
+                        options:
+                          description: Specifies the options for the NFS server. These options determine various settings and behaviors for the NFS mount.  If the type of local repository is 'vmBackups', the default value is 'rw,nolock'. If the type of local repository is 'workloads', the default value is 'ro,nolock'.
+                          type:
+                          - string
+                          - 'null'
+                          default: rw,nolock
+              example:
+                repositories:
+                - priority: null
+                  password: ''
+                  user: ''
+                  id: 1
+                  isMounted: false
+                  options: ro,nolock
+                  path: 192.168.96.150:/nfs_shared
+                  protocol: nfs
+                  type: workloads
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+  /api/repositories/{id}:
+    get:
+      summary: Get local repository
+      tags:
+      - Repositories
+      x-permissions:
+      - REPOSITORY:VIEW
+      description: Retrieve the local repository by its ID.
+      operationId: get_local_repository
+      parameters:
+      - in: path
+        name: id
+        required: true
+        description: Id of local repository
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 1001
+          pattern: ^\d+$
+      responses:
+        '200':
+          description: Successful operation. The local repository successfully returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Repository information retrieved from the database
+                required:
+                - id
+                - type
+                - protocol
+                - path
+                - user
+                - password
+                - options
+                - priority
+                additionalProperties: false
+                properties:
+                  priority:
+                    type:
+                    - number
+                    - 'null'
+                    description: Priority is used to sort or rank local repositories.
+                  user:
+                    type:
+                    - string
+                    - 'null'
+                    description: Username is used to authenticate local repository.
+                    minLength: 0
+                    maxLength: 1001
+                    pattern: .*
+                  password:
+                    type:
+                    - string
+                    - 'null'
+                    description: Password is used to authenticate local repository.
+                    minLength: 0
+                    maxLength: 1001
+                    pattern: .*
+                  path:
+                    description: Specifies the local path where the repository is located.
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                  type:
+                    description: Type of local repository
+                    type: string
+                    enum:
+                    - vmBackups
+                    - workloads
+                  protocol:
+                    description: Specifies the protocol to be used for communication with the local repository.
+                    type: string
+                    enum:
+                    - nfs
+                    - http
+                    - https
+                  id:
+                    description: Id of the local repository
+                    oneOf:
+                    - type: integer
+                    - type: string
+                  isMounted:
+                    description: Indicates whether the directory is mounted to an NFS server or not.
+                    type: boolean
+                    default: false
+                  options:
+                    description: Specifies the options for the NFS server. These options determine various settings and behaviors for the NFS mount.  If the type of local repository is 'vmBackups', the default value is 'rw,nolock'. If the type of local repository is 'workloads', the default value is 'ro,nolock'.
+                    type:
+                    - string
+                    - 'null'
+                    default: rw,nolock
+              example:
+                priority: null
+                password: ''
+                user: ''
+                id: 1
+                isMounted: false
+                options: ro,nolock
+                path: 192.168.96.150:/nfs_shared
+                protocol: nfs
+                type: workloads
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                repository_not_found:
+                  value:
+                    status: 404
+                    msg: local_repository_not_found
+        '500':
+          description: Response received when the response does not match the schema or an unexpected error has occurred.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+    put:
+      summary: Update local repository
+      tags:
+      - Repositories
+      x-permissions:
+      - REPOSITORY:EDIT
+      description: Update local repository.
+      operationId: update_local_repository
+      parameters:
+      - in: path
+        name: id
+        required: true
+        description: Id of local repository
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 1001
+          pattern: ^\d+$
+      requestBody:
+        required: true
+        description: Update local repository.
+        content:
+          application/json:
+            schema:
+              oneOf:
+              - allOf:
+                - type: object
+                  description: Object containing required data to update specified local repository
+                  required:
+                  - path
+                  - protocol
+                  - type
+                  properties:
+                    path:
+                      description: Specifies the local path where the repository is located.
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                    type:
+                      description: Type of local repository
+                      type: string
+                      enum:
+                      - vmBackups
+                      - workloads
+                    protocol:
+                      description: Specifies the protocol to be used for communication with the local repository.
+                      type: string
+                      minLength: 3
+                      maxLength: 5
+                      pattern: ^(nfs|http|https)$
+                - type: object
+                  properties:
+                    protocol:
+                      type: string
+                      description: Specifies the protocol to be used for communication with the local repository.
+                      enum:
+                      - http
+                      - https
+                    user:
+                      type:
+                      - string
+                      - 'null'
+                      description: Username is used to authenticate local repository.
+                      minLength: 0
+                      maxLength: 1001
+                      pattern: .*
+                    password:
+                      type:
+                      - string
+                      - 'null'
+                      description: Password is used to authenticate local repository.
+                      minLength: 0
+                      maxLength: 1001
+                      pattern: .*
+              - allOf:
+                - type: object
+                  description: Object containing required data to update specified local repository
+                  required:
+                  - path
+                  - protocol
+                  - type
+                  properties:
+                    path:
+                      description: Specifies the local path where the repository is located.
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                    type:
+                      description: Type of local repository
+                      type: string
+                      enum:
+                      - vmBackups
+                      - workloads
+                    protocol:
+                      description: Specifies the protocol to be used for communication with the local repository.
+                      type: string
+                      minLength: 3
+                      maxLength: 5
+                      pattern: ^(nfs|http|https)$
+                - type: object
+                  properties:
+                    protocol:
+                      type: string
+                      description: Specifies the protocol to be used for communication with the local repository.
+                      enum:
+                      - nfs
+                    options:
+                      description: Specifies the options for the NFS server.
+                      type: string
+                      enum:
+                      - rw,nolock
+                      - ro,nolock
+                      - ''
+                      default: rw,nolock
+            example:
+              options: ro,nolock
+              path: 192.168.96.150:/nfs_shared
+              protocol: nfs
+              type: workloads
+      responses:
+        '200':
+          description: Successful operation. The local repository successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Repository basic information from database
+                additionalProperties: false
+                required:
+                - id
+                - type
+                - protocol
+                - path
+                - user
+                - password
+                - options
+                - priority
+                properties:
+                  priority:
+                    type:
+                    - number
+                    - 'null'
+                    description: Priority is used to sort or rank local repositories.
+                  user:
+                    type:
+                    - string
+                    - 'null'
+                    description: Username is used to authenticate local repository.
+                    minLength: 0
+                    maxLength: 1001
+                    pattern: .*
+                  password:
+                    type:
+                    - string
+                    - 'null'
+                    description: Password is used to authenticate local repository.
+                    minLength: 0
+                    maxLength: 1001
+                    pattern: .*
+                  path:
+                    description: Specifies the local path where the repository is located.
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                  type:
+                    description: Type of local repository
+                    type: string
+                    enum:
+                    - vmBackups
+                    - workloads
+                  protocol:
+                    description: Specifies the protocol to be used for communication with the local repository.
+                    type: string
+                    enum:
+                    - nfs
+                    - http
+                    - https
+                  id:
+                    description: Id of the local repository
+                    oneOf:
+                    - type: integer
+                    - type: string
+                  isMounted:
+                    description: Indicates whether the directory is mounted to an NFS server or not.
+                    type: boolean
+                    default: false
+                  options:
+                    description: Specifies the options for the NFS server. These options determine various settings and behaviors for the NFS mount.  If the type of local repository is 'vmBackups', the default value is 'rw,nolock'. If the type of local repository is 'workloads', the default value is 'ro,nolock'.
+                    type:
+                    - string
+                    - 'null'
+                    default: rw,nolock
+              example:
+                priority: null
+                password: ''
+                user: ''
+                id: 1
+                isMounted: false
+                options: ro,nolock
+                path: 192.168.96.150:/nfs_shared
+                protocol: nfs
+                type: workloads
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                repository_not_found:
+                  value:
+                    status: 404
+                    msg: local_repository_not_found
+        '500':
+          description: Response received when the response does not match the schema or an unexpected error has occurred.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+    delete:
+      summary: Delete local repository
+      tags:
+      - Repositories
+      x-permissions:
+      - REPOSITORY:DELETE
+      description: Delete local repository.
+      operationId: delete_local_repository
+      parameters:
+      - in: path
+        name: id
+        required: true
+        description: Id of local repository
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 1001
+          pattern: ^\d+$
+      responses:
+        '204':
+          description: The local repository successfully deleted.
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+        '500':
+          description: Response received when the response does not match the schema or an unexpected error has occurred.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+  /api/repositories/list/backups:
+    get:
+      summary: Get the list of VM backups
+      tags:
+      - Repositories
+      x-permissions:
+      - REPOSITORY_BACKUP:LIST
+      description: Get the list of VM backups on the local repository.
+      operationId: get_backup_repository_list
+      parameters:
+      - name: limit
+        in: query
+        description: Number of items in result set when paging is applied
+        schema:
+          description: Number of items in result set when paging is applied
+          type: integer
+          default: 10
+          minimum: 1
+          maximum: 1000
+      - name: page
+        in: query
+        description: Page of results to get from backend
+        schema:
+          description: Page of results to get from backend
+          type: integer
+          default: 1
+          minimum: 1
+          maximum: 1000
+      - name: searchText
+        in: query
+        description: Number of items in result set when searching is applied
+        schema:
+          description: Number of items in result set when searching is applied
+          type: string
+          default: ''
+          minLength: 0
+          maxLength: 1001
+          pattern: (\s^)|(^[^\u0000-\u001f\u007f-\u009f]*$)
+        allowEmptyValue: true
+      - name: filterBackupsFromThisNode
+        in: query
+        description: Flag enables filtering for VM backups created only on this node.
+        schema:
+          type: boolean
+          default: false
+      responses:
+        '200':
+          description: Successful operation. The list of VM backups was successfully returned.
+          content:
+            application/json:
+              schema:
+                additionalProperties: false
+                type: object
+                description: List of virtual machine backup data and total number of backups
+                properties:
+                  list:
+                    type: array
+                    description: List of VM backups
+                    minItems: 0
+                    maxItems: 10001
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: The name of VM workload backup
+                          pattern: (\s^)|(^[^\u0000-\u001f\u007f-\u009f]*$)
+                        date:
+                          type: number
+                          description: Date when backup was created.
+                        size:
+                          type: number
+                          description: Size of the vm workload.
+                  count:
+                    type: number
+                    description: Number of VM backups.
+                example:
+                  list:
+                  - name: 000000000001-kvm-backup 22-5-2024 16:1:15 GMT+2
+                    size: 536875572
+                    date: 1716386478656
+                  count: 1
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+        '500':
+          description: Response received when the response does not match the schema or an unexpected error has occurred.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+  /api/repositories/{id}/mount:
+    put:
+      summary: Mount the NFS file system
+      tags:
+      - Repositories
+      x-permissions:
+      - REPOSITORY:MOUNT
+      description: Mount an NFS file system on a predefined mount point (directory) on the node.
+      operationId: mount_repository_to_nfs_server
+      parameters:
+      - in: path
+        name: id
+        required: true
+        description: Id of local repository
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 1001
+          pattern: ^\d+$
+      responses:
+        '200':
+          description: Successful operation. The local repository successfully returned.
+          content:
+            application/json:
+              schema:
+                additionalProperties: false
+                type: object
+                description: Repository data from the database
+                properties:
+                  priority:
+                    type:
+                    - number
+                    - 'null'
+                    description: Priority is used to sort or rank local repositories.
+                  user:
+                    type:
+                    - string
+                    - 'null'
+                    description: Username is used to authenticate local repository.
+                    minLength: 0
+                    maxLength: 1001
+                    pattern: .*
+                  password:
+                    type:
+                    - string
+                    - 'null'
+                    description: Password is used to authenticate local repository.
+                    minLength: 0
+                    maxLength: 1001
+                    pattern: .*
+                  path:
+                    description: Specifies the local path where the repository is located.
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                  type:
+                    description: Type of local repository
+                    type: string
+                    enum:
+                    - vmBackups
+                    - workloads
+                  protocol:
+                    description: Specifies the protocol to be used for communication with the local repository.
+                    type: string
+                    enum:
+                    - nfs
+                    - http
+                    - https
+                  id:
+                    description: Id of the local repository
+                    oneOf:
+                    - type: integer
+                    - type: string
+                  isMounted:
+                    description: Indicates whether the directory is mounted to an NFS server or not.
+                    type: boolean
+                    default: false
+                  options:
+                    description: Specifies the options for the NFS server. These options determine various settings and behaviors for the NFS mount.  If the type of local repository is 'vmBackups', the default value is 'rw,nolock'. If the type of local repository is 'workloads', the default value is 'ro,nolock'.
+                    type:
+                    - string
+                    - 'null'
+                    default: rw,nolock
+              example:
+                priority: null
+                password: ''
+                user: ''
+                id: 1
+                isMounted: false
+                options: ro,nolock
+                path: 192.168.96.150:/nfs_shared
+                protocol: nfs
+                type: workloads
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    basicAuth:
+      type: http
+      scheme: basic

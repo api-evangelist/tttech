@@ -1,0 +1,775 @@
+openapi: 3.2.0
+info:
+  version: 3.1.0
+  description: 'Nerve Management System API to manage: -labels -nodes -workloads -notifications -capabilities'
+  title: Nerve Management System NERVE DOCKER REGISTRY API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+servers:
+- url: https://trynerve1.nerve.cloud
+security:
+- sessionId: []
+tags:
+- name: NERVE_DOCKER_REGISTRY
+  description: The operations to manage Docker registry
+paths:
+  /nerve/registry/images:
+    post:
+      summary: List images
+      description: List all images available on the nerve registry
+      operationId: nerve_registry_image_list
+      tags:
+      - NERVE_DOCKER_REGISTRY
+      requestBody:
+        description: '[GET with body payload] - Information about the image name, limit, and last image name (for pagination) is sent in the body of the POST request to avoid exceeding URL parameter limits in a GET request. The limit defines the maximum number of results to return, while the last parameter is used for pagination, indicating the last image name from the previous response to fetch the next set of results.'
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              description: Object containing the limit and last image name used as pagination query params on the registry API
+              properties:
+                limit:
+                  type: integer
+                  format: int32
+                  description: Limit the number of results
+                  minimum: 1
+                  maximum: 1000
+                  example: 10
+                last:
+                  type: string
+                  description: Last result from which all other results will be fetched, Image name when fetching catalog or tag name when fetching tags
+                  minLength: 1
+                  maxLength: 255
+                  pattern: ^.*$
+      x-permissions:
+      - REGISTRY:PULL
+      responses:
+        '200':
+          description: A list of images
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing a list of docker images
+                required:
+                - images
+                properties:
+                  images:
+                    type: array
+                    description: A list of docker images
+                    minItems: 0
+                    maxItems: 10000
+                    items:
+                      type: string
+                      description: Docker image name and tag
+                      minLength: 1
+                      maxLength: 384
+                      pattern: ^(?=.{1,255}(?::|$))[a-z0-9]+(?:[._-][a-z0-9]+)*(?:/[a-z0-9]+(?:[._-][a-z0-9]+)*)*(?::[A-Za-z0-9_][A-Za-z0-9_.-]{0,127})?$
+              example:
+                images:
+                - registry/alpine
+                - registry/ubuntu
+                - registry/centos
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred on the server side
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_docker_registry_001
+                message: Failed to finalize request, unexpected error occurred.
+  /nerve/registry/image-tags:
+    post:
+      summary: List tags for a specific image
+      description: List all tags available for a specific image on the nerve registry
+      operationId: nerve_registry_image_tags
+      tags:
+      - NERVE_DOCKER_REGISTRY
+      requestBody:
+        description: '[GET with body payload] - Information about the image name, limit, and last image name (for pagination) is sent in the body of the POST request to avoid exceeding URL parameter limits in a GET request. The limit defines the maximum number of results to return, while the last parameter is used for pagination, indicating the last image name from the previous response to fetch the next set of results.'
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              description: Object containing image name for which tags will be fetched, also limit and last image name used as pagination query params on the registry API
+              required:
+              - image
+              properties:
+                image:
+                  type: string
+                  description: Docker image name
+                  minLength: 1
+                  maxLength: 255
+                  pattern: ^(?:[a-z0-9]+(?:[._-][a-z0-9]+)*(?:/[a-z0-9]+(?:[._-][a-z0-9]+)*)*)$
+                limit:
+                  type: integer
+                  format: int32
+                  description: Limit the number of results
+                  minimum: 1
+                  maximum: 1000
+                  example: 10
+                last:
+                  type: string
+                  description: Last result from which all other results will be fetched, Image name when fetching catalog or tag name when fetching tags
+                  minLength: 1
+                  maxLength: 255
+                  pattern: ^.*$
+      x-permissions:
+      - REGISTRY:PULL
+      responses:
+        '200':
+          description: A list of image tags
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing a list of tags for a specific docker image
+                required:
+                - tags
+                properties:
+                  tags:
+                    type: array
+                    description: A list of tags and their digest value for a specific docker image
+                    minItems: 0
+                    maxItems: 100
+                    items:
+                      type: object
+                      additionalProperties: false
+                      description: Object containing docker image tag and its digest value
+                      required:
+                      - tag
+                      - digest
+                      - usedByReleasedVersion
+                      properties:
+                        tag:
+                          type: string
+                          description: A docker image tag
+                          minLength: 1
+                          maxLength: 128
+                          pattern: ^[a-zA-Z0-9\.\-_]+$
+                        digest:
+                          type: string
+                          minLength: 71
+                          maxLength: 71
+                          description: 'A Docker image digest is a SHA-256 hash of the image manifest in the format `sha256:<hash>`.
+
+                            '
+                          pattern: ^sha256:[a-f0-9]{64}$
+                        usedByReleasedVersion:
+                          type: boolean
+                          description: 'Indicates whether the image is used by a released workload.
+
+                            '
+              example:
+                tags:
+                - tag: latest
+                  digest: sha256:4d5e6a98c0b60c8b9af8e937a739cd818eb9249d34f1e4b4ac7e8b0c4a883f67
+                  usedByReleasedVersion: false
+                - tag: '1.0'
+                  digest: sha256:4cdb6012a4a871330a7122659a8d40e6e69abadb9a1d4c3fdabf5481cda312c2
+                  usedByReleasedVersion: false
+                - tag: '1.1'
+                  digest: sha256:9f1619aaee18137aa1ac1554467e922b16297043eae14f9f63936b8e038a34fa
+                  usedByReleasedVersion: true
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Request failed, this is the response received when the requested image was not found
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '404'
+                errorCode: nerve_docker_registry_002
+                message: Image not found on the registry.
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred on the server side
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_docker_registry_001
+                message: Failed to finalize request, unexpected error occurred.
+  /nerve/registry/events:
+    post:
+      summary: Receive Docker Registry Notifications
+      description: This route receives notifications from the Docker registry and does not require authentication.
+      security: []
+      operationId: nerve_registry_notify
+      tags:
+      - NERVE_DOCKER_REGISTRY
+      x-internal: true
+      responses:
+        '204':
+          description: Success
+  /nerve/registry/auth:
+    get:
+      summary: Authenticate Docker Registry
+      description: This endpoint is used to authenticate Docker registry requests.
+      security: []
+      operationId: nerve_registry_auth
+      tags:
+      - NERVE_DOCKER_REGISTRY
+      x-internal: true
+      parameters:
+      - name: service
+        in: query
+        description: The service requesting authentication (e.g., "Nerve Docker registry").
+        required: true
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 21
+          pattern: ^[A-Za-z_]+$
+          enum:
+          - Nerve_Docker_registry
+      - name: scope
+        in: query
+        description: The scope of the authentication request (e.g., "repository:your-repo:push,pull").
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 500
+          pattern: ^.*$
+      - name: client_id
+        in: query
+        description: The client ID of the service requesting authentication.
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 6
+          pattern: ^[A-Za-z_]+$
+          enum:
+          - docker
+      - name: account
+        in: query
+        description: The account requesting authentication.
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 500
+          pattern: ^.*$
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '200':
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing the authentication token
+                properties:
+                  token:
+                    type: string
+                    description: The authentication token.
+                    pattern: ^[A-Za-z0-9-_]+(\.[A-Za-z0-9-_]+){2}$
+                    minLength: 1
+                    maxLength: 2000
+              example:
+                token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing the error details
+                additionalProperties: false
+                required:
+                - errors
+                properties:
+                  errors:
+                    type: array
+                    description: A list of errors
+                    minItems: 1
+                    maxItems: 1
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          description: The error code
+                          minLength: 1
+                          maxLength: 100
+                          pattern: ^[A-Za-z_]+$
+                          example: INTERNAL_SERVER_ERROR
+                        message:
+                          type: string
+                          description: The error message
+                          minLength: 1
+                          maxLength: 150
+                          pattern: ^.*$
+                          example: Internal server error
+        '429':
+          description: Too many requests - brute force protection triggered
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing the error details
+                additionalProperties: false
+                required:
+                - errors
+                properties:
+                  errors:
+                    type: array
+                    description: A list of errors
+                    minItems: 1
+                    maxItems: 1
+                    items:
+                      type: object
+                      properties:
+                        code:
+                          type: string
+                          description: The error code
+                          minLength: 1
+                          maxLength: 100
+                          pattern: ^[A-Za-z_]+$
+                          example: INTERNAL_SERVER_ERROR
+                        message:
+                          type: string
+                          description: The error message
+                          minLength: 1
+                          maxLength: 150
+                          pattern: ^.*$
+                          example: Internal server error
+  /nerve/registry/check-images-status:
+    post:
+      summary: List of images with their statuses
+      description: List of provided images and their availability status on the nerve registry
+      operationId: nerve_registry_image_list_with_status
+      tags:
+      - NERVE_DOCKER_REGISTRY
+      requestBody:
+        description: List of images that are sent to check the availability on the registry
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Object containing a list of docker images
+              required:
+              - images
+              properties:
+                images:
+                  type: array
+                  description: A list of docker images
+                  minItems: 0
+                  maxItems: 10000
+                  items:
+                    type: string
+                    description: Docker image name and tag
+                    minLength: 1
+                    maxLength: 384
+                    pattern: ^(?=.{1,255}(?::|$))[a-z0-9]+(?:[._-][a-z0-9]+)*(?:/[a-z0-9]+(?:[._-][a-z0-9]+)*)*(?::[A-Za-z0-9_][A-Za-z0-9_.-]{0,127})?$
+      x-permissions:
+      - REGISTRY:PULL
+      responses:
+        '200':
+          description: A list of images with their availability status
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing a list of docker images and their availability status
+                properties:
+                  listOfImagesWithStatus:
+                    type: array
+                    description: A list of docker images and their availability status
+                    minItems: 0
+                    maxItems: 50
+                    items:
+                      type: object
+                      description: Contains the image and its availability status
+                      properties:
+                        images:
+                          type: array
+                          description: A list of docker images
+                          minItems: 0
+                          maxItems: 10000
+                          items:
+                            type: string
+                            description: Docker image name and tag
+                            minLength: 1
+                            maxLength: 384
+                            pattern: ^(?=.{1,255}(?::|$))[a-z0-9]+(?:[._-][a-z0-9]+)*(?:/[a-z0-9]+(?:[._-][a-z0-9]+)*)*(?::[A-Za-z0-9_][A-Za-z0-9_.-]{0,127})?$
+                        available:
+                          type: boolean
+                          description: Flag indicating if the images are available on the registry
+              example:
+                listOfImagesWithStatus:
+                - image: registry/alpine:latest
+                  available: true
+                - image: registry/nginx:latest
+                  available: false
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred on the server side
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_docker_registry_001
+                message: Failed to finalize request, unexpected error occurred.
+  /nerve/registry/delete-image-tag:
+    post:
+      summary: Delete image tag from the registry
+      description: This endpoint is used to delete an image tag from the registry. The deletion process is based on the digest associated with the specified tag. If multiple tags share the same digest, all tags linked to that digest will be deleted as part of the operation.
+      operationId: nerve_registry_delete_image_tag
+      tags:
+      - NERVE_DOCKER_REGISTRY
+      requestBody:
+        description: Information about image name and tag
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Object containing the image name and tag
+              required:
+              - image
+              - tag
+              properties:
+                image:
+                  type: string
+                  description: Docker image name
+                  minLength: 1
+                  maxLength: 255
+                  pattern: ^(?:[a-z0-9]+(?:[._-][a-z0-9]+)*(?:/[a-z0-9]+(?:[._-][a-z0-9]+)*)*)$
+                tag:
+                  type: string
+                  description: Docker image tag
+                  minLength: 1
+                  maxLength: 128
+                  pattern: ^(?:[A-Za-z0-9_][A-Za-z0-9_.-]{0,127})$
+      x-permissions:
+      - REGISTRY:DELETE
+      responses:
+        '200':
+          description: Success response
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing the success message
+                required:
+                - success
+                properties:
+                  success:
+                    type: boolean
+                    description: The success status
+              example:
+                success: true
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Request failed, this is the response received when the requested image was not found
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '404'
+                errorCode: nerve_docker_registry_002
+                message: Image not found on the registry.
+        '405':
+          description: Request failed, this is the response received when image deletion is not allowed because it is used by a released version
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '405'
+                errorCode: nerve_docker_registry_003
+                message: Image is used by a released version, delete action is not possible.
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred on the server side
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_docker_registry_001
+                message: Failed to finalize request, unexpected error occurred.
+components:
+  securitySchemes:
+    sessionId:
+      type: apiKey
+      in: header
+      name: sessionId
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    bearerAuth:
+      type: http
+      scheme: bearer

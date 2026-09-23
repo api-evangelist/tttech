@@ -1,0 +1,4030 @@
+openapi: 3.2.0
+info:
+  version: 3.1.0
+  description: 'Nerve Management System API to manage: -labels -nodes -workloads -notifications -capabilities'
+  title: Nerve Management System NODE V2 API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+servers:
+- url: https://trynerve1.nerve.cloud
+security:
+- sessionId: []
+tags:
+- name: Node V2
+  description: The operations to manage nodes v2.
+paths:
+  /nerve/v2/node/logging-monitoring/{serialNumber}:
+    get:
+      summary: Get the monitoring and logging configuration
+      description: Get the logging and monitoring configuration of the selected node. The logging level can viewed as well.
+      operationId: get_nerve_v2_node_logging_monitoring_serial_number
+      tags:
+      - Node V2
+      parameters:
+      - name: serialNumber
+        in: path
+        required: true
+        description: The serial number of the node which was specified during onboarding into the Nerve Management System.
+        schema:
+          description: The serial number of the node
+          type: string
+          maxLength: 12
+          minLength: 12
+          pattern: ([A-Z0-9]){12}
+      x-permissions:
+      - NODE:LOGGING_AND_MONITORING_SETTINGS
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                title: LoggingMonitoringLogLevels
+                description: Configuration for logging, monitoring, and log levels across various systems
+                type: object
+                properties:
+                  loggingMonitoring:
+                    description: Logging and monitoring configuration
+                    type: object
+                    properties:
+                      supported:
+                        type: boolean
+                        description: Is logging and monitoring supported
+                      dockerMonitoring:
+                        type: boolean
+                        description: Is docker monitoring enabled
+                      systemMonitoring:
+                        type: boolean
+                        description: Is system monitoring enabled
+                      dockerLogging:
+                        type: boolean
+                        description: Is docker logging enabled
+                      systemLogging:
+                        type: boolean
+                        description: If enabled the node collects system logs and sends them to the management system.
+                    required:
+                    - supported
+                  logLevels:
+                    description: Log level configuration
+                    type: object
+                    title: Log levels model
+                    properties:
+                      dataId:
+                        type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+                        minLength: 1
+                        maxLength: 1000
+                        description: Identifier for the log levels
+                      values:
+                        type: object
+                        description: Contains the log level settings for various systems
+                        required:
+                        - ovdm
+                        properties:
+                          ovdm:
+                            type: object
+                            description: Log levels configuration for the OVDM system
+                            properties:
+                              ovdm:
+                                type: object
+                                description: Log levels settings for the OVDM system
+                                properties:
+                                  level:
+                                    type: string
+                                    pattern: ^[\x20-\x7E\t\n\r]*$
+                                    minLength: 1
+                                    maxLength: 1000
+                                    description: Specifies the current log level
+                                  options:
+                                    type: array
+                                    minItems: 0
+                                    maxItems: 1001
+                                    description: Lists the available log level options
+                                    items:
+                                      type: object
+                                      description: Contains the name and value for a log level option
+                                      properties:
+                                        name:
+                                          type: string
+                                          pattern: ^[\x20-\x7E\t\n\r]*$
+                                          minLength: 1
+                                          maxLength: 1000
+                                          description: The name of the log level
+                                        value:
+                                          type: string
+                                          pattern: ^[\x20-\x7E\t\n\r]*$
+                                          minLength: 1
+                                          maxLength: 1000
+                                          description: The value associated with the log level
+                          libvirt:
+                            type: object
+                            description: Log levels configuration for the LibVirt system
+                            properties:
+                              libvirt_ctl:
+                                type: object
+                                description: Log levels settings for the LibVirt system
+                                properties:
+                                  level:
+                                    type: string
+                                    pattern: ^[\x20-\x7E\t\n\r]*$
+                                    minLength: 1
+                                    maxLength: 1000
+                                    description: Specifies the current log level
+                                  options:
+                                    type: array
+                                    minItems: 0
+                                    maxItems: 1001
+                                    description: Lists the available log level options
+                                    items:
+                                      type: object
+                                      description: Contains the name, value, and node for a log level option
+                                      properties:
+                                        name:
+                                          type: string
+                                          pattern: ^[\x20-\x7E\t\n\r]*$
+                                          minLength: 1
+                                          maxLength: 1000
+                                          description: The name of the log level
+                                        value:
+                                          type: integer
+                                          format: int32
+                                          description: The value associated with the log level
+                                          minimum: 0
+                                          maximum: 1000000
+                                        nodeEq:
+                                          type: string
+                                          pattern: ^[\x20-\x7E\t\n\r]*$
+                                          minLength: 1
+                                          maxLength: 1000
+                                          description: The identifier for the node in which the log level is applied
+                          codesys:
+                            type: object
+                            description: Log levels configuration for the CODESYS system
+                            properties:
+                              codesys_ctl:
+                                type: object
+                                description: Log levels settings for the CODESYS control system
+                                properties:
+                                  level:
+                                    type: string
+                                    pattern: ^[\x20-\x7E\t\n\r]*$
+                                    minLength: 1
+                                    maxLength: 1000
+                                    description: Specifies the current log level
+                                  options:
+                                    type: array
+                                    minItems: 0
+                                    maxItems: 1001
+                                    description: Lists the available log level options
+                                    items:
+                                      type: object
+                                      description: Contains the name, value, and node for a log level option
+                                      properties:
+                                        name:
+                                          type: string
+                                          pattern: ^[\x20-\x7E\t\n\r]*$
+                                          minLength: 1
+                                          maxLength: 1000
+                                          description: The name of the log level
+                                        value:
+                                          type: integer
+                                          format: int32
+                                          description: The value associated with the log level
+                                          minimum: 0
+                                          maximum: 1000000
+                                        nodeEq:
+                                          type: string
+                                          pattern: ^[\x20-\x7E\t\n\r]*$
+                                          minLength: 1
+                                          maxLength: 1000
+                                          description: The identifier for the node in which the log level is applied
+                      timestamp:
+                        type: integer
+                        format: int64
+                        description: The timestamp indicating when the log levels were set or modified
+                        minimum: 0
+                        maximum: 4102444800000
+                    required:
+                    - dataId
+                    - values
+                required:
+                - loggingMonitoring
+                - logLevels
+              examples:
+                logging_monitoring_config:
+                  value:
+                    loggingMonitoring:
+                      supported: true
+                      dockerMonitoring: true
+                      systemMonitoring: true
+                      dockerLogging: true
+                    logLevels:
+                      dataId: node_logging
+                      values:
+                        ovdm:
+                          ovdm:
+                            level: info
+                            options:
+                            - name: DEBUG
+                              value: debug
+                            - name: INFO
+                              value: info
+                            - name: WARN
+                              value: warn
+                            - name: ERROR
+                              value: error
+                        codesys:
+                          codesys_ctl:
+                            level: '30'
+                            options:
+                            - name: DEBUG
+                              value: 10
+                              nodeEq: debug
+                            - name: INFO
+                              value: 20
+                              nodeEq: info
+                            - name: WARNING
+                              value: 30
+                              nodeEq: warn
+                            - name: ERROR
+                              value: 40
+                              nodeEq: error
+                            - name: CRITICAL
+                              value: 50
+                              nodeEq: error
+                      timestamp: 1662464757565
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Node with provided serial number was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_012
+                httpCode: '404'
+                message: Node you are looking for was not found
+        '409':
+          description: Node is offline
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_018
+                httpCode: '409'
+                message: Node is offline
+        '500':
+          description: Example response
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_node_023
+                message: Get logging and monitoring status operation failed
+    post:
+      summary: Set monitoring and logging configuration
+      operationId: put_nerve_node_logging_monitoring_serial_number
+      description: Apply logging and monitoring configuration of the selected node. The logging level can be set as well.
+      tags:
+      - Node V2
+      parameters:
+      - name: serialNumber
+        in: path
+        required: true
+        description: The serial number of the node which was specified during onboarding into the Nerve Management System.
+        schema:
+          description: The serial number of the node
+          type: string
+          maxLength: 12
+          minLength: 12
+          pattern: ([A-Z0-9]){12}
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Configures logging and monitoring across the system, providing controls to enable or disable Docker and system monitoring, and to set log levels for components such as OVDM, LibVirt, and CODESYS.
+              properties:
+                loggingMonitoring:
+                  type: object
+                  description: Logging and monitoring configuration
+                  required:
+                  - dockerMonitoring
+                  - systemMonitoring
+                  - dockerLogging
+                  properties:
+                    dockerMonitoring:
+                      type: boolean
+                      description: Enable or disable docker monitoring
+                    systemMonitoring:
+                      type: boolean
+                      description: Enable or disable system monitoring
+                    dockerLogging:
+                      type: boolean
+                      description: Enable or disable docker logging
+                    systemLogging:
+                      type: boolean
+                      description: If enabled the node collects system logs and sends them to the management system.
+                logLevels:
+                  type: object
+                  description: Log level configuration
+                  properties:
+                    ovdm:
+                      type: string
+                      description: Log levels settings for the OVDM system
+                      enum:
+                      - info
+                      - debug
+                      - warn
+                      - error
+                    libvirt_ctl:
+                      type: string
+                      description: Log levels settings for the LibVirt system
+                      enum:
+                      - '10'
+                      - '20'
+                      - '30'
+                      - '40'
+                      - '50'
+                    codesys_ctl:
+                      type: string
+                      description: Log levels configuration for the CODESYS system
+                      enum:
+                      - '10'
+                      - '20'
+                      - '30'
+                      - '40'
+                      - '50'
+                    timeout:
+                      type: integer
+                      format: int32
+                      description: How long to keep logging configuration in milliseconds.   The maximum time that can be set is 24 hours. If the time is not set(equal to 0), the default value will be applied (1h)
+                      default: 3600000
+                      minimum: 0
+                      maximum: 86400000
+                    systemLogFilter:
+                      type: string
+                      description: 'Specifies which system logs are sent to the Management System.   Options:   - ''all'': send all system logs.   - ''ovdm'': send only logs from the OVDM service.'
+                      enum:
+                      - all
+                      - ovdm
+                      default: ovdm
+                  required:
+                  - ovdm
+              required:
+              - loggingMonitoring
+              - logLevels
+        required: true
+      x-permissions:
+      - NODE:LOGGING_AND_MONITORING_SETTINGS
+      responses:
+        '204':
+          description: Successful operation
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Node with provided serial number was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_012
+                httpCode: '404'
+                message: Node you are looking for was not found
+        '409':
+          description: Node is offline
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_018
+                httpCode: '409'
+                message: Node is offline
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '415'
+                message: Route params validation error
+        '500':
+          description: Throw error in case of unexpected error during apply operationId
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_node_024
+                message: Apply logging and monitoring settings operation failed
+  /nerve/v2/node/{serial_number}/import-remote-connections:
+    put:
+      summary: Import remote connections on selected node
+      operationId: import_rc_on_node
+      tags:
+      - Node V2
+      description: Method is used to import remote connections on selected node.
+      parameters:
+      - name: serial_number
+        in: path
+        required: true
+        description: The serial number of the node which was specified during onboarding into the Nerve Management System.
+        schema:
+          description: The serial number of the node
+          type: string
+          maxLength: 12
+          minLength: 12
+          pattern: ([A-Z0-9]){12}
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              additionalProperties: false
+              type: object
+              description: File with remote connections to be imported on selected node
+              properties:
+                file:
+                  description: File containing remote connection details to be imported
+                  type: string
+                  format: binary
+                  minLength: 1
+                  maxLength: 1000
+            example:
+              file: example-file-content
+      x-permissions:
+      - NODE:EDIT
+      responses:
+        '200':
+          description: List of imported remote connections
+          content:
+            application/json:
+              schema:
+                type: array
+                minItems: 0
+                maxItems: 1001
+                description: List of imported remote connections
+                items:
+                  description: Array of different remote connection types.
+                  anyOf:
+                  - type: object
+                    description: An object containing data about remote tunnel connection. Remote tunnel connection is connection that is established between local workstation and the target. For those connections Nerve Connection Manager application MUST be installed on local workstation.
+                    required:
+                    - name
+                    - acknowledgment
+                    - port
+                    - localPort
+                    - type
+                    properties:
+                      type:
+                        type: string
+                        description: Remote connection type
+                        enum:
+                        - TUNNEL
+                      name:
+                        type: string
+                        description: Remote connection name
+                        pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                        minLength: 1
+                        maxLength: 40
+                      acknowledgment:
+                        type: string
+                        description: Defines if local acknowledgement is required to establish a connection. To confirm connection, it is necessary to have access to the LocalUI web application.
+                        enum:
+                        - 'Yes'
+                        - 'No'
+                      port:
+                        type: integer
+                        format: int32
+                        minimum: 0
+                        maximum: 65535
+                        description: Port on the target to which connection is established (port on the node for opening tunnel to chisel server)
+                      localPort:
+                        type: integer
+                        format: int32
+                        minimum: 0
+                        maximum: 65535
+                        description: Port on local PC to establish remote tunnel
+                      serviceName:
+                        type:
+                        - string
+                        - 'null'
+                        description: A extra parameter of the remote connection for 'docker-compose' workload. Refers to one of the services listed in the compose YAML file, a service(container) for which remote connection has been configured. This is a mandatory parameter for remote connections for 'docker-compose' workloads, but not for other workload types.
+                        pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+                        minLength: 1
+                        maxLength: 40
+                  - type: object
+                    description: An object containing data about remote tunnel connection. Remote tunnel connection is connection that is established between local workstation and the target. For those connections Nerve Connection Manager application MUST be installed on local workstation.
+                    required:
+                    - name
+                    - acknowledgment
+                    - hostname
+                    - port
+                    - localPort
+                    - type
+                    properties:
+                      type:
+                        type: string
+                        description: Remote connection type
+                        enum:
+                        - TUNNEL
+                      name:
+                        type: string
+                        description: Remote connection name
+                        pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                        minLength: 1
+                        maxLength: 40
+                      acknowledgment:
+                        type: string
+                        description: Defines if local acknowledgement is required to establish a connection. To confirm connection, it is necessary to have access to the LocalUI web application.
+                        enum:
+                        - 'Yes'
+                        - 'No'
+                      hostname:
+                        type: string
+                        description: Target hostname or ip address to which connection is established
+                        minLength: 1
+                        maxLength: 40
+                        pattern: ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$
+                      port:
+                        type: integer
+                        format: int32
+                        minimum: 0
+                        maximum: 65535
+                        description: Port on the target to which connection is established (port on the node for opening tunnel to chisel server)
+                      localPort:
+                        type: integer
+                        format: int32
+                        minimum: 0
+                        maximum: 65535
+                        description: Port on local PC to establish remote tunnel
+                      serviceName:
+                        type:
+                        - string
+                        - 'null'
+                        description: A extra parameter of the remote connection for 'docker-compose' workload. Refers to one of the services listed in the compose YAML file, a service(container) for which remote connection has been configured. This is a mandatory parameter for remote connections for 'docker-compose' workloads, but not for other workload types.
+                        pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+                        minLength: 1
+                        maxLength: 40
+                  - description: Remote screen connection - type VNC
+                    allOf:
+                    - anyOf:
+                      - type: object
+                        description: An object containing data about remote screen connection. Remote screen connection is the connection that is established between Management System and a target(node or deployed workload). Those connections are based on Guacamole.
+                        required:
+                        - name
+                        - numberOfConnections
+                        - acknowledgment
+                        - hostname
+                        - port
+                        - autoretry
+                        - type
+                        properties:
+                          type:
+                            type: string
+                            description: Remote connection type
+                            enum:
+                            - SCREEN
+                          name:
+                            type: string
+                            description: Remote connection name
+                            pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                            minLength: 1
+                            maxLength: 40
+                          numberOfConnections:
+                            type: integer
+                            format: int32
+                            description: The maximum number of simultaneous connections
+                            minimum: 1
+                            maximum: 100
+                          acknowledgment:
+                            type: string
+                            description: Defines if local acknowledgement is required to establish a connection. To confirm connection, it is necessary to have access to the LocalUI web application.
+                            enum:
+                            - 'Yes'
+                            - 'No'
+                          hostname:
+                            type: string
+                            description: Target hostname or ip address to which connection is established
+                            minLength: 1
+                            maxLength: 40
+                            pattern: ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$
+                          port:
+                            type: integer
+                            format: int32
+                            minimum: 0
+                            maximum: 65535
+                            description: Port on the target to which connection is established (port on the node for opening tunnel to chisel server)
+                          autoretry:
+                            type: integer
+                            format: int32
+                            description: The number of times to retry connecting before giving up and returning an error
+                            minimum: 1
+                            maximum: 3
+                          cursor:
+                            type: string
+                            description: 'Defines if the cursor is rendered locally or remotely  '
+                            enum:
+                            - ''
+                            - local
+                            - remote
+                          readOnly:
+                            type: boolean
+                            description: Defines whether the connection should be read-only.
+                          swapRedBlue:
+                            description: Specifies whether the red and blue indicators for the remote connection should be swapped
+                            type: boolean
+                          serviceName:
+                            type:
+                            - string
+                            - 'null'
+                            description: A extra parameter of the remote connection for 'docker-compose' workload. Refers to one of the services listed in the compose YAML file, a service(container) for which remote connection has been configured. This is a mandatory parameter for remote connections for 'docker-compose' workloads, but not for other workload types.
+                            pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+                            minLength: 1
+                            maxLength: 40
+                      - type: object
+                        description: An object containing data about remote screen connection. Remote screen connection is the connection that is established between Management System and a target(node or deployed workload). Those connections are based on Guacamole.
+                        required:
+                        - name
+                        - numberOfConnections
+                        - acknowledgment
+                        - port
+                        - autoretry
+                        - type
+                        properties:
+                          type:
+                            type: string
+                            description: Remote connection type
+                            enum:
+                            - SCREEN
+                          name:
+                            type: string
+                            description: Remote connection name
+                            pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                            minLength: 1
+                            maxLength: 40
+                          numberOfConnections:
+                            type: integer
+                            format: int32
+                            description: The maximum number of simultaneous connections
+                            minimum: 1
+                            maximum: 100
+                          acknowledgment:
+                            type: string
+                            description: Defines if local acknowledgement is required to establish a connection. To confirm connection, it is necessary to have access to the LocalUI web application.
+                            enum:
+                            - 'Yes'
+                            - 'No'
+                          port:
+                            type: integer
+                            format: int32
+                            minimum: 0
+                            maximum: 65535
+                            description: Port on the target to which connection is established (port on the node for opening tunnel to chisel server)
+                          autoretry:
+                            type: integer
+                            format: int32
+                            description: The number of times to retry connecting before giving up and returning an error
+                            minimum: 1
+                            maximum: 3
+                          cursor:
+                            type: string
+                            description: 'Defines if the cursor is rendered locally or remotely  '
+                            enum:
+                            - ''
+                            - local
+                            - remote
+                          readOnly:
+                            type: boolean
+                            description: Defines whether the connection should be read-only.
+                          swapRedBlue:
+                            description: Specifies whether the red and blue indicators for the remote connection should be swapped
+                            type: boolean
+                          serviceName:
+                            type:
+                            - string
+                            - 'null'
+                            description: A extra parameter of the remote connection for 'docker-compose' workload. Refers to one of the services listed in the compose YAML file, a service(container) for which remote connection has been configured. This is a mandatory parameter for remote connections for 'docker-compose' workloads, but not for other workload types.
+                            pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+                            minLength: 1
+                            maxLength: 40
+                    - type: object
+                      required:
+                      - connection
+                      properties:
+                        connection:
+                          type: string
+                          description: Remote screen type
+                          enum:
+                          - VNC
+                  - description: Remote screen connection - type SSH
+                    allOf:
+                    - anyOf:
+                      - type: object
+                        description: An object containing data about remote screen connection. Remote screen connection is the connection that is established between Management System and a target(node or deployed workload). Those connections are based on Guacamole.
+                        required:
+                        - name
+                        - numberOfConnections
+                        - acknowledgment
+                        - hostname
+                        - port
+                        - autoretry
+                        - type
+                        properties:
+                          type:
+                            type: string
+                            description: Remote connection type
+                            enum:
+                            - SCREEN
+                          name:
+                            type: string
+                            description: Remote connection name
+                            pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                            minLength: 1
+                            maxLength: 40
+                          numberOfConnections:
+                            type: integer
+                            format: int32
+                            description: The maximum number of simultaneous connections
+                            minimum: 1
+                            maximum: 100
+                          acknowledgment:
+                            type: string
+                            description: Defines if local acknowledgement is required to establish a connection. To confirm connection, it is necessary to have access to the LocalUI web application.
+                            enum:
+                            - 'Yes'
+                            - 'No'
+                          hostname:
+                            type: string
+                            description: Target hostname or ip address to which connection is established
+                            minLength: 1
+                            maxLength: 40
+                            pattern: ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$
+                          port:
+                            type: integer
+                            format: int32
+                            minimum: 0
+                            maximum: 65535
+                            description: Port on the target to which connection is established (port on the node for opening tunnel to chisel server)
+                          autoretry:
+                            type: integer
+                            format: int32
+                            description: The number of times to retry connecting before giving up and returning an error
+                            minimum: 1
+                            maximum: 3
+                          cursor:
+                            type: string
+                            description: 'Defines if the cursor is rendered locally or remotely  '
+                            enum:
+                            - ''
+                            - local
+                            - remote
+                          readOnly:
+                            type: boolean
+                            description: Defines whether the connection should be read-only.
+                          swapRedBlue:
+                            description: Specifies whether the red and blue indicators for the remote connection should be swapped
+                            type: boolean
+                          serviceName:
+                            type:
+                            - string
+                            - 'null'
+                            description: A extra parameter of the remote connection for 'docker-compose' workload. Refers to one of the services listed in the compose YAML file, a service(container) for which remote connection has been configured. This is a mandatory parameter for remote connections for 'docker-compose' workloads, but not for other workload types.
+                            pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+                            minLength: 1
+                            maxLength: 40
+                      - type: object
+                        description: An object containing data about remote screen connection. Remote screen connection is the connection that is established between Management System and a target(node or deployed workload). Those connections are based on Guacamole.
+                        required:
+                        - name
+                        - numberOfConnections
+                        - acknowledgment
+                        - port
+                        - autoretry
+                        - type
+                        properties:
+                          type:
+                            type: string
+                            description: Remote connection type
+                            enum:
+                            - SCREEN
+                          name:
+                            type: string
+                            description: Remote connection name
+                            pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                            minLength: 1
+                            maxLength: 40
+                          numberOfConnections:
+                            type: integer
+                            format: int32
+                            description: The maximum number of simultaneous connections
+                            minimum: 1
+                            maximum: 100
+                          acknowledgment:
+                            type: string
+                            description: Defines if local acknowledgement is required to establish a connection. To confirm connection, it is necessary to have access to the LocalUI web application.
+                            enum:
+                            - 'Yes'
+                            - 'No'
+                          port:
+                            type: integer
+                            format: int32
+                            minimum: 0
+                            maximum: 65535
+                            description: Port on the target to which connection is established (port on the node for opening tunnel to chisel server)
+                          autoretry:
+                            type: integer
+                            format: int32
+                            description: The number of times to retry connecting before giving up and returning an error
+                            minimum: 1
+                            maximum: 3
+                          cursor:
+                            type: string
+                            description: 'Defines if the cursor is rendered locally or remotely  '
+                            enum:
+                            - ''
+                            - local
+                            - remote
+                          readOnly:
+                            type: boolean
+                            description: Defines whether the connection should be read-only.
+                          swapRedBlue:
+                            description: Specifies whether the red and blue indicators for the remote connection should be swapped
+                            type: boolean
+                          serviceName:
+                            type:
+                            - string
+                            - 'null'
+                            description: A extra parameter of the remote connection for 'docker-compose' workload. Refers to one of the services listed in the compose YAML file, a service(container) for which remote connection has been configured. This is a mandatory parameter for remote connections for 'docker-compose' workloads, but not for other workload types.
+                            pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+                            minLength: 1
+                            maxLength: 40
+                    - type: object
+                      required:
+                      - connection
+                      properties:
+                        connection:
+                          type: string
+                          description: Remote screen type
+                          enum:
+                          - SSH
+                        username:
+                          type: string
+                          description: Username to use for authentication
+                          minLength: 0
+                          maxLength: 40
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f:]*$
+                  - description: Remote screen connection - type RDP
+                    allOf:
+                    - anyOf:
+                      - type: object
+                        description: An object containing data about remote screen connection. Remote screen connection is the connection that is established between Management System and a target(node or deployed workload). Those connections are based on Guacamole.
+                        required:
+                        - name
+                        - numberOfConnections
+                        - acknowledgment
+                        - hostname
+                        - port
+                        - autoretry
+                        - type
+                        properties:
+                          type:
+                            type: string
+                            description: Remote connection type
+                            enum:
+                            - SCREEN
+                          name:
+                            type: string
+                            description: Remote connection name
+                            pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                            minLength: 1
+                            maxLength: 40
+                          numberOfConnections:
+                            type: integer
+                            format: int32
+                            description: The maximum number of simultaneous connections
+                            minimum: 1
+                            maximum: 100
+                          acknowledgment:
+                            type: string
+                            description: Defines if local acknowledgement is required to establish a connection. To confirm connection, it is necessary to have access to the LocalUI web application.
+                            enum:
+                            - 'Yes'
+                            - 'No'
+                          hostname:
+                            type: string
+                            description: Target hostname or ip address to which connection is established
+                            minLength: 1
+                            maxLength: 40
+                            pattern: ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$
+                          port:
+                            type: integer
+                            format: int32
+                            minimum: 0
+                            maximum: 65535
+                            description: Port on the target to which connection is established (port on the node for opening tunnel to chisel server)
+                          autoretry:
+                            type: integer
+                            format: int32
+                            description: The number of times to retry connecting before giving up and returning an error
+                            minimum: 1
+                            maximum: 3
+                          cursor:
+                            type: string
+                            description: 'Defines if the cursor is rendered locally or remotely  '
+                            enum:
+                            - ''
+                            - local
+                            - remote
+                          readOnly:
+                            type: boolean
+                            description: Defines whether the connection should be read-only.
+                          swapRedBlue:
+                            description: Specifies whether the red and blue indicators for the remote connection should be swapped
+                            type: boolean
+                          serviceName:
+                            type:
+                            - string
+                            - 'null'
+                            description: A extra parameter of the remote connection for 'docker-compose' workload. Refers to one of the services listed in the compose YAML file, a service(container) for which remote connection has been configured. This is a mandatory parameter for remote connections for 'docker-compose' workloads, but not for other workload types.
+                            pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+                            minLength: 1
+                            maxLength: 40
+                      - type: object
+                        description: An object containing data about remote screen connection. Remote screen connection is the connection that is established between Management System and a target(node or deployed workload). Those connections are based on Guacamole.
+                        required:
+                        - name
+                        - numberOfConnections
+                        - acknowledgment
+                        - port
+                        - autoretry
+                        - type
+                        properties:
+                          type:
+                            type: string
+                            description: Remote connection type
+                            enum:
+                            - SCREEN
+                          name:
+                            type: string
+                            description: Remote connection name
+                            pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                            minLength: 1
+                            maxLength: 40
+                          numberOfConnections:
+                            type: integer
+                            format: int32
+                            description: The maximum number of simultaneous connections
+                            minimum: 1
+                            maximum: 100
+                          acknowledgment:
+                            type: string
+                            description: Defines if local acknowledgement is required to establish a connection. To confirm connection, it is necessary to have access to the LocalUI web application.
+                            enum:
+                            - 'Yes'
+                            - 'No'
+                          port:
+                            type: integer
+                            format: int32
+                            minimum: 0
+                            maximum: 65535
+                            description: Port on the target to which connection is established (port on the node for opening tunnel to chisel server)
+                          autoretry:
+                            type: integer
+                            format: int32
+                            description: The number of times to retry connecting before giving up and returning an error
+                            minimum: 1
+                            maximum: 3
+                          cursor:
+                            type: string
+                            description: 'Defines if the cursor is rendered locally or remotely  '
+                            enum:
+                            - ''
+                            - local
+                            - remote
+                          readOnly:
+                            type: boolean
+                            description: Defines whether the connection should be read-only.
+                          swapRedBlue:
+                            description: Specifies whether the red and blue indicators for the remote connection should be swapped
+                            type: boolean
+                          serviceName:
+                            type:
+                            - string
+                            - 'null'
+                            description: A extra parameter of the remote connection for 'docker-compose' workload. Refers to one of the services listed in the compose YAML file, a service(container) for which remote connection has been configured. This is a mandatory parameter for remote connections for 'docker-compose' workloads, but not for other workload types.
+                            pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+                            minLength: 1
+                            maxLength: 40
+                    - type: object
+                      required:
+                      - connection
+                      properties:
+                        connection:
+                          type: string
+                          description: Remote screen type
+                          enum:
+                          - RDP
+                        username:
+                          type: string
+                          description: Username to use for authentication
+                          minLength: 0
+                          maxLength: 40
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f:]*$
+                        ignoreServerCertificate:
+                          description: Indicates whether the server certificate for the RDP connection should be ignored
+                          type: boolean
+                          default: false
+                        securityMode:
+                          type: string
+                          description: Dictates how data will be encrypted and what type of authentication will be performed
+                          enum:
+                          - ''
+                          - any
+                          - nla
+                          - rdp
+                          - tls
+        '400':
+          description: Request failed, this is the response received when provided file has wrong extension.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '400'
+                message: Wrong file extension, allowed extensions are .yaml or .yml
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Node with provided serial number was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_012
+                httpCode: '404'
+                message: Node you are looking for was not found
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '415'
+                message: Route params validation error
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_dna_006
+                message: Operation failed for unknown reason.
+  /nerve/v2/node/{serial_number}/export-remote-connections:
+    get:
+      summary: Export remote connections data with file
+      operationId: export_rc_on_node
+      security:
+      - cookieAuth: []
+      tags:
+      - Node V2
+      description: Method is used to export remote connections data with file.
+      parameters:
+      - name: serial_number
+        in: path
+        required: true
+        description: The serial number of the node which was specified during onboarding into the Nerve Management System.
+        schema:
+          description: The serial number of the node
+          type: string
+          maxLength: 12
+          minLength: 12
+          pattern: ([A-Z0-9]){12}
+      x-permissions:
+      - NODE:VIEW
+      responses:
+        '200':
+          description: Success
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                pattern: ^[\x20-\x7E\t\n\r]*$
+                format: binary
+                minLength: 1
+                maxLength: 1000
+                description: File with remote connections data
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                pattern: ^[\x20-\x7E\t\n\r]*$
+                minLength: 1
+                maxLength: 1000
+                example: attachment; filename=file_name.tar
+                description: Exported file name
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '401':
+          description: Request failed, this is the response received when the cookie is missing in the header.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Node with provided serial number was not found.
+          content:
+            text/html:
+              schema:
+                type: string
+                pattern: ^[\x20-\x7E\t\n\r]*$
+                description: Error message when node with provided serial number was not found
+                minLength: 1
+                maxLength: 1000
+                example: Device you are looking for does not exist!
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_dna_006
+                message: Operation failed for unknown reason.
+  /nerve/v2/node/{serial_number}/users:
+    get:
+      tags:
+      - Node V2
+      operationId: get_users_from_node
+      summary: Get a list of all users from the selected node
+      description: Retrieve a list of all users from the selected node.
+      parameters:
+      - name: serial_number
+        in: path
+        required: true
+        description: The serial number of the node which was specified during onboarding into the Nerve Management System.
+        schema:
+          description: The serial number of the node
+          type: string
+          maxLength: 12
+          minLength: 12
+          pattern: ([A-Z0-9]){12}
+      x-permissions:
+      - NODE_USER_MANAGEMENT:LIST
+      responses:
+        '200':
+          description: Users successfully fetched from the selected node.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing an array of user data.
+                properties:
+                  users:
+                    type: array
+                    minItems: 0
+                    maxItems: 1001
+                    description: List of users from the selected node.
+                    items:
+                      type: object
+                      required:
+                      - firstName
+                      - lastName
+                      - email
+                      - username
+                      - roles
+                      - id
+                      properties:
+                        id:
+                          description: User's database id
+                          type: integer
+                          format: int32
+                          minimum: 1
+                          maximum: 1000000
+                        firstName:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: User's first name
+                          minLength: 1
+                          maxLength: 1000
+                        lastName:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: User's last name
+                          minLength: 1
+                          maxLength: 1000
+                        email:
+                          description: User's email address
+                          type: string
+                          minLength: 1
+                          maxLength: 1000
+                          format: email
+                          pattern: ^(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9]))\.){3}(?:(2(5[0-5]|[0-4][0-9])|1[0-9][0-9]|[1-9]?[0-9])|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$
+                        username:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: User's username
+                          minLength: 1
+                          maxLength: 1001
+                        roles:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: User's role
+                          minLength: 1
+                          maxLength: 1000
+                        lastLoggedInAt:
+                          description: Timestamp of the user's last login event
+                          type:
+                          - integer
+                          - 'null'
+                          format: int64
+                          minimum: 0
+                          maximum: 4102444800000
+                      additionalProperties: false
+              example:
+                users:
+                - firstName: Demo
+                  lastName: Nerve
+                  username: demo@nerve.com
+                  email: demo@nerve.com
+                  roles: admin
+                  lastLoggedInAt: 1716803144649
+                  id: 1
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: nerve_dna_003
+                    httpCode: '401'
+                    message: You are not authorized.
+        '403':
+          description: You are missing permission to perform an action
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                missing_permission:
+                  value:
+                    errorCode: nerve_dna_004
+                    httpCode: '403'
+                    message: You are missing permission.
+        '404':
+          description: Node with provided serial number was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_012
+                httpCode: '404'
+                message: Node you are looking for was not found
+        '409':
+          description: Node is offline
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_018
+                httpCode: '409'
+                message: Node is offline
+    delete:
+      tags:
+      - Node V2
+      operationId: delete_users_from_node
+      summary: Delete all user accounts from a node, or an account specified by username
+      description: This API endpoint is used to delete a specific user account from the node if the 'username' query parameter is specified. If no 'username' is specified, all user accounts will be deleted, and the default account will be reactivated.
+      parameters:
+      - name: serial_number
+        in: path
+        required: true
+        description: The serial number of the node which was specified during onboarding into the Nerve Management System.
+        schema:
+          description: The serial number of the node
+          type: string
+          maxLength: 12
+          minLength: 12
+          pattern: ([A-Z0-9]){12}
+      - name: username
+        in: query
+        required: false
+        allowReserved: true
+        description: Username of the user whose account is to be deleted
+        schema:
+          type: string
+          pattern: ^[\x20-\x7E\t\n\r]*$
+          description: User's username
+          minLength: 1
+          maxLength: 1001
+      x-permissions:
+      - NODE_USER_MANAGEMENT:DELETE
+      responses:
+        '204':
+          description: The user account was successfully deleted, or all user accounts were deleted and the default account was reactivated.
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: nerve_dna_003
+                    httpCode: '401'
+                    message: You are not authorized.
+        '403':
+          description: You are missing permission to perform an action
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                missing_permission:
+                  value:
+                    errorCode: nerve_dna_004
+                    httpCode: '403'
+                    message: You are missing permission.
+        '404':
+          description: Node with provided serial number was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_012
+                httpCode: '404'
+                message: Node you are looking for was not found
+        '409':
+          description: Node is offline
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_018
+                httpCode: '409'
+                message: Node is offline
+  /nerve/v2/node/{serialNumber}/docker-resources/images/unused:
+    delete:
+      summary: Removes unused Docker images from the Node
+      tags:
+      - Node V2
+      parameters:
+      - name: serialNumber
+        in: path
+        required: true
+        description: The serial number of the node which was specified during onboarding into the Nerve Management System.
+        schema:
+          description: The serial number of the node
+          type: string
+          maxLength: 12
+          minLength: 12
+          pattern: ([A-Z0-9]){12}
+      description: Removes unused Docker images. This route allows user to remove unused Docker images from the Node.
+      operationId: remove_unused_docker_images
+      x-permissions:
+      - NODE_DOCKER_RESOURCES:REMOVE_UNUSED_IMAGES
+      responses:
+        '204':
+          description: Unused Docker images have been removed from the system.
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: nerve_dna_003
+                    httpCode: '401'
+                    message: You are not authorized.
+        '403':
+          description: You are missing permission to perform an action
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                missing_permission:
+                  value:
+                    errorCode: nerve_dna_004
+                    httpCode: '403'
+                    message: You are missing permission.
+        '404':
+          description: Node with provided serial number was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_012
+                httpCode: '404'
+                message: Node you are looking for was not found
+        '409':
+          description: Action is not supported
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_074
+                httpCode: '409'
+                message: Managing docker resources (volumes, unused images) is only supported on node version >= 2.10.0
+  /nerve/v2/node/{serialNumber}/docker-resources/volumes:
+    get:
+      tags:
+      - Node V2
+      operationId: get_volume_list_from_node
+      summary: Get a list of all volumes from the selected node
+      description: Retrieve a list of all volumes from the selected node.
+      parameters:
+      - name: serialNumber
+        in: path
+        required: true
+        description: The serial number of the node which was specified during onboarding into the Nerve Management System.
+        schema:
+          description: The serial number of the node
+          type: string
+          maxLength: 12
+          minLength: 12
+          pattern: ([A-Z0-9]){12}
+      x-permissions:
+      - NODE_DOCKER_RESOURCES:LIST_VOLUMES
+      responses:
+        '200':
+          description: List of volumes successfully fetched from the node.
+          content:
+            application/json:
+              schema:
+                description: List all docker volumes from the node
+                type: object
+                additionalProperties: false
+                required:
+                - volumes
+                properties:
+                  volumes:
+                    type: array
+                    description: Docker volumes from the node
+                    minItems: 0
+                    maxItems: 1001
+                    items:
+                      type: object
+                      required:
+                      - name
+                      - usedByContainers
+                      - usedByWorkloads
+                      - size
+                      - createdAt
+                      additionalProperties: false
+                      properties:
+                        name:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: Docker volume name
+                          minLength: 1
+                          maxLength: 1000
+                        size:
+                          type: integer
+                          format: int64
+                          description: Size of the volume in bytes
+                          minimum: 0
+                          maximum: 1073741824000
+                        createdAt:
+                          type: string
+                          description: Date and time in ISO 8601 format
+                          format: date-time
+                          pattern: ^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$
+                          minLength: 24
+                          maxLength: 24
+                        backupInfo:
+                          type: array
+                          description: Backup information of the volume
+                          minItems: 1
+                          maxItems: 2
+                          items:
+                            type: object
+                            additionalProperties: false
+                            required:
+                            - action
+                            - status
+                            properties:
+                              action:
+                                type: string
+                                description: Backup action
+                                enum:
+                                - export
+                                - import
+                              status:
+                                type: string
+                                description: Backup status
+                                enum:
+                                - INITIATED
+                                - COMPLETED
+                                - FAILED
+                                - BACKUP_CREATION_IN_PROGRESS
+                                - BACKUP_UPLOAD_IN_PROGRESS
+                                - BACKUP_DOWNLOAD_IN_PROGRESS
+                                - BACKUP_EXTRACTION_IN_PROGRESS
+                                - CANCELLED
+                              backupName:
+                                type: string
+                                description: The path of the generated zip backup archive
+                                minLength: 15
+                                maxLength: 100
+                                pattern: ^[A-Za-z0-9_-]+\.zip$
+                              creationInitiatedAt:
+                                type: string
+                                format: date-time
+                                description: Docker volume backup creation time in ISO 8601 format
+                                minLength: 24
+                                maxLength: 24
+                              errorMsg:
+                                type: string
+                                description: Error message in case of backup export/import failure
+                                minLength: 1
+                                maxLength: 1000
+                                pattern: ^[\x20-\x7E\t\n\r]*$
+                        usedByContainers:
+                          type: array
+                          description: Docker containers using the volume
+                          minItems: 0
+                          maxItems: 1000
+                          items:
+                            type: string
+                            description: Docker container name
+                            minLength: 2
+                            maxLength: 100
+                            pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]+$
+                        usedByWorkloads:
+                          type: array
+                          description: Workloads using the volume
+                          minItems: 0
+                          maxItems: 1000
+                          items:
+                            type: object
+                            required:
+                            - name
+                            - type
+                            - versionName
+                            additionalProperties: false
+                            properties:
+                              name:
+                                type: string
+                                description: Workload name
+                                minLength: 1
+                                maxLength: 40
+                                pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                              type:
+                                description: Workload type
+                                type: string
+                                enum:
+                                - docker
+                                - vm
+                                - codesys
+                                - docker-compose
+                              versionName:
+                                type: string
+                                description: Version name
+                                minLength: 1
+                                maxLength: 40
+                                pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                        volumeSize:
+                          type: integer
+                          format: int64
+                          description: Size of the volume in bytes
+                          minimum: 1
+                          maximum: 10000000000
+              example:
+                volumes:
+                - name: volume1
+                  backupInfo:
+                  - action: export
+                    status: COMPLETED
+                    backupName: volume1-1742482156892.zip
+                    creationInitiatedAt: '2025-03-10T12:17:35.000Z'
+                  size: 1000000
+                  createdAt: '2025-03-20T10:04:22.000Z'
+                  usedByContainers:
+                  - container1
+                  - container2
+                  usedByWorkloads:
+                  - name: workload1
+                    type: docker
+                    versionName: version1
+                  - name: workload2
+                    type: docker-compose
+                    versionName: version2
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: nerve_dna_003
+                    httpCode: '401'
+                    message: You are not authorized.
+        '403':
+          description: You are missing permission to perform an action
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                missing_permission:
+                  value:
+                    errorCode: nerve_dna_004
+                    httpCode: '403'
+                    message: You are missing permission.
+        '404':
+          description: Node with provided serial number was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_012
+                httpCode: '404'
+                message: Node you are looking for was not found
+        '409':
+          description: Action is not supported
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_074
+                httpCode: '409'
+                message: Managing docker resources (volumes, unused images) is only supported on node version >= 2.10.0
+        '500':
+          description: An error occurred while retrieving the list of volumes from the node
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_073
+                httpCode: '500'
+                message: Failed to list Docker volumes. Please check logs for more details.
+  /nerve/v2/node/{serialNumber}/docker-resources/volumes/{volumeName}:
+    delete:
+      tags:
+      - Node V2
+      operationId: delete_volume_from_node
+      summary: Delete a volume from the selected node
+      description: Delete a volume from the selected node.
+      parameters:
+      - name: serialNumber
+        in: path
+        required: true
+        description: The serial number of the node which was specified during onboarding into the Nerve Management System.
+        schema:
+          description: The serial number of the node
+          type: string
+          maxLength: 12
+          minLength: 12
+          pattern: ([A-Z0-9]){12}
+      - name: volumeName
+        in: path
+        required: true
+        description: Name of the volume to which action should be applied.
+        schema:
+          type: string
+          pattern: ^[\x20-\x7E\t\n\r]*$
+          description: Docker volume name
+          minLength: 1
+          maxLength: 1000
+      x-permissions:
+      - NODE_DOCKER_RESOURCES:DELETE_VOLUME
+      responses:
+        '204':
+          description: The volume was successfully deleted from the node.
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: nerve_dna_003
+                    httpCode: '401'
+                    message: You are not authorized.
+        '403':
+          description: You are missing permission to perform an action
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                missing_permission:
+                  value:
+                    errorCode: nerve_dna_004
+                    httpCode: '403'
+                    message: You are missing permission.
+        '404':
+          description: Node with provided serial number was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_012
+                httpCode: '404'
+                message: Node you are looking for was not found
+        '409':
+          description: Action is not supported
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_074
+                httpCode: '409'
+                message: Managing docker resources (volumes, unused images) is only supported on node version >= 2.10.0
+        '500':
+          description: An error occurred while deleting the volume from the node
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_075
+                httpCode: '500'
+                message: Failed to delete Docker volume. Please check logs for more details.
+  /nerve/v2/node/{serialNumber}/docker-resources/volumes/{volumeName}/import:
+    post:
+      tags:
+      - Node V2
+      operationId: import_data_to_volume_on_node
+      summary: Import data to a volume on the selected node
+      description: Import data to a volume on the selected node.
+      parameters:
+      - name: serialNumber
+        in: path
+        required: true
+        description: The serial number of the node which was specified during onboarding into the Nerve Management System.
+        schema:
+          description: The serial number of the node
+          type: string
+          maxLength: 12
+          minLength: 12
+          pattern: ([A-Z0-9]){12}
+      - name: volumeName
+        in: path
+        required: true
+        description: Name of the volume to which action should be applied.
+        schema:
+          type: string
+          pattern: ^[\x20-\x7E\t\n\r]*$
+          description: Docker volume name
+          minLength: 1
+          maxLength: 1000
+      requestBody:
+        description: Defines volume data
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              additionalProperties: false
+              type: object
+              description: Defines the data to be imported to the volume
+              properties:
+                file:
+                  description: File containing data to be imported to the volume
+                  type: string
+                  format: binary
+                  minLength: 1
+                  maxLength: 1000
+            example:
+              file: example-file-content.zip
+      x-permissions:
+      - NODE_DOCKER_RESOURCES:VOLUME_IMPORT_DATA
+      responses:
+        '200':
+          description: Import has been initiated.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Data retrieved from the node
+                additionalProperties: false
+                properties:
+                  message:
+                    type: string
+                    description: Confirmation message indicating that import has been initiated.
+                    minLength: 91
+                    maxLength: 1091
+                    pattern: ^Import to the docker volume '[A-z0-9-.]*' on the node '([A-Z0-9]){12}' has been successfully initiated\.$
+              example:
+                message: Import to the docker volume 'volume1' on the node 'SERIALNUMBER' has been successfully initiated.
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: nerve_dna_003
+                    httpCode: '401'
+                    message: You are not authorized.
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Node with provided serial number was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_012
+                httpCode: '404'
+                message: Node you are looking for was not found
+        '409':
+          description: Action is not supported
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_074
+                httpCode: '409'
+                message: Managing docker resources (volumes, unused images) is only supported on node version >= 2.10.0
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '415'
+                message: Route params validation error
+        '500':
+          description: An error occurred while importing data to the volume on the node
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_075
+                httpCode: '500'
+                message: Import not possible. Directory depth exceeds the limit.
+  /nerve/v2/node/{serialNumber}/docker-resources/volumes/{volumeName}/export:
+    post:
+      tags:
+      - Node V2
+      operationId: export_volume_from_node
+      summary: Initiate volume export from the selected node
+      description: Initiate volume export from the selected node if export is possible, otherwise error is returned.
+      parameters:
+      - name: serialNumber
+        in: path
+        required: true
+        description: The serial number of the node which was specified during onboarding into the Nerve Management System.
+        schema:
+          description: The serial number of the node
+          type: string
+          maxLength: 12
+          minLength: 12
+          pattern: ([A-Z0-9]){12}
+      - name: volumeName
+        in: path
+        required: true
+        description: Name of the volume to which action should be applied.
+        schema:
+          type: string
+          pattern: ^[\x20-\x7E\t\n\r]*$
+          description: Docker volume name
+          minLength: 1
+          maxLength: 1000
+      x-permissions:
+      - NODE_DOCKER_RESOURCES:EXPORT_VOLUME
+      responses:
+        '204':
+          description: The volume export was successfully initiated from the node.
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: nerve_dna_003
+                    httpCode: '401'
+                    message: You are not authorized.
+        '403':
+          description: You are missing permission to perform an action
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                missing_permission:
+                  value:
+                    errorCode: nerve_dna_004
+                    httpCode: '403'
+                    message: You are missing permission.
+        '404':
+          description: Node with provided serial number was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_012
+                httpCode: '404'
+                message: Node you are looking for was not found
+        '409':
+          description: Action is not supported
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_074
+                httpCode: '409'
+                message: Managing docker resources (volumes, unused images) is only supported on node version >= 2.10.0
+        '500':
+          description: An error occurred while initiating the volume export from the node
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_079
+                httpCode: '500'
+                message: Failed to initiate Docker volume export. Please check logs for more details.
+  /nerve/v2/node/{serialNumber}/docker-resources/volumes/{volumeName}/export/cancel:
+    post:
+      tags:
+      - Node V2
+      operationId: cancel_volume_export_from_node
+      summary: Cancel volume export that is in progress
+      description: Cancel volume export that is in progress from the selected node
+      parameters:
+      - name: serialNumber
+        in: path
+        required: true
+        description: The serial number of the node which was specified during onboarding into the Nerve Management System.
+        schema:
+          description: The serial number of the node
+          type: string
+          maxLength: 12
+          minLength: 12
+          pattern: ([A-Z0-9]){12}
+      - name: volumeName
+        in: path
+        required: true
+        description: Name of the volume to which action should be applied.
+        schema:
+          type: string
+          pattern: ^[\x20-\x7E\t\n\r]*$
+          description: Docker volume name
+          minLength: 1
+          maxLength: 1000
+      x-permissions:
+      - NODE_DOCKER_RESOURCES:EXPORT_VOLUME
+      responses:
+        '204':
+          description: The volume export was successfully cancelled from the node.
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: nerve_dna_003
+                    httpCode: '401'
+                    message: You are not authorized.
+        '403':
+          description: You are missing permission to perform an action
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                missing_permission:
+                  value:
+                    errorCode: nerve_dna_004
+                    httpCode: '403'
+                    message: You are missing permission.
+        '404':
+          description: Node with provided serial number was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_012
+                httpCode: '404'
+                message: Node you are looking for was not found
+        '409':
+          description: Action is not supported
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_074
+                httpCode: '409'
+                message: Managing docker resources (volumes, unused images) is only supported on node version >= 2.10.0
+        '500':
+          description: An error occurred while cancelling the volume export from the node
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_105
+                httpCode: '500'
+                message: Failed to cancel Docker volume export. Please check logs for more details.
+  /nerve/v2/node/{serialNumber}/docker-resources/volumes/{volumeName}/import/cancel:
+    post:
+      tags:
+      - Node V2
+      operationId: cancel_volume_import_on_node
+      summary: Cancel volume import that is in progress
+      description: Cancel import to the volume on the selected node that is in progress.
+      parameters:
+      - name: serialNumber
+        in: path
+        required: true
+        description: The serial number of the node which was specified during onboarding into the Nerve Management System.
+        schema:
+          description: The serial number of the node
+          type: string
+          maxLength: 12
+          minLength: 12
+          pattern: ([A-Z0-9]){12}
+      - name: volumeName
+        in: path
+        required: true
+        description: Name of the volume to which action should be applied.
+        schema:
+          type: string
+          pattern: ^[\x20-\x7E\t\n\r]*$
+          description: Docker volume name
+          minLength: 1
+          maxLength: 1000
+      x-permissions:
+      - NODE_DOCKER_RESOURCES:VOLUME_IMPORT_DATA
+      responses:
+        '204':
+          description: The volume import was successfully cancelled.
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: nerve_dna_003
+                    httpCode: '401'
+                    message: You are not authorized.
+        '403':
+          description: You are missing permission to perform an action
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                missing_permission:
+                  value:
+                    errorCode: nerve_dna_004
+                    httpCode: '403'
+                    message: You are missing permission.
+        '404':
+          description: Node with provided serial number was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_012
+                httpCode: '404'
+                message: Node you are looking for was not found
+        '409':
+          description: Volume import is not in progress.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_107
+                httpCode: '409'
+                message: Volume import is not in progress.
+        '500':
+          description: An error occurred while cancelling the volume import.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_109
+                httpCode: '500'
+                message: Failed to cancel Docker volume import. Please check logs for more details.
+  /nerve/v2/node/{serialNumber}/production-mode:
+    put:
+      tags:
+      - Node V2
+      operationId: set_production_mode
+      summary: Enable or disable production mode for the node
+      description: Enable or disable production mode for the node identified by the provided serial number.
+      parameters:
+      - name: serialNumber
+        in: path
+        required: true
+        description: The serial number of the node which was specified during onboarding into the Nerve Management System.
+        schema:
+          description: The serial number of the node
+          type: string
+          maxLength: 12
+          minLength: 12
+          pattern: ([A-Z0-9]){12}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Request body for enabling or disabling production mode.
+              properties:
+                productionMode:
+                  type: boolean
+                  description: Whether to enable or disable production mode
+              required:
+              - productionMode
+      x-permissions:
+      - NODE:PRODUCTION_MODE
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Response body for enabling or disabling production mode of a node.
+                properties:
+                  productionMode:
+                    type: boolean
+                    description: Indicates if the node is in production mode.
+                    example: true
+              example:
+                productionMode: true
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: nerve_dna_003
+                    httpCode: '401'
+                    message: You are not authorized.
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Node with provided serial number was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_012
+                httpCode: '404'
+                message: Node you are looking for was not found
+        '409':
+          description: Node does not support the required operation. Capability not reported.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '409'
+                errorCode: nerve_node_118
+                message: Production mode is not supported on this node. No capability reported.
+        '500':
+          description: An error occurred in executing the set production mode operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_115
+                httpCode: '500'
+                message: Failed to set production mode. Please check logs for more details.
+  /nerve/upload-volume-backup:
+    post:
+      tags:
+      - Node V2
+      summary: Upload a volume backup zip archive from the node to the MS
+      description: Internal endpoint used to upload a volume backup zip archive from the node to the MS It is used when docker volume export is initiated from the MS side and created backup archive is uploaded from the node
+      x-internal: true
+      security: []
+      operationId: upload_volume_backup
+      requestBody:
+        required: true
+        description: The volume backup file (ZIP format) that is uploaded from the node
+        content:
+          multipart/form-data:
+            schema:
+              additionalProperties: false
+              type: object
+              description: The volume backup file and additional information sent from the node
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  minLength: 1
+                  maxLength: 100000000
+                  description: The backup file to upload (ZIP format)
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '204':
+          description: The backup was uploaded successfully
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '499':
+          description: The request was cancelled by the node
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_096
+                httpCode: '499'
+                message: Request was cancelled by the node
+        '500':
+          description: An error occurred while uploading the volume backup archive from the node
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_node_097
+                httpCode: '500'
+                message: Failed to upload Docker volume backup archive from node. Please check logs for more details.
+components:
+  securitySchemes:
+    sessionId:
+      type: apiKey
+      in: header
+      name: sessionId
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    bearerAuth:
+      type: http
+      scheme: bearer

@@ -1,0 +1,206 @@
+openapi: 3.2.0
+info:
+  version: 3.1.0
+  description: 'Nerve Management System API to manage: -labels -nodes -workloads -notifications -capabilities'
+  title: Nerve Management System CAPABILITIES API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+servers:
+- url: https://trynerve1.nerve.cloud
+security:
+- sessionId: []
+tags:
+- name: Capabilities
+  description: The operations to manage node capabilities
+paths:
+  /nerve/capabilities/{capability_name_param}:
+    get:
+      summary: Fetch capability by name
+      operationId: find_capability_by_name
+      tags:
+      - Capabilities
+      description: 'This method is called to get details of one specific capability by its names. Required permission: **GLOBAL:GENERAL**'
+      parameters:
+      - name: capability_name_param
+        in: path
+        required: true
+        description: Name of the specific capability
+        schema:
+          type: string
+          description: Name of the capability
+          minLength: 1
+          maxLength: 1000
+          pattern: ^[a-zA-Z0-9 _.:+-]*$
+      x-permissions:
+      - GLOBAL:GENERAL
+      responses:
+        '200':
+          description: List of details of requested capabilities from db.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Capability object as stored in the database
+                additionalProperties: false
+                required:
+                - _id
+                - name
+                - description
+                - parent
+                properties:
+                  _id:
+                    description: ID (from Management System) of the entry
+                    type: string
+                    pattern: ^[0-9a-fA-F]{24}$
+                    minLength: 24
+                    maxLength: 24
+                  name:
+                    type: string
+                    description: Name of the capability
+                    minLength: 1
+                    maxLength: 1000
+                    pattern: ^[a-zA-Z0-9 _.:+-]*$
+                  description:
+                    description: Description of the capability
+                    minLength: 0
+                    maxLength: 1000
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                  parent:
+                    type: string
+                    description: Id of the parent capability
+                    anyOf:
+                    - pattern: ^[0-9a-fA-F]{24}$
+                      minLength: 20
+                      maxLength: 40
+                      type: string
+                    - type: string
+                      example: ''
+                      pattern: ^$
+                      minLength: 0
+                      maxLength: 0
+              examples:
+                get_capability_by_name:
+                  value:
+                    _id: 63298a272bc3c04b1ef7c488
+                    name: Hypervisor
+                    description: ''
+                    parent: 63298a2782704f0038febe13
+        '400':
+          description: Either request is invalid or there is some error while validating route parameters.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+            text/html:
+              schema:
+                type: string
+                pattern: ^[\x20-\x7E\t\n\r]*$
+                description: Bad request
+                minLength: 1
+                maxLength: 1000
+              examples:
+                capability_bad_request:
+                  value: <html><head><title>400 Bad Request</title></head><body><center><h1>400 Bad Request</h1></center><hr><center>nginx/1.20.2</center></body></html>
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: A capability with the specified name was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                capability_not_found:
+                  value:
+                    errorCode: nerve_capabilities_001
+                    httpCode: '404'
+                    message: Capability doesn't exist.
+components:
+  securitySchemes:
+    sessionId:
+      type: apiKey
+      in: header
+      name: sessionId
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    bearerAuth:
+      type: http
+      scheme: bearer

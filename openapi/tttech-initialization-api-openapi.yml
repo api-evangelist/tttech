@@ -1,0 +1,235 @@
+openapi: 3.2.0
+info:
+  version: 2.10.0
+  description: 'Nerve OVDM API to manage:
+
+    - node configuration
+
+    - system configuration
+
+    - system network configuration
+
+    - workloads
+
+    - remote connections
+
+    - dna'
+  title: Nerve Node INITIALIZATION API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+security:
+- cookieAuth: []
+tags:
+- name: Initialization
+paths:
+  /api/init:
+    post:
+      security:
+      - basicAuth: []
+      summary: Configuration for node connection to cloud
+      tags:
+      - Initialization
+      x-permissions:
+      - NODE:INIT
+      description: Configuration for node connection to cloud, as well as for LocalUI authentication.
+      operationId: set_configuration
+      requestBody:
+        description: Object containing the cloud_url (the URL of the cloud server the node will connect to), local_ui_pwd (password for accessing the LocalUI), system_pwd (system password for node authentication) and serial_number (unique identifier of the node).
+        content:
+          application/json:
+            schema:
+              required:
+              - cloud_url
+              - local_ui_pwd
+              - serial_number
+              - system_pwd
+              type: object
+              description: Object including properties to set up the node and onboard it to the MS instance
+              additionalProperties: false
+              properties:
+                cloud_url:
+                  description: URL address representing the location on the cloud platform.
+                  maxLength: 45
+                  minLength: 4
+                  pattern: ^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\(\)\*\+,;=.]+$
+                  type: string
+                  example: dev.oblo.nerve.cloud
+                local_ui_pwd:
+                  description: Local UI password used to access the local user interface.Change local UI password
+                  maxLength: 45
+                  minLength: 8
+                  pattern: ^[a-zA-Z0-9- ]+$
+                  type: string
+                  example: examplePassw0rd
+                system_pwd:
+                  description: User system password used for authentication.
+                  maxLength: 45
+                  minLength: 4
+                  pattern: ^[a-zA-Z0-9- ]+$
+                  type: string
+                  example: rtrk
+                serial_number:
+                  description: The serial number of the node.
+                  example: MFNKACA00000
+                  type: string
+                  maxLength: 12
+                  minLength: 12
+                  pattern: ([A-Z0-9]){12}
+        required: true
+      responses:
+        '200':
+          description: Configuration successfully changed.
+          content:
+            text/plain:
+              schema:
+                type: string
+                description: Node secure id
+                minLength: 16
+                maxLength: 16
+                pattern: ([A-Za-z]|\d){16}
+              example: 539B2B460CBC934B
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    basicAuth:
+      type: http
+      scheme: basic

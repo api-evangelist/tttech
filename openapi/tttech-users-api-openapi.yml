@@ -1,0 +1,615 @@
+openapi: 3.2.0
+info:
+  version: 2.10.0
+  description: 'Nerve OVDM API to manage:
+
+    - node configuration
+
+    - system configuration
+
+    - system network configuration
+
+    - workloads
+
+    - remote connections
+
+    - dna'
+  title: Nerve Node USERS API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+security:
+- cookieAuth: []
+tags:
+- name: Users
+paths:
+  /api/users:
+    get:
+      tags:
+      - Users
+      operationId: get_users
+      summary: Get a list of all users from the database
+      description: Retrieve a list of all users from the database, including the default admin account if it is active.
+      x-permissions:
+      - USER:LIST
+      responses:
+        '200':
+          description: Users successfully fetched from database.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing a list of users.
+                required:
+                - users
+                additionalProperties: false
+                properties:
+                  users:
+                    type: array
+                    description: Users from the database
+                    minItems: 0
+                    maxItems: 1001
+                    items:
+                      type: object
+                      required:
+                      - firstName
+                      - lastName
+                      - email
+                      - username
+                      - roles
+                      - id
+                      properties:
+                        id:
+                          description: User's database id
+                          type: integer
+                        firstName:
+                          description: User's first name
+                          type: string
+                        lastName:
+                          description: User's last name
+                          type: string
+                        email:
+                          description: User's email address
+                          type: string
+                        username:
+                          description: User's username
+                          type: string
+                        roles:
+                          description: User's role
+                          type: string
+                        lastLoggedInAt:
+                          description: Timestamp of the user's last login event
+                          type:
+                          - integer
+                          - 'null'
+                      additionalProperties: false
+              example:
+                users:
+                - firstName: Demo
+                  lastName: Nerve
+                  username: demo@nerve.com
+                  email: demo@nerve.com
+                  roles: admin
+                  lastLoggedInAt: 1716803144649
+                  id: 1
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+    delete:
+      tags:
+      - Users
+      operationId: delete_user
+      summary: Delete all users, or delete a specific user from the database
+      description: Delete all users from the database, or delete a specific user defined via a query parameter 'username'. If all users are deleted, the default admin account is reactivated.
+      x-permissions:
+      - USER:DELETE
+      parameters:
+      - name: username
+        in: query
+        required: false
+        allowReserved: true
+        description: Username of the user to be deleted
+        schema:
+          description: User's username in email format
+          type: string
+          minLength: 1
+          maxLength: 1001
+      responses:
+        '204':
+          description: The user was successfully deleted, or all users were deleted and the default account was reactivated.
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '404':
+          description: The resource not found
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+  /api/users/change-password:
+    post:
+      tags:
+      - Users
+      operationId: change_password
+      summary: Change user password
+      description: Password modification is restricted to the default admin account. MS users are unable to change their passwords using the LocalUI application, but can do so through MS.
+      x-permissions:
+      - USER_PASSWORD:CHANGE
+      requestBody:
+        required: true
+        description: A password change object containing the username, oldPassword, newPassword and newPasswordConfirmation.
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Representing the data required to change a user's password
+              required:
+              - username
+              - oldPassword
+              - newPassword
+              - newPasswordConfirmation
+              properties:
+                username:
+                  description: User's username in email format
+                  type: string
+                  minLength: 1
+                  maxLength: 1001
+                oldPassword:
+                  description: User's old password that is currently in the database.
+                  type: string
+                  minLength: 1
+                  maxLength: 1001
+                newPassword:
+                  description: User's new password that will replace the old password in the database.
+                  type: string
+                  minLength: 8
+                  maxLength: 100
+                  pattern: (?=.*[a-z])(?=.*[A-Z])(?=.*\d).+
+                newPasswordConfirmation:
+                  description: The same values as the new password, used as a confirmation that the new password was entered correctly.
+                  type: string
+                  minLength: 1
+                  maxLength: 1001
+              additionalProperties: false
+            example:
+              username: demo@nerve.cloud
+              oldPassword: Passw0rd
+              newPassword: Passw0rd1
+              newPasswordConfirmation: Passw0rd1
+      responses:
+        '200':
+          description: Password changed successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Successful response after a user's password has been changed
+                required:
+                - message
+                properties:
+                  message:
+                    description: Message confirming that the password was successfully changed.
+                    type: string
+                    enum:
+                    - Password changed successfully.
+                additionalProperties: false
+              example:
+                message: Password changed successfully.
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Response returned when a user is not allowed to change password. - Users logged in with their Management System credentials cannot changed their password on the node - Default admin cannot change password if the account is deactivated
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                ms_user_cannot_change_password:
+                  value:
+                    status: 403
+                    msg: Changing account password through this application is not allowed
+                default_account_inactive:
+                  value:
+                    status: 403
+                    msg: Account is deactivated, and its password cannot be changed.
+                user_can_change_only_own_password:
+                  value:
+                    status: 403
+                    msg: Changing passwords for other users is not allowed.
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    basicAuth:
+      type: http
+      scheme: basic

@@ -1,0 +1,4095 @@
+openapi: 3.2.0
+info:
+  title: Tttech REMOTE CONNECTIONS API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+  version: '1.0'
+  description: 'Operations tagged REMOTE_CONNECTIONS across 2 of this provider''s published API definitions: tttech-nerve-management-system-openapi-original.json, tttech-nerve-node-openapi-original.json. Each path carries the servers of the definition it was published in.'
+servers:
+- url: https://trynerve1.nerve.cloud
+tags:
+- name: Remote Connections
+  description: The operations to manage remote connections.
+paths:
+  /nerve/remote-connections/connect:
+    post:
+      summary: Connect remote connections
+      operationId: connect_remote_connections
+      tags:
+      - Remote Connections
+      description: Used to establish remote connections defined in body.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: Object containing data about remote connection which should be established.
+              type: object
+              additionalProperties: false
+              required:
+              - acknowledgment
+              - name
+              - port
+              - serialNumber
+              - type
+              - versionId
+              - workloadId
+              - _id
+              - uniqueConnectionRequestNo
+              properties:
+                acknowledgment:
+                  type: string
+                  description: Defines if local acknowledgement is required to establish a connection. To confirm connection, it is necessary to have access to the LocalUI web application.
+                  enum:
+                  - 'Yes'
+                  - 'No'
+                connection:
+                  description: Remote screen type
+                  type: string
+                  enum:
+                  - VNC
+                  - SSH
+                  - RDP
+                name:
+                  type: string
+                  description: Remote connection name
+                  pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                  minLength: 1
+                  maxLength: 40
+                port:
+                  type: integer
+                  format: int32
+                  minimum: 0
+                  maximum: 65535
+                  description: Port on the target to which connection is established (port on the node for opening tunnel to chisel server)
+                serialNumber:
+                  description: The serial number of the node
+                  type: string
+                  maxLength: 12
+                  minLength: 12
+                  pattern: ([A-Z0-9]){12}
+                type:
+                  description: The type of remote connection
+                  type: string
+                  enum:
+                  - TUNNEL
+                  - SCREEN
+                versionId:
+                  oneOf:
+                  - description: ID (from Management System) of the entry. Can be a string or an object.
+                    oneOf:
+                    - description: ID (from Management System) of the entry
+                      type: string
+                      pattern: ^[0-9a-fA-F]{24}$
+                      minLength: 24
+                      maxLength: 24
+                    - type: object
+                  - type: string
+                    description: Empty string
+                    enum:
+                    - ''
+                    minLength: 0
+                    maxLength: 0
+                    pattern: ^$
+                workloadId:
+                  oneOf:
+                  - description: ID (from Management System) of the entry. Can be a string or an object.
+                    oneOf:
+                    - description: ID (from Management System) of the entry
+                      type: string
+                      pattern: ^[0-9a-fA-F]{24}$
+                      minLength: 24
+                      maxLength: 24
+                    - type: object
+                  - type: string
+                    description: Empty string
+                    enum:
+                    - ''
+                    minLength: 0
+                    maxLength: 0
+                    pattern: ^$
+                _id:
+                  description: ID (from Management System) of the entry. Can be a string or an object.
+                  oneOf:
+                  - description: ID (from Management System) of the entry
+                    type: string
+                    pattern: ^[0-9a-fA-F]{24}$
+                    minLength: 24
+                    maxLength: 24
+                  - type: object
+                uniqueConnectionRequestNo:
+                  description: Remote connection unique identifier.
+                  type: string
+                  minLength: 36
+                  maxLength: 36
+                  pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            examples:
+              screen_on_node:
+                value:
+                  acknowledgment: 'Yes'
+                  connection: VNC
+                  name: screen node vnc
+                  port: 5900
+                  serialNumber: MARINAM12345
+                  type: SCREEN
+                  versionId: ''
+                  workloadId: ''
+                  _id: 66e727bc2b5aaf9be9bea769
+                  uniqueConnectionRequestNo: 9f0e0ef0-7402-11ef-bf05-a1acbd98ce10
+              tunnel_on_node:
+                value:
+                  acknowledgment: 'No'
+                  name: tunnel node
+                  port: 1134
+                  serialNumber: MARINAM12345
+                  type: TUNNEL
+                  versionId: ''
+                  workloadId: ''
+                  _id: 66e727bc2b5aaf9be9bea769
+                  uniqueConnectionRequestNo: 9f0e0ef0-7402-11ef-bf05-a1acbd98ce10
+              tunnel_on_wl:
+                value:
+                  acknowledgment: 'No'
+                  name: tunnel node
+                  port: 1134
+                  serialNumber: MARINAM12345
+                  type: TUNNEL
+                  versionId: 66b323e6b59fc012ffd9eebd
+                  workloadId: 66b323e6b59fc012ffd9eeb4
+                  _id: 66c7313fb0358b55c8c7d486
+                  uniqueConnectionRequestNo: bac60170-7402-11ef-bf05-a1acbd98ce10
+        required: true
+      x-permissions:
+      - REMOTE_CONN:CONNECT
+      responses:
+        '200':
+          description: Connection successfully established.
+          content:
+            application/json:
+              schema:
+                anyOf:
+                - type: object
+                  description: Response object containing details of remote connection that is already active on the system or just requestUid if connection is not active.
+                  required:
+                  - requestUid
+                  properties:
+                    connected:
+                      description: Indicates weather remote connection is active or not.
+                      type: boolean
+                    requestId:
+                      description: Remote connection unique identifier.
+                      type: string
+                      minLength: 36
+                      maxLength: 36
+                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                    requestUid:
+                      description: Remote connection unique identifier.
+                      type: string
+                      minLength: 36
+                      maxLength: 36
+                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                    type:
+                      description: The type of remote connection
+                      type: string
+                      enum:
+                      - TUNNEL
+                      - SCREEN
+                    url:
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                      description: request url for opening Nerve Connection Manager to active tunnel.
+                      minLength: 0
+                      maxLength: 1001
+                    expiresAt:
+                      description: The date indicating when the session of the remote connection will expire.
+                      type: string
+                      format: date-time
+                      minLength: 8
+                      maxLength: 30
+                - type: object
+                  description: Response object in case there is some error while trying to establish remote connection.
+                  required:
+                  - requestUid
+                  - error
+                  properties:
+                    requestUid:
+                      description: Remote connection unique identifier.
+                      type: string
+                      minLength: 36
+                      maxLength: 36
+                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                    error:
+                      description: Error message and code
+                      type: object
+                      required:
+                      - code
+                      - message
+                      properties:
+                        code:
+                          description: String that is used as a key for appropriate translation on the front-end application.
+                          type: string
+                          minLength: 4
+                          maxLength: 100
+                          pattern: ^[a-zA-Z0-9_-]*$
+                        message:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: Error message in English.
+                          minLength: 5
+                          maxLength: 512
+              examples:
+                connected_successfully:
+                  value:
+                    requestUid: 840a6990-7408-11ef-9596-5da4601f695f
+                    expiresAt: '2024-09-17T10:49:49.481Z'
+                connected_successfully_rc_already_active:
+                  value:
+                    requestId: e5a1e04f-726e-4f4b-83b1-218bfc41e76e
+                    type: TUNNEL
+                    url: nerverm://docker-test.dev.nerve.cloud/66e7e746096ce88e5ab15c9a/840a6990-7408-11ef-9596-5da4601f695f
+                    connected: true
+                    requestUid: 840a6990-7408-11ef-9596-5da4601f695f
+                    expiresAt: '2024-09-17T10:49:49.481Z'
+                rc_not_found:
+                  value:
+                    requestUid: 26dba360-740d-11ef-af07-a1973757c259
+                    error:
+                      code: 862
+                      message: Remote connection you are looking for does not exist!
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '409':
+          description: Maximum number of remote connection requests exceeded
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_remote_connection_18
+                httpCode: '409'
+                message: You have exceeded the maximum number of remote connection requests allowed
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_dna_006
+                message: Operation failed for unknown reason.
+      security:
+      - sessionId: []
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /nerve/active-remote-connections:
+    get:
+      summary: Get list of active remote connections
+      operationId: get_list_of_active_remote_connections
+      tags:
+      - Remote Connections
+      description: Method is used to get list of active remote connections
+      parameters:
+      - name: limit
+        in: query
+        description: Number of items per page of result.
+        schema:
+          description: Number of items in result set when paging is applied
+          type: integer
+          format: int32
+          default: 10
+          minimum: 1
+          maximum: 500
+      - name: page
+        in: query
+        description: Page of results to be returned, according to number of items per page defined in limit parameter.
+        schema:
+          description: Page (zero indexed) of results to get from backend
+          type: integer
+          format: int32
+          default: 0
+          minimum: 0
+          maximum: 1000
+      - name: order
+        in: query
+        description: Order by connection name, time of creation, node name, serial number of node, acknowledgment, target or user that established connection.
+        allowReserved: true
+        schema:
+          type: string
+          description: Sort by connection, creation, node, serialNumber, acknowledgment, target or user in descending or ascending order.
+          enum:
+          - '{"connection":"desc"}'
+          - '{"connection":"asc"}'
+          - '{"created":"desc"}'
+          - '{"created":"asc"}'
+          - '{"node":"desc"}'
+          - '{"node":"asc"}'
+          - '{"serialNumber":"desc"}'
+          - '{"serialNumber":"asc"}'
+          - '{"acknowledgment":"desc"}'
+          - '{"acknowledgment":"asc"}'
+          - '{"target":"desc"}'
+          - '{"target":"asc"}'
+          - '{"user":"desc"}'
+          - '{"user":"asc"}'
+          - '{"expiresAt":"desc"}'
+          - '{"expiresAt":"asc"}'
+      - name: type
+        in: query
+        description: Apply filtering by remote connection type (tunnel, screen)
+        allowReserved: true
+        schema:
+          type: string
+          enum:
+          - ''
+          - tunnel
+          - screen
+      - name: search
+        in: query
+        description: Searching remote connections by name.
+        required: false
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 1001
+          pattern: ^(?:$|(?=.*[^ ].*)([^\u0000-\u001f\u007f-\u009f]*))$
+      x-permissions:
+      - REMOTE_CONN:LIST
+      responses:
+        '200':
+          description: Request successful. Object containing count and list of active remote connections returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Count of all established remote connections and object containing the list of specific active remote connections depending on the query parameters.
+                required:
+                - count
+                - data
+                properties:
+                  count:
+                    type: integer
+                    format: int32
+                    minimum: 0
+                    maximum: 1000000
+                    description: Number of results
+                  data:
+                    description: List of active remote connections
+                    type: array
+                    minItems: 0
+                    maxItems: 1001
+                    items:
+                      type: object
+                      description: Remote connection and connection request basic information.
+                      additionalProperties: false
+                      required:
+                      - _id
+                      - name
+                      - connection
+                      - connectionRequest
+                      properties:
+                        _id:
+                          description: ID (from Management System) of the entry. Can be a string or an object.
+                          oneOf:
+                          - description: ID (from Management System) of the entry
+                            type: string
+                            pattern: ^[0-9a-fA-F]{24}$
+                            minLength: 24
+                            maxLength: 24
+                          - type: object
+                        name:
+                          type: string
+                          description: Remote connection name
+                          pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                          minLength: 1
+                          maxLength: 40
+                        connection:
+                          anyOf:
+                          - allOf:
+                            - type: object
+                              description: Basic information about an active remote connection
+                              required:
+                              - _id
+                              - serialNumber
+                              - target
+                              - nodeStatus
+                              - connectionUid
+                              - acknowledgment
+                              properties:
+                                _id:
+                                  description: ID (from Management System) of the entry. Can be a string or an object.
+                                  oneOf:
+                                  - description: ID (from Management System) of the entry
+                                    type: string
+                                    pattern: ^[0-9a-fA-F]{24}$
+                                    minLength: 24
+                                    maxLength: 24
+                                  - type: object
+                                serialNumber:
+                                  description: The serial number of the node
+                                  type: string
+                                  maxLength: 12
+                                  minLength: 12
+                                  pattern: ([A-Z0-9]){12}
+                                target:
+                                  type: object
+                                  description: Object containing basic information about target to which remote connection is being established.
+                                  required:
+                                  - workloadOrHostname
+                                  - workloadVersion
+                                  - workloadId
+                                  - versionId
+                                  - _id
+                                  properties:
+                                    workloadOrHostname:
+                                      oneOf:
+                                      - type: string
+                                        description: Target hostname or ip address to which connection is established
+                                        minLength: 1
+                                        maxLength: 40
+                                        pattern: ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$
+                                      - type: string
+                                        description: Workload name and port
+                                        minLength: 1
+                                        maxLength: 46
+                                        pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                                    workloadVersion:
+                                      oneOf:
+                                      - type: string
+                                        description: Version name
+                                        minLength: 1
+                                        maxLength: 40
+                                        pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                                      - type: string
+                                        description: Empty string
+                                        enum:
+                                        - ''
+                                        minLength: 0
+                                        maxLength: 0
+                                        pattern: ^$
+                                    nodeName:
+                                      type: string
+                                      description: The name of the node
+                                      minLength: 1
+                                      maxLength: 40
+                                      pattern: ^\s*(?=[a-zA-Z0-9_ -]+$)\S.*$
+                                    nodeId:
+                                      description: ID (from Management System) of the entry. Can be a string or an object.
+                                      oneOf:
+                                      - description: ID (from Management System) of the entry
+                                        type: string
+                                        pattern: ^[0-9a-fA-F]{24}$
+                                        minLength: 24
+                                        maxLength: 24
+                                      - type: object
+                                    workloadId:
+                                      oneOf:
+                                      - description: ID (from Management System) of the entry. Can be a string or an object.
+                                        oneOf:
+                                        - description: ID (from Management System) of the entry
+                                          type: string
+                                          pattern: ^[0-9a-fA-F]{24}$
+                                          minLength: 24
+                                          maxLength: 24
+                                        - type: object
+                                      - type: string
+                                        description: Empty string
+                                        enum:
+                                        - ''
+                                        minLength: 0
+                                        maxLength: 0
+                                        pattern: ^$
+                                    versionId:
+                                      oneOf:
+                                      - description: ID (from Management System) of the entry. Can be a string or an object.
+                                        oneOf:
+                                        - description: ID (from Management System) of the entry
+                                          type: string
+                                          pattern: ^[0-9a-fA-F]{24}$
+                                          minLength: 24
+                                          maxLength: 24
+                                        - type: object
+                                      - type: string
+                                        description: Empty string
+                                        enum:
+                                        - ''
+                                        minLength: 0
+                                        maxLength: 0
+                                        pattern: ^$
+                                    _id:
+                                      description: ID (from Management System) of the entry. Can be a string or an object.
+                                      oneOf:
+                                      - description: ID (from Management System) of the entry
+                                        type: string
+                                        pattern: ^[0-9a-fA-F]{24}$
+                                        minLength: 24
+                                        maxLength: 24
+                                      - type: object
+                                nodeStatus:
+                                  description: Status if the node connection to MS
+                                  enum:
+                                  - online
+                                  - offline
+                                connectionUid:
+                                  description: Remote connection unique identifier.
+                                  type: string
+                                  minLength: 36
+                                  maxLength: 36
+                                  pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                localPort:
+                                  type: integer
+                                  format: int32
+                                  minimum: 0
+                                  maximum: 65535
+                                  description: Port on local PC to establish remote tunnel
+                                acknowledgment:
+                                  type: string
+                                  description: Defines if local acknowledgement is required to establish a connection. To confirm connection, it is necessary to have access to the LocalUI web application.
+                                  enum:
+                                  - 'Yes'
+                                  - 'No'
+                            - type: object
+                              properties:
+                                connection:
+                                  description: Remote screen type
+                                  type: string
+                                  enum:
+                                  - VNC
+                                  - SSH
+                                  - RDP
+                                guacamoleConnectionId:
+                                  description: Guacamole connection id
+                                  type: number
+                                type:
+                                  description: The type of remote connection
+                                  type: string
+                                  enum:
+                                  - SCREEN
+                              required:
+                              - type
+                              - connection
+                          - allOf:
+                            - type: object
+                              description: Basic information about an active remote connection
+                              required:
+                              - _id
+                              - serialNumber
+                              - target
+                              - nodeStatus
+                              - connectionUid
+                              - acknowledgment
+                              properties:
+                                _id:
+                                  description: ID (from Management System) of the entry. Can be a string or an object.
+                                  oneOf:
+                                  - description: ID (from Management System) of the entry
+                                    type: string
+                                    pattern: ^[0-9a-fA-F]{24}$
+                                    minLength: 24
+                                    maxLength: 24
+                                  - type: object
+                                serialNumber:
+                                  description: The serial number of the node
+                                  type: string
+                                  maxLength: 12
+                                  minLength: 12
+                                  pattern: ([A-Z0-9]){12}
+                                target:
+                                  type: object
+                                  description: Object containing basic information about target to which remote connection is being established.
+                                  required:
+                                  - workloadOrHostname
+                                  - workloadVersion
+                                  - workloadId
+                                  - versionId
+                                  - _id
+                                  properties:
+                                    workloadOrHostname:
+                                      oneOf:
+                                      - type: string
+                                        description: Target hostname or ip address to which connection is established
+                                        minLength: 1
+                                        maxLength: 40
+                                        pattern: ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$
+                                      - type: string
+                                        description: Workload name and port
+                                        minLength: 1
+                                        maxLength: 46
+                                        pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                                    workloadVersion:
+                                      oneOf:
+                                      - type: string
+                                        description: Version name
+                                        minLength: 1
+                                        maxLength: 40
+                                        pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                                      - type: string
+                                        description: Empty string
+                                        enum:
+                                        - ''
+                                        minLength: 0
+                                        maxLength: 0
+                                        pattern: ^$
+                                    nodeName:
+                                      type: string
+                                      description: The name of the node
+                                      minLength: 1
+                                      maxLength: 40
+                                      pattern: ^\s*(?=[a-zA-Z0-9_ -]+$)\S.*$
+                                    nodeId:
+                                      description: ID (from Management System) of the entry. Can be a string or an object.
+                                      oneOf:
+                                      - description: ID (from Management System) of the entry
+                                        type: string
+                                        pattern: ^[0-9a-fA-F]{24}$
+                                        minLength: 24
+                                        maxLength: 24
+                                      - type: object
+                                    workloadId:
+                                      oneOf:
+                                      - description: ID (from Management System) of the entry. Can be a string or an object.
+                                        oneOf:
+                                        - description: ID (from Management System) of the entry
+                                          type: string
+                                          pattern: ^[0-9a-fA-F]{24}$
+                                          minLength: 24
+                                          maxLength: 24
+                                        - type: object
+                                      - type: string
+                                        description: Empty string
+                                        enum:
+                                        - ''
+                                        minLength: 0
+                                        maxLength: 0
+                                        pattern: ^$
+                                    versionId:
+                                      oneOf:
+                                      - description: ID (from Management System) of the entry. Can be a string or an object.
+                                        oneOf:
+                                        - description: ID (from Management System) of the entry
+                                          type: string
+                                          pattern: ^[0-9a-fA-F]{24}$
+                                          minLength: 24
+                                          maxLength: 24
+                                        - type: object
+                                      - type: string
+                                        description: Empty string
+                                        enum:
+                                        - ''
+                                        minLength: 0
+                                        maxLength: 0
+                                        pattern: ^$
+                                    _id:
+                                      description: ID (from Management System) of the entry. Can be a string or an object.
+                                      oneOf:
+                                      - description: ID (from Management System) of the entry
+                                        type: string
+                                        pattern: ^[0-9a-fA-F]{24}$
+                                        minLength: 24
+                                        maxLength: 24
+                                      - type: object
+                                nodeStatus:
+                                  description: Status if the node connection to MS
+                                  enum:
+                                  - online
+                                  - offline
+                                connectionUid:
+                                  description: Remote connection unique identifier.
+                                  type: string
+                                  minLength: 36
+                                  maxLength: 36
+                                  pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                                localPort:
+                                  type: integer
+                                  format: int32
+                                  minimum: 0
+                                  maximum: 65535
+                                  description: Port on local PC to establish remote tunnel
+                                acknowledgment:
+                                  type: string
+                                  description: Defines if local acknowledgement is required to establish a connection. To confirm connection, it is necessary to have access to the LocalUI web application.
+                                  enum:
+                                  - 'Yes'
+                                  - 'No'
+                            - type: object
+                              properties:
+                                type:
+                                  description: The type of remote connection
+                                  type: string
+                                  enum:
+                                  - TUNNEL
+                              required:
+                              - type
+                              - localPort
+                        connectionRequest:
+                          type: object
+                          description: Object containing basic information about connection request.
+                          additionalProperties: false
+                          required:
+                          - _id
+                          - requestUid
+                          - requestedBy
+                          - userId
+                          - created
+                          properties:
+                            _id:
+                              description: ID (from Management System) of the entry. Can be a string or an object.
+                              oneOf:
+                              - description: ID (from Management System) of the entry
+                                type: string
+                                pattern: ^[0-9a-fA-F]{24}$
+                                minLength: 24
+                                maxLength: 24
+                              - type: object
+                            requestUid:
+                              description: Remote connection request unique identifier.
+                              type: string
+                              minLength: 36
+                              maxLength: 36
+                              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                            requestedBy:
+                              description: User who established remote connection.
+                              type: string
+                              minLength: 5
+                              maxLength: 81
+                              pattern: ^(?![\u0000-\u001f\u007f-\u009f])\S.*$
+                            userId:
+                              description: ID (from Management System) of the entry. Can be a string or an object.
+                              oneOf:
+                              - description: ID (from Management System) of the entry
+                                type: string
+                                pattern: ^[0-9a-fA-F]{24}$
+                                minLength: 24
+                                maxLength: 24
+                              - type: object
+                            created:
+                              description: The date and the time indicating when the remote connection was established.
+                              type: string
+                              format: date-time
+                              minLength: 8
+                              maxLength: 30
+                            guacamoleAuthToken:
+                              description: Guacamole auth-token
+                              type: string
+                              minLength: 64
+                              maxLength: 64
+                              pattern: ^[A-Fa-f0-9]{64}$
+                            expiresAt:
+                              description: The date indicating when the session of the remote connection will expire.
+                              type: string
+                              format: date-time
+                              minLength: 8
+                              maxLength: 30
+              example:
+                count: 2
+                data:
+                - _id: 66c7313fb0358b55c8c7d486
+                  name: tunnel compose
+                  connection:
+                    _id: 66e950bd3b774213a4875fd6
+                    serialNumber: MARINAM12345
+                    target:
+                      workloadOrHostname: compose-test:1233
+                      workloadVersion: compose
+                      nodeName: local_node
+                      nodeId: 66d5aafb348eb15040b3ccf3
+                      workloadId: 66b323e6b59fc012ffd9eeb4
+                      versionId: 66b323e6b59fc012ffd9eebd
+                      _id: 66e950bd3b774213a4875fd7
+                    nodeStatus: online
+                    connectionUid: a5fa125a-feeb-4aa5-b80b-babb36e63adf
+                    type: TUNNEL
+                    localPort: 1235
+                    acknowledgment: 'No'
+                  connectionRequest:
+                    _id: 66e950bd3b774213a4875fd8
+                    requestUid: 2df777a0-74da-11ef-9b81-e1b8e97fd977
+                    requestedBy: Marina Markovic
+                    userId: 6694e636279bd8528e81dec1
+                    created: '2024-09-17T09:49:49.481Z'
+                    expiresAt: '2024-09-17T10:49:49.481Z'
+                - _id: 66e727bc2b5aaf9be9bea769
+                  name: screen node vnc
+                  connection:
+                    _id: 66e950af3b774213a4875f9b
+                    serialNumber: MARINAM12345
+                    guacamoleConnectionId: 130
+                    target:
+                      workloadOrHostname: localhost:5900
+                      workloadVersion: ''
+                      nodeName: local_node
+                      nodeId: 66d5aafb348eb15040b3ccf3
+                      workloadId: ''
+                      versionId: ''
+                      _id: 66e950af3b774213a4875f9c
+                    nodeStatus: online
+                    connectionUid: 01db25e5-65bb-4e22-b1e2-84421c165084
+                    type: SCREEN
+                    connection: VNC
+                    localPort: 0
+                    acknowledgment: 'Yes'
+                  connectionRequest:
+                    _id: 66e950af3b774213a4875f9d
+                    requestUid: 25a94ec0-74da-11ef-9b81-e1b8e97fd977
+                    requestedBy: Marina Markovic
+                    userId: 6694e636279bd8528e81dec1
+                    guacamoleAuthToken: 460908EAEB5EEDC4B72BBCABCFC2168F54EF0A55C8CFF404900912FC5DDD6145
+                    created: '2024-09-17T09:49:35.565Z'
+                    expiresAt: '2024-09-17T10:49:35.565Z'
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_dna_006
+                message: Operation failed for unknown reason.
+      security:
+      - sessionId: []
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /nerve/active-remote-connections/terminate-connections:
+    post:
+      summary: Terminate active remote connections
+      operationId: terminate_remote_connections
+      tags:
+      - Remote Connections
+      description: Used to terminate active remote connections defined in body.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Object that contains list of active remote connections to be terminated.
+              required:
+              - rcList
+              additionalProperties: false
+              properties:
+                rcList:
+                  description: List of active remote connections to be terminated.
+                  type: array
+                  minItems: 1
+                  maxItems: 1001
+                  items:
+                    type: object
+                    additionalProperties: false
+                    required:
+                    - serialNumber
+                    - connectionName
+                    properties:
+                      workloadId:
+                        oneOf:
+                        - description: ID (from Management System) of the entry. Can be a string or an object.
+                          oneOf:
+                          - description: ID (from Management System) of the entry
+                            type: string
+                            pattern: ^[0-9a-fA-F]{24}$
+                            minLength: 24
+                            maxLength: 24
+                          - type: object
+                        - type: string
+                          description: Empty string
+                          enum:
+                          - ''
+                          minLength: 0
+                          maxLength: 0
+                          pattern: ^$
+                      versionId:
+                        oneOf:
+                        - description: ID (from Management System) of the entry. Can be a string or an object.
+                          oneOf:
+                          - description: ID (from Management System) of the entry
+                            type: string
+                            pattern: ^[0-9a-fA-F]{24}$
+                            minLength: 24
+                            maxLength: 24
+                          - type: object
+                        - type: string
+                          description: Empty string
+                          enum:
+                          - ''
+                          minLength: 0
+                          maxLength: 0
+                          pattern: ^$
+                      serialNumber:
+                        description: The serial number of the node
+                        type: string
+                        maxLength: 12
+                        minLength: 12
+                        pattern: ([A-Z0-9]){12}
+                      connectionName:
+                        type: string
+                        description: Remote connection name
+                        pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                        minLength: 1
+                        maxLength: 40
+                      connectionRequestUid:
+                        description: Active remote connection unique identifier.
+                        type: string
+                        minLength: 36
+                        maxLength: 36
+                        pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      connectionUid:
+                        description: Remote connection unique identifier.
+                        type: string
+                        minLength: 36
+                        maxLength: 36
+                        pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      type:
+                        description: The type of remote connection
+                        type: string
+                        enum:
+                        - TUNNEL
+                        - SCREEN
+            example:
+              rcList:
+              - workloadId: ''
+                versionId: ''
+                serialNumber: '000000000001'
+                connectionName: test
+        required: true
+      x-permissions:
+      - REMOTE_CONN:TERMINATE
+      responses:
+        '200':
+          description: Termination of the specified remote connections has been initiated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing message that states operation has been initiated.
+                required:
+                - message
+                properties:
+                  message:
+                    type: string
+                    description: Message that states operation has been initiated.
+                    enum:
+                    - Operation has been initiated
+              example:
+                message: Operation has been initiated
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Remote connection with provided uuid was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: 000862
+                httpCode: '404'
+                message: Remote connection you are looking for does not exist!
+        '500':
+          description: Server error occurred while trying to cancel pending approval.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: 000879
+                httpCode: '500'
+                message: Something went wrong while terminating!
+      security:
+      - sessionId: []
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /nerve/active-remote-connections/cancel-connection-approval/{connectionRequestUid}:
+    delete:
+      summary: Cancel pending approval of specific remote connection
+      operationId: cancel_rc_approval
+      tags:
+      - Remote Connections
+      description: Used to cancel pending approval request for specific remote connection referenced by connectionRequestUid.
+      parameters:
+      - name: connectionRequestUid
+        in: path
+        required: true
+        description: Active remote connection unique identifier.
+        schema:
+          description: Randomly generated uuid using uuidv4 library
+          type: string
+          minLength: 36
+          maxLength: 36
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+      x-permissions:
+      - REMOTE_CONN:CREATE
+      responses:
+        '204':
+          description: The remote connection approval request was successfully cancelled.
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Remote connection with provided uuid was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: 000862
+                httpCode: '404'
+                message: Remote connection you are looking for does not exist!
+        '500':
+          description: Server error occurred while trying to cancel pending approval.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: 000880
+                httpCode: '500'
+                message: Something went wrong with canceling connection
+      security:
+      - sessionId: []
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /nerve/guacamole-connection-tab/{authToken}/{identifier}:
+    post:
+      summary: Guacamole tab status
+      operationId: guacamole_tab_status
+      tags:
+      - Remote Connections
+      parameters:
+      - name: authToken
+        in: path
+        required: true
+        description: Guacamole auth-token
+        schema:
+          type: string
+          minLength: 64
+          maxLength: 64
+          pattern: ^[A-Fa-f0-9]{64}$
+      - name: identifier
+        in: path
+        required: true
+        description: Guacamole connection id
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 1001
+          pattern: ^\d+$
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Object containing property "active" which indicates if Guacamole tab is opened.
+              properties:
+                active:
+                  description: Indicates weather Guacamole tab is opened or not.
+                  type: boolean
+        required: true
+      x-permissions:
+      - REMOTE_CONN:CREATE
+      responses:
+        '200':
+          description: The guacamole tab status successfully sent, tab is active.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing device name and remote connection name is returned.
+                additionalProperties: false
+                properties:
+                  name:
+                    type: string
+                    description: Remote connection name
+                    pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                    minLength: 1
+                    maxLength: 40
+                  deviceName:
+                    anyOf:
+                    - type: string
+                      description: Workload name
+                      minLength: 1
+                      maxLength: 40
+                      pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                    - type: string
+                      description: The name of the node
+                      minLength: 1
+                      maxLength: 40
+                      pattern: ^\s*(?=[a-zA-Z0-9_ -]+$)\S.*$
+              example:
+                name: screen node vnc
+                deviceName: local_node
+        '204':
+          description: The guacamole tab status successfully sent, tab is not active.
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Active remote connection with provided id was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: 000881
+                httpCode: '404'
+                message: Active remote connection you are looking for does not exist!
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_dna_006
+                message: Operation failed for unknown reason.
+      security:
+      - sessionId: []
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /nerve/v2/active-remote-connections/tunnel/{activeConnectionId}/{requestUid}/{generateSessionId}:
+    get:
+      summary: Get active connection by id and rtem-session if it is required
+      operationId: get_active_rc
+      tags:
+      - Remote Connections
+      x-internal: true
+      security:
+      - bearerAuth: []
+      description: Used to get an active connection by id(referenced by activeConnectionId and requestUid) and rtem-session, if it is required(generateSessionId).
+      parameters:
+      - name: activeConnectionId
+        in: path
+        required: true
+        description: Active remote connection id.
+        schema:
+          description: ID (from Management System) of the entry. Can be a string or an object.
+          oneOf:
+          - description: ID (from Management System) of the entry
+            type: string
+            pattern: ^[0-9a-fA-F]{24}$
+            minLength: 24
+            maxLength: 24
+          - type: object
+      - name: requestUid
+        in: path
+        required: true
+        description: Active remote connection unique identifier.
+        schema:
+          description: Randomly generated uuid using uuidv4 library
+          type: string
+          minLength: 36
+          maxLength: 36
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+      - name: generateSessionId
+        in: path
+        required: true
+        description: Flag that indicates weather rtem-session should be created or not.
+        schema:
+          type: boolean
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '200':
+          description: Returns object containing information about active remote connection and rtem-session if one was created.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing information about active connection and rtem-session if it is created.
+                additionalProperties: false
+                required:
+                - connection
+                - tunnelTypes
+                properties:
+                  connection:
+                    type: object
+                    description: Information about specific active connection.
+                    additionalProperties: false
+                    properties:
+                      name:
+                        type: string
+                        description: Remote connection name
+                        pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                        minLength: 1
+                        maxLength: 40
+                      serialNumber:
+                        description: The serial number of the node
+                        type: string
+                        maxLength: 12
+                        minLength: 12
+                        pattern: ([A-Z0-9]){12}
+                      nodeStatus:
+                        description: Status if the node connection to MS
+                        enum:
+                        - online
+                        - offline
+                      credentials:
+                        type: object
+                        description: Credentials for chisel authentication
+                        required:
+                        - username
+                        - password
+                        properties:
+                          username:
+                            type: string
+                            pattern: ^[\x20-\x7E\t\n\r]*$
+                            description: Username for chisel authentication
+                            minLength: 1
+                            maxLength: 1001
+                          password:
+                            type: string
+                            pattern: ^[\x20-\x7E\t\n\r]*$
+                            description: Password for chisel authentication
+                            minLength: 1
+                            maxLength: 1001
+                      ports:
+                        type: object
+                        description: Information about ports relevant to the active remote connection.
+                        additionalProperties: false
+                        required:
+                        - localPort
+                        - remotePort
+                        - cloudPort
+                        properties:
+                          localPort:
+                            type: integer
+                            format: int32
+                            minimum: 0
+                            maximum: 65535
+                            description: Port on local PC to establish remote tunnel
+                          remotePort:
+                            type: integer
+                            format: int32
+                            minimum: 0
+                            maximum: 65535
+                            description: Port on the target to which connection is established (port on the node for opening tunnel to chisel server)
+                          cloudPort:
+                            type: integer
+                            format: int32
+                            minimum: 0
+                            maximum: 65535
+                            description: Port on the cloud to which connection is established
+                      target:
+                        type: object
+                        description: Information about target on which remote connection is established.
+                        additionalProperties: false
+                        required:
+                        - workloadOrHostname
+                        - workloadVersion
+                        - nodeName
+                        properties:
+                          workloadId:
+                            description: ID (from Management System) of the entry
+                            type: string
+                            pattern: ^[0-9a-fA-F]{24}$
+                            minLength: 24
+                            maxLength: 24
+                          versionId:
+                            description: ID (from Management System) of the entry
+                            type: string
+                            pattern: ^[0-9a-fA-F]{24}$
+                            minLength: 24
+                            maxLength: 24
+                          workloadOrHostname:
+                            oneOf:
+                            - type: string
+                              description: Target hostname or ip address to which connection is established
+                              minLength: 1
+                              maxLength: 40
+                              pattern: ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$
+                            - type: string
+                              description: Workload name and port
+                              minLength: 1
+                              maxLength: 46
+                              pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                          workloadVersion:
+                            oneOf:
+                            - type: string
+                              description: Version name
+                              minLength: 1
+                              maxLength: 40
+                              pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                            - type: string
+                              description: Empty string
+                              enum:
+                              - ''
+                              minLength: 0
+                              maxLength: 0
+                              pattern: ^$
+                          nodeName:
+                            type: string
+                            description: The name of the node
+                            minLength: 1
+                            maxLength: 40
+                            pattern: ^\s*(?=[a-zA-Z0-9_ -]+$)\S.*$
+                          workloadType:
+                            type: string
+                            description: 'Specifies the workload on which the connection is established. Applicable only to remote connections created on workloads.
+
+                              '
+                            enum:
+                            - docker
+                            - vm
+                            - codesys
+                            - docker-compose
+                          internalDockerRegistry:
+                            description: 'Indicates whether the workload uses the internal Docker Registry as its Docker image source. Applicable only to remote connections created on workloads.
+
+                              '
+                            type: boolean
+                      requestUid:
+                        description: Randomly generated uuid using uuidv4 library
+                        type: string
+                        minLength: 36
+                        maxLength: 36
+                        pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      expiresAt:
+                        description: The date indicating when the session of the remote connection will expire.
+                        type: string
+                        format: date-time
+                        minLength: 8
+                        maxLength: 30
+                      connectionId:
+                        description: ID (from Management System) of the entry. Can be a string or an object.
+                        oneOf:
+                        - description: ID (from Management System) of the entry
+                          type: string
+                          pattern: ^[0-9a-fA-F]{24}$
+                          minLength: 24
+                          maxLength: 24
+                        - type: object
+                  rtemSessionId:
+                    description: Randomly generated uuid using uuidv4 library
+                    type: string
+                    minLength: 36
+                    maxLength: 36
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  rtemSessionDurationAfterConnectionLost:
+                    type: number
+                    description: How long the session is valid after RTEM lost connection to the broker (in seconds).
+                    minimum: 1
+                  tunnelTypes:
+                    type: array
+                    minItems: 2
+                    maxItems: 2
+                    description: Tunnel types supported by MS
+                    items:
+                      type: string
+                      enum:
+                      - chisel
+                      - wstunnel
+              example:
+                connection:
+                  name: tunnel node
+                  serialNumber: MARINAM12345
+                  nodeStatus: online
+                  credentials:
+                    username: ijdfx9yl8s
+                    password: n1xzx0j6rzh
+                  ports:
+                    localPort: 1235
+                    remotePort: 1233
+                    cloudPort: 6003
+                  target:
+                    workloadId: 62a880c1520c4c0038ca45d1
+                    versionId: 62a880dc520c4c0038ca45d3
+                    workloadOrHostname: compose-test:1233
+                    workloadVersion: compose
+                    nodeName: local_node
+                  requestUid: 3dce0340-7428-11ef-b583-a3081b607a1a
+                  expiresAt: '2024-02-01T12:34:56.789Z'
+                  connectionId: 66e826350d3f97067ab2c0e5
+                rtemSessionId: 44d8e49f-545f-4767-bc1c-6be3f581b2eb
+                rtemSessionDurationAfterConnectionLost: 3600
+                tunnelTypes:
+                - chisel
+                - wstunnel
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Active remote connection with provided id was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: 000881
+                httpCode: '404'
+                message: Active remote connection you are looking for does not exist!
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_dna_006
+                message: Operation failed for unknown reason.
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /nerve/v2/remote-connections-file/{target}/validate:
+    post:
+      summary: Validate remote connection yaml file on node or workload
+      operationId: validate_remote_connection_file
+      tags:
+      - Remote Connections
+      description: Method is used to validate remote connection yaml file
+      parameters:
+      - name: target
+        in: path
+        description: Description of the target to which remote connections will be imported.
+        required: true
+        schema:
+          type: string
+          description: Target to which remote connections will be imported.
+          enum:
+          - node
+          - vm
+          - docker
+          - docker-compose
+          - codesys
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              additionalProperties: false
+              type: object
+              description: Object contains 'file' property, which represents the file to be uploaded
+              properties:
+                file:
+                  type: string
+                  description: File to be uploaded
+                  format: binary
+                  minLength: 1
+                  maxLength: 1000
+      x-permissions:
+      - REMOTE_CONN:EDIT
+      responses:
+        '200':
+          description: List of imported remote connections if all connections are valid.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing list of imported remote connections.
+                additionalProperties: false
+                required:
+                - remoteConnections
+                properties:
+                  remoteConnections:
+                    type: array
+                    description: List of imported remote connections.
+                    minItems: 0
+                    maxItems: 1001
+                    items:
+                      anyOf:
+                      - type: object
+                        description: An object containing data about remote tunnel connection. Remote tunnel connection is connection that is established between local workstation and the target. For those connections Nerve Connection Manager application MUST be installed on local workstation.
+                        required:
+                        - name
+                        - acknowledgment
+                        - port
+                        - localPort
+                        - type
+                        properties:
+                          type:
+                            type: string
+                            description: Remote connection type
+                            enum:
+                            - TUNNEL
+                          name:
+                            type: string
+                            description: Remote connection name
+                            pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                            minLength: 1
+                            maxLength: 40
+                          acknowledgment:
+                            type: string
+                            description: Defines if local acknowledgement is required to establish a connection. To confirm connection, it is necessary to have access to the LocalUI web application.
+                            enum:
+                            - 'Yes'
+                            - 'No'
+                          port:
+                            type: integer
+                            format: int32
+                            minimum: 0
+                            maximum: 65535
+                            description: Port on the target to which connection is established (port on the node for opening tunnel to chisel server)
+                          localPort:
+                            type: integer
+                            format: int32
+                            minimum: 0
+                            maximum: 65535
+                            description: Port on local PC to establish remote tunnel
+                          serviceName:
+                            type:
+                            - string
+                            - 'null'
+                            description: A extra parameter of the remote connection for 'docker-compose' workload. Refers to one of the services listed in the compose YAML file, a service(container) for which remote connection has been configured. This is a mandatory parameter for remote connections for 'docker-compose' workloads, but not for other workload types.
+                            pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+                            minLength: 1
+                            maxLength: 40
+                      - type: object
+                        description: An object containing data about remote tunnel connection. Remote tunnel connection is connection that is established between local workstation and the target. For those connections Nerve Connection Manager application MUST be installed on local workstation.
+                        required:
+                        - name
+                        - acknowledgment
+                        - hostname
+                        - port
+                        - localPort
+                        - type
+                        properties:
+                          type:
+                            type: string
+                            description: Remote connection type
+                            enum:
+                            - TUNNEL
+                          name:
+                            type: string
+                            description: Remote connection name
+                            pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                            minLength: 1
+                            maxLength: 40
+                          acknowledgment:
+                            type: string
+                            description: Defines if local acknowledgement is required to establish a connection. To confirm connection, it is necessary to have access to the LocalUI web application.
+                            enum:
+                            - 'Yes'
+                            - 'No'
+                          hostname:
+                            type: string
+                            description: Target hostname or ip address to which connection is established
+                            minLength: 1
+                            maxLength: 40
+                            pattern: ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$
+                          port:
+                            type: integer
+                            format: int32
+                            minimum: 0
+                            maximum: 65535
+                            description: Port on the target to which connection is established (port on the node for opening tunnel to chisel server)
+                          localPort:
+                            type: integer
+                            format: int32
+                            minimum: 0
+                            maximum: 65535
+                            description: Port on local PC to establish remote tunnel
+                          serviceName:
+                            type:
+                            - string
+                            - 'null'
+                            description: A extra parameter of the remote connection for 'docker-compose' workload. Refers to one of the services listed in the compose YAML file, a service(container) for which remote connection has been configured. This is a mandatory parameter for remote connections for 'docker-compose' workloads, but not for other workload types.
+                            pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+                            minLength: 1
+                            maxLength: 40
+                      - description: Remote screen connection - type VNC
+                        allOf:
+                        - anyOf:
+                          - type: object
+                            description: An object containing data about remote screen connection. Remote screen connection is the connection that is established between Management System and a target(node or deployed workload). Those connections are based on Guacamole.
+                            required:
+                            - name
+                            - numberOfConnections
+                            - acknowledgment
+                            - hostname
+                            - port
+                            - autoretry
+                            - type
+                            properties:
+                              type:
+                                type: string
+                                description: Remote connection type
+                                enum:
+                                - SCREEN
+                              name:
+                                type: string
+                                description: Remote connection name
+                                pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                                minLength: 1
+                                maxLength: 40
+                              numberOfConnections:
+                                type: integer
+                                format: int32
+                                description: The maximum number of simultaneous connections
+                                minimum: 1
+                                maximum: 100
+                              acknowledgment:
+                                type: string
+                                description: Defines if local acknowledgement is required to establish a connection. To confirm connection, it is necessary to have access to the LocalUI web application.
+                                enum:
+                                - 'Yes'
+                                - 'No'
+                              hostname:
+                                type: string
+                                description: Target hostname or ip address to which connection is established
+                                minLength: 1
+                                maxLength: 40
+                                pattern: ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$
+                              port:
+                                type: integer
+                                format: int32
+                                minimum: 0
+                                maximum: 65535
+                                description: Port on the target to which connection is established (port on the node for opening tunnel to chisel server)
+                              autoretry:
+                                type: integer
+                                format: int32
+                                description: The number of times to retry connecting before giving up and returning an error
+                                minimum: 1
+                                maximum: 3
+                              cursor:
+                                type: string
+                                description: 'Defines if the cursor is rendered locally or remotely  '
+                                enum:
+                                - ''
+                                - local
+                                - remote
+                              readOnly:
+                                type: boolean
+                                description: Defines whether the connection should be read-only.
+                              swapRedBlue:
+                                description: Specifies whether the red and blue indicators for the remote connection should be swapped
+                                type: boolean
+                              serviceName:
+                                type:
+                                - string
+                                - 'null'
+                                description: A extra parameter of the remote connection for 'docker-compose' workload. Refers to one of the services listed in the compose YAML file, a service(container) for which remote connection has been configured. This is a mandatory parameter for remote connections for 'docker-compose' workloads, but not for other workload types.
+                                pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+                                minLength: 1
+                                maxLength: 40
+                          - type: object
+                            description: An object containing data about remote screen connection. Remote screen connection is the connection that is established between Management System and a target(node or deployed workload). Those connections are based on Guacamole.
+                            required:
+                            - name
+                            - numberOfConnections
+                            - acknowledgment
+                            - port
+                            - autoretry
+                            - type
+                            properties:
+                              type:
+                                type: string
+                                description: Remote connection type
+                                enum:
+                                - SCREEN
+                              name:
+                                type: string
+                                description: Remote connection name
+                                pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                                minLength: 1
+                                maxLength: 40
+                              numberOfConnections:
+                                type: integer
+                                format: int32
+                                description: The maximum number of simultaneous connections
+                                minimum: 1
+                                maximum: 100
+                              acknowledgment:
+                                type: string
+                                description: Defines if local acknowledgement is required to establish a connection. To confirm connection, it is necessary to have access to the LocalUI web application.
+                                enum:
+                                - 'Yes'
+                                - 'No'
+                              port:
+                                type: integer
+                                format: int32
+                                minimum: 0
+                                maximum: 65535
+                                description: Port on the target to which connection is established (port on the node for opening tunnel to chisel server)
+                              autoretry:
+                                type: integer
+                                format: int32
+                                description: The number of times to retry connecting before giving up and returning an error
+                                minimum: 1
+                                maximum: 3
+                              cursor:
+                                type: string
+                                description: 'Defines if the cursor is rendered locally or remotely  '
+                                enum:
+                                - ''
+                                - local
+                                - remote
+                              readOnly:
+                                type: boolean
+                                description: Defines whether the connection should be read-only.
+                              swapRedBlue:
+                                description: Specifies whether the red and blue indicators for the remote connection should be swapped
+                                type: boolean
+                              serviceName:
+                                type:
+                                - string
+                                - 'null'
+                                description: A extra parameter of the remote connection for 'docker-compose' workload. Refers to one of the services listed in the compose YAML file, a service(container) for which remote connection has been configured. This is a mandatory parameter for remote connections for 'docker-compose' workloads, but not for other workload types.
+                                pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+                                minLength: 1
+                                maxLength: 40
+                        - type: object
+                          required:
+                          - connection
+                          - password
+                          properties:
+                            connection:
+                              type: string
+                              description: Remote screen type
+                              enum:
+                              - VNC
+                            password:
+                              description: Password to use when attempting authentication
+                              minLength: 0
+                              maxLength: 40
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                      - description: Remote screen connection - type SSH
+                        allOf:
+                        - anyOf:
+                          - type: object
+                            description: An object containing data about remote screen connection. Remote screen connection is the connection that is established between Management System and a target(node or deployed workload). Those connections are based on Guacamole.
+                            required:
+                            - name
+                            - numberOfConnections
+                            - acknowledgment
+                            - hostname
+                            - port
+                            - autoretry
+                            - type
+                            properties:
+                              type:
+                                type: string
+                                description: Remote connection type
+                                enum:
+                                - SCREEN
+                              name:
+                                type: string
+                                description: Remote connection name
+                                pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                                minLength: 1
+                                maxLength: 40
+                              numberOfConnections:
+                                type: integer
+                                format: int32
+                                description: The maximum number of simultaneous connections
+                                minimum: 1
+                                maximum: 100
+                              acknowledgment:
+                                type: string
+                                description: Defines if local acknowledgement is required to establish a connection. To confirm connection, it is necessary to have access to the LocalUI web application.
+                                enum:
+                                - 'Yes'
+                                - 'No'
+                              hostname:
+                                type: string
+                                description: Target hostname or ip address to which connection is established
+                                minLength: 1
+                                maxLength: 40
+                                pattern: ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$
+                              port:
+                                type: integer
+                                format: int32
+                                minimum: 0
+                                maximum: 65535
+                                description: Port on the target to which connection is established (port on the node for opening tunnel to chisel server)
+                              autoretry:
+                                type: integer
+                                format: int32
+                                description: The number of times to retry connecting before giving up and returning an error
+                                minimum: 1
+                                maximum: 3
+                              cursor:
+                                type: string
+                                description: 'Defines if the cursor is rendered locally or remotely  '
+                                enum:
+                                - ''
+                                - local
+                                - remote
+                              readOnly:
+                                type: boolean
+                                description: Defines whether the connection should be read-only.
+                              swapRedBlue:
+                                description: Specifies whether the red and blue indicators for the remote connection should be swapped
+                                type: boolean
+                              serviceName:
+                                type:
+                                - string
+                                - 'null'
+                                description: A extra parameter of the remote connection for 'docker-compose' workload. Refers to one of the services listed in the compose YAML file, a service(container) for which remote connection has been configured. This is a mandatory parameter for remote connections for 'docker-compose' workloads, but not for other workload types.
+                                pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+                                minLength: 1
+                                maxLength: 40
+                          - type: object
+                            description: An object containing data about remote screen connection. Remote screen connection is the connection that is established between Management System and a target(node or deployed workload). Those connections are based on Guacamole.
+                            required:
+                            - name
+                            - numberOfConnections
+                            - acknowledgment
+                            - port
+                            - autoretry
+                            - type
+                            properties:
+                              type:
+                                type: string
+                                description: Remote connection type
+                                enum:
+                                - SCREEN
+                              name:
+                                type: string
+                                description: Remote connection name
+                                pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                                minLength: 1
+                                maxLength: 40
+                              numberOfConnections:
+                                type: integer
+                                format: int32
+                                description: The maximum number of simultaneous connections
+                                minimum: 1
+                                maximum: 100
+                              acknowledgment:
+                                type: string
+                                description: Defines if local acknowledgement is required to establish a connection. To confirm connection, it is necessary to have access to the LocalUI web application.
+                                enum:
+                                - 'Yes'
+                                - 'No'
+                              port:
+                                type: integer
+                                format: int32
+                                minimum: 0
+                                maximum: 65535
+                                description: Port on the target to which connection is established (port on the node for opening tunnel to chisel server)
+                              autoretry:
+                                type: integer
+                                format: int32
+                                description: The number of times to retry connecting before giving up and returning an error
+                                minimum: 1
+                                maximum: 3
+                              cursor:
+                                type: string
+                                description: 'Defines if the cursor is rendered locally or remotely  '
+                                enum:
+                                - ''
+                                - local
+                                - remote
+                              readOnly:
+                                type: boolean
+                                description: Defines whether the connection should be read-only.
+                              swapRedBlue:
+                                description: Specifies whether the red and blue indicators for the remote connection should be swapped
+                                type: boolean
+                              serviceName:
+                                type:
+                                - string
+                                - 'null'
+                                description: A extra parameter of the remote connection for 'docker-compose' workload. Refers to one of the services listed in the compose YAML file, a service(container) for which remote connection has been configured. This is a mandatory parameter for remote connections for 'docker-compose' workloads, but not for other workload types.
+                                pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+                                minLength: 1
+                                maxLength: 40
+                        - type: object
+                          required:
+                          - connection
+                          properties:
+                            connection:
+                              type: string
+                              description: Remote screen type
+                              enum:
+                              - SSH
+                            username:
+                              type: string
+                              description: Username to use for authentication
+                              minLength: 0
+                              maxLength: 40
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f:]*$
+                            password:
+                              description: Password to use when attempting authentication
+                              minLength: 0
+                              maxLength: 40
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                            privatekeyFlag:
+                              type: boolean
+                              default: false
+                              description: Option to choose authentication via private SSH key
+                            privateKey:
+                              description: The contents of the private key to use for authentication
+                              minLength: 0
+                              maxLength: 1000
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                      - description: Remote screen connection - type RDP
+                        allOf:
+                        - anyOf:
+                          - type: object
+                            description: An object containing data about remote screen connection. Remote screen connection is the connection that is established between Management System and a target(node or deployed workload). Those connections are based on Guacamole.
+                            required:
+                            - name
+                            - numberOfConnections
+                            - acknowledgment
+                            - hostname
+                            - port
+                            - autoretry
+                            - type
+                            properties:
+                              type:
+                                type: string
+                                description: Remote connection type
+                                enum:
+                                - SCREEN
+                              name:
+                                type: string
+                                description: Remote connection name
+                                pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                                minLength: 1
+                                maxLength: 40
+                              numberOfConnections:
+                                type: integer
+                                format: int32
+                                description: The maximum number of simultaneous connections
+                                minimum: 1
+                                maximum: 100
+                              acknowledgment:
+                                type: string
+                                description: Defines if local acknowledgement is required to establish a connection. To confirm connection, it is necessary to have access to the LocalUI web application.
+                                enum:
+                                - 'Yes'
+                                - 'No'
+                              hostname:
+                                type: string
+                                description: Target hostname or ip address to which connection is established
+                                minLength: 1
+                                maxLength: 40
+                                pattern: ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$
+                              port:
+                                type: integer
+                                format: int32
+                                minimum: 0
+                                maximum: 65535
+                                description: Port on the target to which connection is established (port on the node for opening tunnel to chisel server)
+                              autoretry:
+                                type: integer
+                                format: int32
+                                description: The number of times to retry connecting before giving up and returning an error
+                                minimum: 1
+                                maximum: 3
+                              cursor:
+                                type: string
+                                description: 'Defines if the cursor is rendered locally or remotely  '
+                                enum:
+                                - ''
+                                - local
+                                - remote
+                              readOnly:
+                                type: boolean
+                                description: Defines whether the connection should be read-only.
+                              swapRedBlue:
+                                description: Specifies whether the red and blue indicators for the remote connection should be swapped
+                                type: boolean
+                              serviceName:
+                                type:
+                                - string
+                                - 'null'
+                                description: A extra parameter of the remote connection for 'docker-compose' workload. Refers to one of the services listed in the compose YAML file, a service(container) for which remote connection has been configured. This is a mandatory parameter for remote connections for 'docker-compose' workloads, but not for other workload types.
+                                pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+                                minLength: 1
+                                maxLength: 40
+                          - type: object
+                            description: An object containing data about remote screen connection. Remote screen connection is the connection that is established between Management System and a target(node or deployed workload). Those connections are based on Guacamole.
+                            required:
+                            - name
+                            - numberOfConnections
+                            - acknowledgment
+                            - port
+                            - autoretry
+                            - type
+                            properties:
+                              type:
+                                type: string
+                                description: Remote connection type
+                                enum:
+                                - SCREEN
+                              name:
+                                type: string
+                                description: Remote connection name
+                                pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                                minLength: 1
+                                maxLength: 40
+                              numberOfConnections:
+                                type: integer
+                                format: int32
+                                description: The maximum number of simultaneous connections
+                                minimum: 1
+                                maximum: 100
+                              acknowledgment:
+                                type: string
+                                description: Defines if local acknowledgement is required to establish a connection. To confirm connection, it is necessary to have access to the LocalUI web application.
+                                enum:
+                                - 'Yes'
+                                - 'No'
+                              port:
+                                type: integer
+                                format: int32
+                                minimum: 0
+                                maximum: 65535
+                                description: Port on the target to which connection is established (port on the node for opening tunnel to chisel server)
+                              autoretry:
+                                type: integer
+                                format: int32
+                                description: The number of times to retry connecting before giving up and returning an error
+                                minimum: 1
+                                maximum: 3
+                              cursor:
+                                type: string
+                                description: 'Defines if the cursor is rendered locally or remotely  '
+                                enum:
+                                - ''
+                                - local
+                                - remote
+                              readOnly:
+                                type: boolean
+                                description: Defines whether the connection should be read-only.
+                              swapRedBlue:
+                                description: Specifies whether the red and blue indicators for the remote connection should be swapped
+                                type: boolean
+                              serviceName:
+                                type:
+                                - string
+                                - 'null'
+                                description: A extra parameter of the remote connection for 'docker-compose' workload. Refers to one of the services listed in the compose YAML file, a service(container) for which remote connection has been configured. This is a mandatory parameter for remote connections for 'docker-compose' workloads, but not for other workload types.
+                                pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+                                minLength: 1
+                                maxLength: 40
+                        - type: object
+                          required:
+                          - connection
+                          properties:
+                            connection:
+                              type: string
+                              description: Remote screen type
+                              enum:
+                              - RDP
+                            username:
+                              type: string
+                              description: Username to use for authentication
+                              minLength: 0
+                              maxLength: 40
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f:]*$
+                            password:
+                              description: Password to use when attempting authentication
+                              minLength: 0
+                              maxLength: 40
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                            ignoreServerCertificate:
+                              type: boolean
+                              default: false
+                              description: Defines if the server certificate should be ignored when connecting to the target
+                            securityMode:
+                              type: string
+                              description: Dictates how data will be encrypted and what type of authentication will be performed
+                              enum:
+                              - ''
+                              - any
+                              - nla
+                              - rdp
+                              - tls
+              example:
+                remoteConnections:
+                - hostname: 172.20.2.1
+                  privateKey: ''
+                  password: ''
+                  username: ''
+                  connection: SSH
+                  swapRedBlue: false
+                  readOnly: false
+                  cursor: ''
+                  autoretry: 1
+                  numberOfConnections: 1
+                  port: 22
+                  acknowledgment: 'No'
+                  type: SCREEN
+                  name: screen node ssh
+                - hostname: 172.20.2.1
+                  localPort: 1233
+                  port: 1233
+                  acknowledgment: 'No'
+                  type: TUNNEL
+                  name: tunnel node
+        '400':
+          description: Request failed, this is the response received when provided file has wrong extension.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '400'
+                message: Wrong file extension, allowed extensions are .yaml or .yml
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '415'
+                message: Route params validation error
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_dna_006
+                message: Operation failed for unknown reason.
+      security:
+      - sessionId: []
+    servers:
+    - url: https://trynerve1.nerve.cloud
+  /api/rc-requests:
+    get:
+      summary: Get a list of remote connections waiting for approval
+      tags:
+      - Remote Connections
+      x-permissions:
+      - RC_REQUEST:LIST
+      description: The list of requested connections awaiting approval before they can be established.
+      operationId: get_remote_connections_waiting_approval
+      responses:
+        '200':
+          description: Request successful. The list of requested remote connections awaiting approval returned. Approval is required for every remote connection with Local acknowledgment set to YES before establishment.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing the list of remote connections awaiting approval.
+                required:
+                - connections
+                additionalProperties: false
+                properties:
+                  connections:
+                    type: array
+                    description: The list of requested remote connections.
+                    minItems: 0
+                    maxItems: 1001
+                    items:
+                      type: object
+                      description: Object representing a remote connection
+                      required:
+                      - connectionRequestUid
+                      - connectionUid
+                      - initiator
+                      - name
+                      additionalProperties: false
+                      properties:
+                        connectionRequestUid:
+                          description: Randomly generated uuid using uuidv4 library
+                          type: string
+                          minLength: 36
+                          maxLength: 36
+                          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                        connectionUid:
+                          description: Randomly generated uuid using uuidv4 library
+                          type: string
+                          minLength: 36
+                          maxLength: 36
+                          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                        name:
+                          description: The name of the remote connection.
+                          type: string
+                          pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                        initiator:
+                          description: Who initiated the remote connections operation.
+                          type:
+                          - string
+                          - 'null'
+                example:
+                  connections:
+                  - connectionRequestUid: 6448bbd0-fbfd-11ee-8950-b53c7a773c83
+                    connectionUid: de89f39f-16b9-47ec-af8f-9ef425137b8b
+                    name: '444'
+                    initiator: Nikolina Babic
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+      security:
+      - cookieAuth: []
+  /api/rc-requests/resolve:
+    put:
+      summary: Resolve remote connection requests before they can be established
+      tags:
+      - Remote Connections
+      x-permissions:
+      - RC_REQUEST:APPROVE
+      description: Remote connections require approval, before they can be established and connection requests need to be resolved.
+      operationId: resolve_remote_connections_requests
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Object containing the connection UID and request UID followed by the connection approval status
+              required:
+              - connectionRequestUid
+              - connectionUid
+              - approved
+              additionalProperties: false
+              properties:
+                connectionRequestUid:
+                  description: Randomly generated uuid using uuidv4 library
+                  type: string
+                  minLength: 36
+                  maxLength: 36
+                  pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                connectionUid:
+                  description: Randomly generated uuid using uuidv4 library
+                  type: string
+                  minLength: 36
+                  maxLength: 36
+                  pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                approved:
+                  type: boolean
+                  description: Indicate whether the remote connection is approved or not. Approval is required for every remote connection with Local acknowledgment set to YES before establishment.
+                  default: false
+      responses:
+        '200':
+          description: Resolve remote connection requests.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: An object containing the message indicating whether the remote connection request has been approved or rejected.
+                required:
+                - message
+                additionalProperties: false
+                properties:
+                  message:
+                    type: string
+                    description: A notification indicating whether the remote connection request has been approved or rejected.
+              example:
+                message: Connection request d743fa70-6127-11ef-8334-cda9231bde22 has been approved.
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+      security:
+      - cookieAuth: []
+  /api/rc-settings:
+    get:
+      summary: Get the current configuration of the auto-approval option for remote connection
+      tags:
+      - Remote Connections
+      x-permissions:
+      - RC_SETTINGS:VIEW
+      operationId: get_auto_approval_configuration
+      description: Get the current configuration of the auto-approval option for remote connection.
+      responses:
+        '200':
+          description: Request successful, remote connections automatically approval returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object contains the 'auto_approve' property, which indicates whether all remote connections will be automatically approved
+                required:
+                - approve
+                additionalProperties: false
+                properties:
+                  approve:
+                    description: "Approval for remote connection set on Node side. \nCan be set to:\n0 - No restrictions on node side,\n1 - Auto approve,\n2 - All remote connections must be approved.\nDefault value is 0.\n"
+                    enum:
+                    - 0
+                    - 1
+                    - 2
+              example:
+                approve: 0
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+      security:
+      - cookieAuth: []
+    put:
+      summary: Update auto-approval settings, enable or disable it
+      tags:
+      - Remote Connections
+      x-permissions:
+      - RC_SETTINGS:EDIT
+      operationId: update_auto_approval_settings
+      description: Update the auto-approval settings. If disabled, explicit approval is required for every remote connection with Local acknowledgment set to YES before establishment. Conversely, enabling this option results in automatic approval for such connections.
+      requestBody:
+        description: Required parameters to change remote connections settings, set remote connections automatically approval.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Object contains the 'auto_approve' property, which indicates whether all remote connections will be automatically approved
+              required:
+              - approve
+              additionalProperties: false
+              properties:
+                approve:
+                  description: "Approval for remote connection set on Node side. \nCan be set to:\n0 - No restrictions on node side,\n1 - Auto approve,\n2 - All remote connections must be approved.\nDefault value is 0.\n"
+                  enum:
+                  - 0
+                  - 1
+                  - 2
+            example:
+              approve: 0
+      responses:
+        '200':
+          description: Successful operation. Auto-approve configuration updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object contains the 'auto_approve' property, which indicates whether all remote connections will be automatically approved
+                required:
+                - approve
+                additionalProperties: false
+                properties:
+                  approve:
+                    description: "Approval for remote connection set on Node side. \nCan be set to:\n0 - No restrictions on node side,\n1 - Auto approve,\n2 - All remote connections must be approved.\nDefault value is 0.\n"
+                    enum:
+                    - 0
+                    - 1
+                    - 2
+              example:
+                approve: 0
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+      security:
+      - cookieAuth: []
+  /api/rc-connections:
+    get:
+      summary: Get the list of established remote connections
+      tags:
+      - Remote Connections
+      x-permissions:
+      - RC_CONNECTION:LIST
+      description: Get the list of established remote connections.
+      operationId: get_remote_connections_list
+      parameters:
+      - name: search
+        in: query
+        description: Searching remote connections by name.
+        required: false
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 1001
+          pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+      responses:
+        '200':
+          description: Request successful. The established remote connections list returned.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object containing the list of all established remote connections.
+                required:
+                - connections
+                additionalProperties: false
+                properties:
+                  connections:
+                    type: array
+                    description: The list of established remote connections
+                    minItems: 0
+                    maxItems: 1001
+                    items:
+                      type: object
+                      description: Remote connection basic information
+                      required:
+                      - connectionRequestUid
+                      - connectionType
+                      - connectionUid
+                      - created
+                      - initiator
+                      - name
+                      additionalProperties: false
+                      properties:
+                        connectionRequestUid:
+                          description: Randomly generated uuid using uuidv4 library
+                          type: string
+                          minLength: 36
+                          maxLength: 36
+                          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                        connectionUid:
+                          description: Randomly generated uuid using uuidv4 library
+                          type: string
+                          minLength: 36
+                          maxLength: 36
+                          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                        connectionType:
+                          description: The type of remote connection.
+                          type: string
+                          enum:
+                          - TUNNEL
+                          - SCREEN
+                        name:
+                          description: The name of the remote connection.
+                          type: string
+                          pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                        initiator:
+                          description: Who initiated the remote connections operation.
+                          type:
+                          - string
+                          - 'null'
+                        created:
+                          description: The timestamp indicating when the remote connection was established.
+                          type: number
+              example:
+                connections:
+                - connectionUid: bfd94964-a856-4f93-a448-0134c003c338
+                  connectionRequestUid: 5b10cf30-fbfd-11ee-8950-b53c7a773c83
+                  name: ssh2
+                  initiator: Nikolina Babic
+                  created: 1713277606841
+                  connectionType: SCREEN
+                - connectionUid: de89f39f-16b9-47ec-af8f-9ef425137b8b
+                  connectionRequestUid: 6448bbd0-fbfd-11ee-8950-b53c7a773c83
+                  name: '444'
+                  initiator: Nikolina Babic
+                  created: 1713277622304
+                  connectionType: TUNNEL
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+        '500':
+          description: Response received when the response does not match the schema or an unexpected error has occurred.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              example:
+                status: 500
+                msg: URI malformed
+      security:
+      - cookieAuth: []
+  /api/rc-connections/terminate-connections:
+    post:
+      summary: Terminate established remote connections
+      tags:
+      - Remote Connections
+      x-permissions:
+      - RC_CONNECTION:DELETE
+      description: '[DELETE with body payload] - Terminate all remote connections passed in the request payload.'
+      operationId: terminate_established_remote_connections
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Object contains 'rcList' property, which represents an array of connection IDs to be terminated (closed).
+              required:
+              - rcList
+              properties:
+                rcList:
+                  minItems: 1
+                  maxItems: 1001
+                  type: array
+                  description: List of remote connection IDs to be terminated
+                  items:
+                    type: object
+                    required:
+                    - connectionUid
+                    - connectionRequestUid
+                    additionalProperties: false
+                    properties:
+                      connectionUid:
+                        description: Randomly generated uuid using uuidv4 library
+                        type: string
+                        minLength: 36
+                        maxLength: 36
+                        pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      connectionRequestUid:
+                        description: Randomly generated uuid using uuidv4 library
+                        type: string
+                        minLength: 36
+                        maxLength: 36
+                        pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+      responses:
+        '200':
+          description: Termination of the specified remote connections has been initiated successfully.
+          content:
+            application/json:
+              schema:
+                type: string
+                description: Action initiated message
+                enum:
+                - Connection removal has been initiated
+              example: Connection removal has been initiated
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: Validation error.
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    message:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: The validation error message
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: Detailed description of what does not match the schema
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+                - type: object
+                  description: Description of error associated with status code.
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      minLength: 1
+                      maxLength: 1001
+                      description: Error message
+                      pattern: .*
+        '401':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                oneOf:
+                - type: object
+                  description: User not authorized
+                  required:
+                  - user
+                  additionalProperties: false
+                  properties:
+                    user:
+                      type: string
+                      description: Not authorized
+                      enum:
+                      - not authorized
+                - type: object
+                  description: User not authorized
+                  required:
+                  - status
+                  - msg
+                  additionalProperties: false
+                  properties:
+                    status:
+                      type: integer
+                      minimum: 401
+                      maximum: 401
+                      description: HTTP status code
+                    msg:
+                      type: string
+                      description: Error message
+                      enum:
+                      - Not authorized
+                      - not authorized
+                - type: object
+                  description: Cookie header is missing in the request
+                  required:
+                  - status
+                  - message
+                  - errors
+                  additionalProperties: false
+                  properties:
+                    status:
+                      description: HTTP status code
+                      type: integer
+                      enum:
+                      - 401
+                    message:
+                      type: string
+                      description: The validation error message
+                      enum:
+                      - '''cookie'' header required'
+                    errors:
+                      type: array
+                      minItems: 1
+                      maxItems: 1001
+                      description: List of errors
+                      items:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Specified location within the document where the error occurred
+                          message:
+                            type: string
+                            minLength: 1
+                            maxLength: 1001
+                            description: Error message
+              examples:
+                not_authorized_usr:
+                  value:
+                    user: not authorized
+                not_authorized_status:
+                  value:
+                    status: 401
+                    msg: Not authorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                forbidden:
+                  value:
+                    status: 403
+                    msg: Forbidden
+      security:
+      - cookieAuth: []
+components:
+  securitySchemes:
+    sessionId:
+      type: apiKey
+      in: header
+      name: sessionId
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    bearerAuth:
+      type: http
+      scheme: bearer
+x-refined-from:
+- tttech-nerve-management-system-openapi-original.json
+- tttech-nerve-node-openapi-original.json

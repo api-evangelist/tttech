@@ -1,0 +1,1388 @@
+openapi: 3.2.0
+info:
+  version: 3.1.0
+  description: 'Nerve Management System API to manage: -labels -nodes -workloads -notifications -capabilities'
+  title: Nerve Management System NOTIFICATION API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+servers:
+- url: https://trynerve1.nerve.cloud
+security:
+- sessionId: []
+tags:
+- name: Notification
+  description: The operations to manage notifications.
+paths:
+  /nerve/notifications/activeNoAuth:
+    get:
+      summary: get active notification without authentication
+      operationId: notification_before_login
+      security: []
+      tags:
+      - Notification
+      description: 'Get information about active notification while user is still not logged in. Required permission: **GLOBAL:PUBLIC**'
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '200':
+          description: Information about active notification that should be shown in dialog.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Details of the notification
+                required:
+                - headerText
+                - textMessage
+                - _id
+                - active
+                - showBeforeLogin
+                - backgroundImage
+                additionalProperties: false
+                properties:
+                  active:
+                    type: boolean
+                    description: Represents whether notification should be shown or not. Only active notification will be shown in dialog.
+                    default: false
+                  backgroundImage:
+                    description: The path to the uploaded background image for dialog notification.
+                    default: ''
+                    minLength: 0
+                    maxLength: 1000
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                  headerText:
+                    type: string
+                    description: Title of the notification
+                    minLength: 1
+                    maxLength: 60
+                    pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                  showBeforeLogin:
+                    type: boolean
+                    description: Represents whether notification should be shown before user has been logged in or after
+                    default: false
+                  textMessage:
+                    description: Text of the notification message
+                    minLength: 1
+                    maxLength: 10000
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                  _id:
+                    description: ID (from Management System) of the entry
+                    type: string
+                    pattern: ^[0-9a-fA-F]{24}$
+                    minLength: 24
+                    maxLength: 24
+              examples:
+                active_before_login:
+                  value:
+                    textMessage: This is the example for notification message
+                    showBeforeLogin: true
+                    headerText: Example notification
+                    backgroundImage: /bf4fb1230cd366013e3fb4675c78ef18/bf4fb1230cd366013e3fb4675c78ef18.jpg
+                    active: true
+                    _id: 63f5f4cc3a2c7501e0e95f5f
+        '204':
+          description: There is no active notification that should be shown before user has been logged in. In this case, response doesn't have any content.
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '500':
+          description: Request failed, this is the response received when an MongoDB error occurred on the server side while trying to find some notification in the database
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_notification_001
+                httpCode: '500'
+                message: Database error. Please contact support for further assistance.
+  /nerve/notifications/active:
+    get:
+      summary: get active notification with authentication
+      operationId: notification_after_login
+      tags:
+      - Notification
+      description: 'Get information about active notification after user is logged in. Required permission: **GLOBAL:GENERAL**'
+      x-permissions:
+      - GLOBAL:GENERAL
+      responses:
+        '200':
+          description: Information about active notification that should be shown in dialog.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Details of the notification
+                required:
+                - headerText
+                - textMessage
+                - _id
+                - active
+                - showBeforeLogin
+                - backgroundImage
+                additionalProperties: false
+                properties:
+                  active:
+                    type: boolean
+                    description: Represents whether notification should be shown or not. Only active notification will be shown in dialog.
+                    default: false
+                  backgroundImage:
+                    description: The path to the uploaded background image for dialog notification.
+                    default: ''
+                    minLength: 0
+                    maxLength: 1000
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                  headerText:
+                    type: string
+                    description: Title of the notification
+                    minLength: 1
+                    maxLength: 60
+                    pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                  showBeforeLogin:
+                    type: boolean
+                    description: Represents whether notification should be shown before user has been logged in or after
+                    default: false
+                  textMessage:
+                    description: Text of the notification message
+                    minLength: 1
+                    maxLength: 10000
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                  _id:
+                    description: ID (from Management System) of the entry
+                    type: string
+                    pattern: ^[0-9a-fA-F]{24}$
+                    minLength: 24
+                    maxLength: 24
+              examples:
+                active_after_login:
+                  value:
+                    textMessage: This is the example for notification message
+                    showBeforeLogin: false
+                    headerText: Example notification
+                    backgroundImage: /bf4fb1230cd366013e3fb4675c78ef18/bf4fb1230cd366013e3fb4675c78ef18.jpg
+                    active: true
+                    _id: 63f5f4cc3a2c7501e0e95f5f
+        '204':
+          description: There is no active notification that should be shown after user has been logged in. In this case, response doesn't have any content.
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '500':
+          description: Request failed, this is the response received when an MongoDB error occurred on the server side while trying to find some notification in the database
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_notification_001
+                httpCode: '500'
+                message: Database error. Please contact support for further assistance.
+  /nerve/notifications:
+    get:
+      summary: Get list of all notifications
+      operationId: notification_list
+      tags:
+      - Notification
+      description: 'This method is called to fetch all notifications from database. Required permission: **NOTIFICATION:LIST**'
+      parameters:
+      - name: page
+        in: query
+        description: Page of results to be returned, according to number of items per page defined in limit parameter.
+        schema:
+          description: Page (zero indexed) of results to get from backend
+          type: integer
+          format: int32
+          default: 0
+          minimum: 0
+          maximum: 1000
+      - name: limit
+        in: query
+        description: Number of items per page of results
+        schema:
+          description: Number of items in result set when paging is applied
+          type: integer
+          format: int32
+          default: 10
+          minimum: 1
+          maximum: 500
+      - name: filterBy
+        in: query
+        description: Define the "headerText" parameter for the filter as key-value pair. If not defined (empty object), no filter is set and all notifications will be returned.
+        allowReserved: true
+        schema:
+          type: object
+          properties:
+            headerText:
+              type: string
+              pattern: ^[\x20-\x7E\t\n\r]*$
+              description: Filter the list by notification title.
+              minLength: 1
+              maxLength: 1000
+          additionalProperties: false
+        examples:
+          filter_by_name:
+            summary: Filter a list of notifications by the "headerText" parameter.
+            value:
+              headerText: title
+      x-permissions:
+      - NOTIFICATION:LIST
+      responses:
+        '200':
+          description: List of notifications that match the criteria.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: List of notifications from database
+                required:
+                - data
+                - count
+                additionalProperties: false
+                properties:
+                  count:
+                    type: integer
+                    format: int32
+                    minimum: 0
+                    maximum: 1000000
+                    description: Number of results
+                  data:
+                    description: List of notification details
+                    type: array
+                    minItems: 0
+                    maxItems: 1001
+                    items:
+                      type: object
+                      required:
+                      - headerText
+                      - textMessage
+                      - _id
+                      - active
+                      additionalProperties: false
+                      properties:
+                        active:
+                          type: boolean
+                          description: Represents whether notification should be shown or not. Only active notification will be shown in dialog.
+                          default: false
+                        backgroundImage:
+                          description: The path to the uploaded background image for dialog notification.
+                          default: ''
+                          minLength: 0
+                          maxLength: 1000
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                        headerText:
+                          type: string
+                          description: Title of the notification
+                          minLength: 1
+                          maxLength: 60
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                        showBeforeLogin:
+                          type: boolean
+                          description: Represents whether notification should be shown before user has been logged in or after
+                          default: false
+                        textMessage:
+                          description: Text of the notification message
+                          minLength: 1
+                          maxLength: 10000
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                        _id:
+                          description: ID (from Management System) of the entry
+                          type: string
+                          pattern: ^[0-9a-fA-F]{24}$
+                          minLength: 24
+                          maxLength: 24
+              examples:
+                notification_list:
+                  value:
+                    count: 2
+                    data:
+                    - textMessage: This is the example for notification message
+                      showBeforeLogin: false
+                      headerText: Example notification with background image
+                      backgroundImage: /bf4fb1230cd366013e3fb4675c78ef18/bf4fb1230cd366013e3fb4675c78ef18.jpg
+                      active: true
+                      _id: 63f5f4cc3a2c7501e0e95f5f
+                    - textMessage: This is the another example for notification message
+                      showBeforeLogin: false
+                      headerText: Example notification without background image
+                      backgroundImage: ''
+                      active: false
+                      _id: 63fcfcc7ae93210055fe0b59
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '500':
+          description: Request failed, this is the response received when an MongoDB error occurred on the server side while trying to find some notification in the database
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_notification_001
+                httpCode: '500'
+                message: Database error. Please contact support for further assistance.
+    post:
+      summary: Create new notification
+      operationId: create_notification
+      tags:
+      - Notification
+      description: 'This method is called to create new notification. Required permission: **NOTIFICATION:CREATE**'
+      requestBody:
+        required: true
+        description: For more details please refer to __add_edit_notification__ schema, globally defined at the end of this document.
+        content:
+          multipart/form-data:
+            schema:
+              additionalProperties: false
+              type: object
+              description: Request body for creating a new notification
+              properties:
+                image:
+                  description: Image file to be displayed in the notification.
+                  type: string
+                  format: binary
+                  minLength: 1
+                  maxLength: 1000
+                active:
+                  type: string
+                  description: Represents whether notification should be shown or not. Only active notification will be shown in dialog.
+                  enum:
+                  - 'true'
+                  - 'false'
+                backgroundImage:
+                  description: The path to the uploaded background image for dialog notification.
+                  default: ''
+                  minLength: 0
+                  maxLength: 1000
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                headerText:
+                  type: string
+                  description: Title of the notification
+                  minLength: 1
+                  maxLength: 60
+                  pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                showBeforeLogin:
+                  type: string
+                  description: Represents whether notification should be shown before user has been logged in or after
+                  enum:
+                  - 'true'
+                  - 'false'
+                textMessage:
+                  description: Text of the notification message
+                  minLength: 1
+                  maxLength: 10000
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+      x-permissions:
+      - NOTIFICATION:CREATE
+      responses:
+        '200':
+          description: Newly created notification.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Details of the notification
+                required:
+                - headerText
+                - textMessage
+                - _id
+                - active
+                - showBeforeLogin
+                - backgroundImage
+                additionalProperties: false
+                properties:
+                  active:
+                    type: boolean
+                    description: Represents whether notification should be shown or not. Only active notification will be shown in dialog.
+                    default: false
+                  backgroundImage:
+                    description: The path to the uploaded background image for dialog notification.
+                    default: ''
+                    minLength: 0
+                    maxLength: 1000
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                  headerText:
+                    type: string
+                    description: Title of the notification
+                    minLength: 1
+                    maxLength: 60
+                    pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                  showBeforeLogin:
+                    type: boolean
+                    description: Represents whether notification should be shown before user has been logged in or after
+                    default: false
+                  textMessage:
+                    description: Text of the notification message
+                    minLength: 1
+                    maxLength: 10000
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                  _id:
+                    description: ID (from Management System) of the entry
+                    type: string
+                    pattern: ^[0-9a-fA-F]{24}$
+                    minLength: 24
+                    maxLength: 24
+              examples:
+                get_notification:
+                  value:
+                    textMessage: This is the example for notification message
+                    showBeforeLogin: false
+                    headerText: Example notification
+                    backgroundImage: /bf4fb1230cd366013e3fb4675c78ef18/bf4fb1230cd366013e3fb4675c78ef18.jpg
+                    active: false
+                    _id: 63f5f4cc3a2c7501e0e95f5f
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '415'
+                message: Route params validation error
+        '500':
+          description: Request failed, this is the response received when an MongoDB error occurred on the server side while trying to find some notification in the database
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_notification_001
+                httpCode: '500'
+                message: Database error. Please contact support for further assistance.
+  /nerve/notifications/{notification_id}:
+    get:
+      summary: Get one specific notification
+      operationId: get_specific_notification
+      tags:
+      - Notification
+      description: 'Get details of one specific notification. Required permission: **NOTIFICATION:VIEW**'
+      parameters:
+      - name: notification_id
+        in: path
+        required: true
+        description: Id of the specific notification
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      x-permissions:
+      - NOTIFICATION:VIEW
+      responses:
+        '200':
+          description: The notification was successfully fetched.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Details of the notification
+                required:
+                - headerText
+                - textMessage
+                - _id
+                - active
+                - showBeforeLogin
+                - backgroundImage
+                additionalProperties: false
+                properties:
+                  active:
+                    type: boolean
+                    description: Represents whether notification should be shown or not. Only active notification will be shown in dialog.
+                    default: false
+                  backgroundImage:
+                    description: The path to the uploaded background image for dialog notification.
+                    default: ''
+                    minLength: 0
+                    maxLength: 1000
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                  headerText:
+                    type: string
+                    description: Title of the notification
+                    minLength: 1
+                    maxLength: 60
+                    pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                  showBeforeLogin:
+                    type: boolean
+                    description: Represents whether notification should be shown before user has been logged in or after
+                    default: false
+                  textMessage:
+                    description: Text of the notification message
+                    minLength: 1
+                    maxLength: 10000
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                  _id:
+                    description: ID (from Management System) of the entry
+                    type: string
+                    pattern: ^[0-9a-fA-F]{24}$
+                    minLength: 24
+                    maxLength: 24
+              examples:
+                get_notification:
+                  value:
+                    textMessage: This is the example for notification message
+                    showBeforeLogin: false
+                    headerText: Example notification
+                    backgroundImage: /bf4fb1230cd366013e3fb4675c78ef18/bf4fb1230cd366013e3fb4675c78ef18.jpg
+                    active: false
+                    _id: 63f5f4cc3a2c7501e0e95f5f
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: A notification with the specified ID was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_notification_002
+                httpCode: '404'
+                message: Notification you are looking for does not exist!
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_notification_015
+                httpCode: '500'
+                message: Unknown error
+    delete:
+      summary: Delete specific notification
+      operationId: delete_specific_notification
+      tags:
+      - Notification
+      description: 'Delete one specific notification. Required permission: **NOTIFICATION:DELETE**'
+      parameters:
+      - name: notification_id
+        in: path
+        required: true
+        description: Id of the specific notification
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      x-permissions:
+      - NOTIFICATION:DELETE
+      responses:
+        '204':
+          description: No response content if notification is successfully deleted.
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: A notification with the specified ID was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_notification_002
+                httpCode: '404'
+                message: Notification you are looking for does not exist!
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_notification_015
+                httpCode: '500'
+                message: Unknown error
+    put:
+      summary: Update specific notification
+      operationId: update_specific_notification
+      tags:
+      - Notification
+      description: 'Update specific notification. Required permission: **NOTIFICATION:EDIT**'
+      parameters:
+      - name: notification_id
+        in: path
+        required: true
+        description: Id of the specific notification
+        schema:
+          description: ID (from Management System) of the entry
+          type: string
+          pattern: ^[0-9a-fA-F]{24}$
+          minLength: 24
+          maxLength: 24
+      requestBody:
+        description: For more details please refer to __add_edit_notification__ schema, globally defined at the end of this document.
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              additionalProperties: false
+              description: Request body for updating a specific notification
+              type: object
+              properties:
+                image:
+                  description: Image file to be displayed in the notification.
+                  type: string
+                  format: binary
+                  minLength: 1
+                  maxLength: 1000
+                active:
+                  type: string
+                  description: Represents whether notification should be shown or not. Only active notification will be shown in dialog.
+                  enum:
+                  - 'true'
+                  - 'false'
+                backgroundImage:
+                  description: The path to the uploaded background image for dialog notification.
+                  default: ''
+                  minLength: 0
+                  maxLength: 1000
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                headerText:
+                  type: string
+                  description: Title of the notification
+                  minLength: 1
+                  maxLength: 60
+                  pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                showBeforeLogin:
+                  type: string
+                  description: Represents whether notification should be shown before user has been logged in or after
+                  enum:
+                  - 'true'
+                  - 'false'
+                textMessage:
+                  description: Text of the notification message
+                  minLength: 1
+                  maxLength: 10000
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                _id:
+                  description: ID (from Management System) of the entry
+                  type: string
+                  pattern: ^[0-9a-fA-F]{24}$
+                  minLength: 24
+                  maxLength: 24
+      x-permissions:
+      - NOTIFICATION:EDIT
+      responses:
+        '200':
+          description: The notification was successfully updated.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Details of the notification
+                required:
+                - headerText
+                - textMessage
+                - _id
+                - active
+                - showBeforeLogin
+                - backgroundImage
+                additionalProperties: false
+                properties:
+                  active:
+                    type: boolean
+                    description: Represents whether notification should be shown or not. Only active notification will be shown in dialog.
+                    default: false
+                  backgroundImage:
+                    description: The path to the uploaded background image for dialog notification.
+                    default: ''
+                    minLength: 0
+                    maxLength: 1000
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                  headerText:
+                    type: string
+                    description: Title of the notification
+                    minLength: 1
+                    maxLength: 60
+                    pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                  showBeforeLogin:
+                    type: boolean
+                    description: Represents whether notification should be shown before user has been logged in or after
+                    default: false
+                  textMessage:
+                    description: Text of the notification message
+                    minLength: 1
+                    maxLength: 10000
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                  _id:
+                    description: ID (from Management System) of the entry
+                    type: string
+                    pattern: ^[0-9a-fA-F]{24}$
+                    minLength: 24
+                    maxLength: 24
+              examples:
+                get_notification:
+                  value:
+                    textMessage: This is the example for notification message
+                    showBeforeLogin: false
+                    headerText: Example notification
+                    backgroundImage: /bf4fb1230cd366013e3fb4675c78ef18/bf4fb1230cd366013e3fb4675c78ef18.jpg
+                    active: false
+                    _id: 63f5f4cc3a2c7501e0e95f5f
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: A notification with the specified ID was not found.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_notification_002
+                httpCode: '404'
+                message: Notification you are looking for does not exist!
+        '415':
+          description: Unsupported media type
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '415'
+                message: Route params validation error
+        '500':
+          description: Request failed, this is the response received when an unexpected error occurred.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_notification_015
+                httpCode: '500'
+                message: Unknown error
+components:
+  securitySchemes:
+    sessionId:
+      type: apiKey
+      in: header
+      name: sessionId
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    bearerAuth:
+      type: http
+      scheme: bearer

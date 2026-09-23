@@ -1,0 +1,3346 @@
+openapi: 3.2.0
+info:
+  version: 3.1.0
+  description: 'Nerve Management System API to manage: -labels -nodes -workloads -notifications -capabilities'
+  title: Nerve Management System LDAP API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+servers:
+- url: https://trynerve1.nerve.cloud
+security:
+- sessionId: []
+tags:
+- name: LDAP
+  description: The operations to manage LDAP users
+paths:
+  /nerve/ldap/active:
+    get:
+      summary: Get status of LDAP configuration
+      description: This operation retrieves the current status of the LDAP configuration. If LDAP is connected, the response includes the configuration status, along with details about the configuration file. If LDAP is not connected, the response provides the status of the LDAP configuration.
+      operationId: get_ldap_status
+      security: []
+      tags:
+      - LDAP
+      x-permissions:
+      - GLOBAL:PUBLIC
+      responses:
+        '200':
+          description: Returns the status of LDAP configuration.
+          content:
+            application/json:
+              schema:
+                type: object
+                anyOf:
+                - description: Non active LDAP configuration
+                  type: object
+                  required:
+                  - active
+                  properties:
+                    active:
+                      type: boolean
+                      default: false
+                      description: Indicates there is no active LDAP configuration
+                - description: Active LDAP configuration
+                  type: object
+                  required:
+                  - active
+                  - configuration
+                  - name
+                  properties:
+                    active:
+                      type: boolean
+                      default: true
+                      description: Indicates if the LDAP configuration is active or inactive
+                    configuration:
+                      type: string
+                      description: The name of the configuration file
+                      minLength: 0
+                      maxLength: 1001
+                      pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                    name:
+                      description: The name of the LDAP configuration
+                      type: string
+                      minLength: 0
+                      maxLength: 1001
+                      pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+              example:
+                active: false
+        '400':
+          description: LDAP server is not available
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '400'
+                errorCode: nerve_ldap_061
+                message: LDAP server is not available
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: LDAP server does not exist
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '404'
+                errorCode: nerve_ldap_009
+                message: Ldap configuration file does not exist
+  /nerve/ldap/connection/test:
+    post:
+      summary: Test LDAP connection
+      description: This operation tests the connection to the LDAP server using the provided configuration. It attempts to establish a connection to ensure the LDAP settings are valid and functional.
+      operationId: test_ldap_connection
+      tags:
+      - LDAP
+      requestBody:
+        description: Defines LDAP connection
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: LDAP connection parameters
+              required:
+              - url
+              - port
+              - bindDN
+              - password
+              - tls
+              additionalProperties: false
+              properties:
+                url:
+                  description: The IP address or the hostname of the LDAP server
+                  minLength: 1
+                  maxLength: 1001
+                  anyOf:
+                  - type: string
+                    description: The IP address value
+                    minLength: 0
+                    maxLength: 255
+                    pattern: (\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}
+                  - type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                port:
+                  description: The port of the LDAP server
+                  anyOf:
+                  - type: integer
+                    format: int32
+                    minimum: 1
+                    maximum: 65535
+                  - type: string
+                    pattern: ^\d+$
+                bindDN:
+                  description: Bind distinguished name for LDAP authentication
+                  minLength: 1
+                  maxLength: 1001
+                  example: cn=admin,dc=tttech,dc=com
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                password:
+                  minLength: 0
+                  maxLength: 1001
+                  description: The bind password for LDAP authentication, cannot be changed or reset
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                tls:
+                  type: boolean
+                  description: Indicates if TLS should be used
+                  example: false
+      x-permissions:
+      - LDAP:TEST_CONNECTION
+      responses:
+        '200':
+          description: Returns the LDAP connection status.
+          content:
+            application/json:
+              schema:
+                type: object
+                anyOf:
+                - type: object
+                  description: Non active LDAP configuration
+                  required:
+                  - connected
+                  - message
+                  properties:
+                    connected:
+                      type: boolean
+                      default: false
+                      description: Indicates there is no active LDAP configuration
+                    message:
+                      type: string
+                      description: Reason why the connection failed
+                      minLength: 1
+                      maxLength: 1001
+                      pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                - type: object
+                  description: Active LDAP configuration
+                  required:
+                  - connected
+                  properties:
+                    connected:
+                      type: boolean
+                      default: true
+                      description: Indicates if the LDAP configuration is active
+              example:
+                connected: false
+        '400':
+          description: LDAP server is not available
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '400'
+                errorCode: nerve_ldap_061
+                message: LDAP server is not available
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: LDAP server does not exist
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '404'
+                errorCode: nerve_ldap_009
+                message: Ldap configuration file does not exist
+  /nerve/ldap/default:
+    get:
+      summary: Get default LDAP
+      description: Used to get default LDAP configuration.
+      operationId: get_default_ldap
+      tags:
+      - LDAP
+      x-permissions:
+      - LDAP:DEFAULT
+      responses:
+        '200':
+          description: Returns the LDAP configuration.
+          content:
+            application/json:
+              schema:
+                description: The default LDAP configuration
+                type: object
+                allOf:
+                - type: object
+                  description: LDAP configuration details
+                  properties:
+                    fileName:
+                      description: The name of the LDAP configuration
+                      type: string
+                      minLength: 0
+                      maxLength: 1001
+                      pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                    name:
+                      type: string
+                      description: The name of the LDAP configuration
+                      pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                      minLength: 1
+                      maxLength: 1001
+                    url:
+                      description: The IP address or the hostname of the LDAP server
+                      minLength: 1
+                      maxLength: 1001
+                      anyOf:
+                      - type: string
+                        description: The IP address value
+                        minLength: 0
+                        maxLength: 255
+                        pattern: (\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}
+                      - type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+                    port:
+                      description: The port of the LDAP server
+                      anyOf:
+                      - type: integer
+                        format: int32
+                        minimum: 1
+                        maximum: 65535
+                      - type: string
+                        pattern: ^\d+$
+                    active:
+                      type: boolean
+                      description: The active status of the LDAP configuration
+                      example: false
+                    bindDN:
+                      description: Bind distinguished name for LDAP authentication
+                      minLength: 1
+                      maxLength: 1001
+                      example: cn=admin,dc=tttech,dc=com
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                    tls:
+                      type: boolean
+                      description: Indicates if TLS should be used
+                      example: false
+                    recurringSync:
+                      type: object
+                      description: Recurring synchronization settings
+                      properties:
+                        recurringSync:
+                          type: boolean
+                          description: The recurring sync status
+                          example: true
+                        schedule:
+                          description: The schedule type of the recurring sync
+                          enum:
+                          - Interval
+                          - Starting time
+                          example: Interval
+                        time:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          minLength: 1
+                          maxLength: 1001
+                          description: The time interval for recurring sync
+                    relationship:
+                      type: object
+                      description: The relationship between the groups and the users
+                      properties:
+                        type:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: Type of relationship between users and groups
+                          minLength: 0
+                          maxLength: 1001
+                          example: group-user
+                        membership:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: Attribute that defines the membership of a user in a group
+                          minLength: 0
+                          maxLength: 1001
+                          example: memberUid
+                        target:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The target of the relationship
+                          minLength: 0
+                          maxLength: 1001
+                          example: uid
+                    users:
+                      allOf:
+                      - allOf:
+                        - type: object
+                          description: The LDAP user configuration. Existing users LDAP or local, cannot be edited or deleted. New users cannot be added.
+                          required:
+                          - searchBase
+                          - filter
+                          - firstName
+                          - lastName
+                          - email
+                          properties:
+                            searchBase:
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              description: The search base for the users
+                              minLength: 1
+                              maxLength: 1001
+                              example: cn=admin,dc=tttech,dc=com
+                            filter:
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              description: The LDAP filter to retrieve users
+                              minLength: 1
+                              maxLength: 1001
+                              example: (ObjectClass=posixAccount)
+                            firstName:
+                              type: string
+                              description: The first name of the user
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                              minLength: 2
+                              maxLength: 40
+                            lastName:
+                              maxLength: 40
+                              type: string
+                              description: The last name of the user
+                              example: sn
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                              minLength: 2
+                            email:
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              minLength: 1
+                              maxLength: 1001
+                              description: The email of the user
+                        - type: object
+                          properties:
+                            uid:
+                              description: The LDAP attribute for the user's uid
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              minLength: 0
+                              maxLength: 1001
+                              example: uid
+                              type: string
+                      - allOf:
+                        - type: object
+                          description: The LDAP user configuration. Existing users LDAP or local, cannot be edited or deleted. New users cannot be added.
+                          required:
+                          - searchBase
+                          - filter
+                          - firstName
+                          - lastName
+                          - email
+                          properties:
+                            searchBase:
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              description: The search base for the users
+                              minLength: 1
+                              maxLength: 1001
+                              example: cn=admin,dc=tttech,dc=com
+                            filter:
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              description: The LDAP filter to retrieve users
+                              minLength: 1
+                              maxLength: 1001
+                              example: (ObjectClass=posixAccount)
+                            firstName:
+                              type: string
+                              description: The first name of the user
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                              minLength: 2
+                              maxLength: 40
+                            lastName:
+                              maxLength: 40
+                              type: string
+                              description: The last name of the user
+                              example: sn
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                              minLength: 2
+                            email:
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              minLength: 1
+                              maxLength: 1001
+                              description: The email of the user
+                        - type: object
+                          required:
+                          - username
+                          properties:
+                            username:
+                              type: string
+                              description: LDAP user username, which is used for authentication instead of the email address
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                              minLength: 2
+                              maxLength: 1000
+                    groups:
+                      type: object
+                      description: Group-related settings for LDAP
+                      properties:
+                        searchBase:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The search base for the groups
+                          minLength: 0
+                          maxLength: 1001
+                          example: cn=admin,dc=tttech,dc=com
+                        filter:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The LDAP filter to retrieve groups
+                          minLength: 0
+                          maxLength: 1001
+                          example: (ObjectClass=posixGroup)
+                        name:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The LDAP attribute for group name
+                          minLength: 0
+                          maxLength: 1001
+                          example: cn
+                - type: object
+                  properties:
+                    active:
+                      type: boolean
+                      example: false
+                      description: The updated active status
+                    initiator:
+                      type: object
+                      description: Who initiated the operation
+                      properties:
+                        firstName:
+                          type: string
+                          description: The first name of the user
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                          minLength: 2
+                          maxLength: 40
+                        lastName:
+                          type: string
+                          description: The last name of the user
+                          example: sn
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                          minLength: 2
+                          maxLength: 40
+                        username:
+                          type: string
+                          description: LDAP user username, which is used for authentication instead of the email address
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                          minLength: 2
+                          maxLength: 1000
+              example:
+                fileName: testconn
+                name: testConn
+                url: 172.19.0.1
+                port: 389
+                bindDN: cn=admin,dc=tttech,dc=com
+                tls: false
+                active: false
+                groups:
+                  searchBase: cn=admin,dc=tttech,dc=com
+                  filter: (ObjectClass=posixGroup)
+                  name: cn
+                  adminGroup: Administrator
+                  default: User
+                users:
+                  searchBase: cn=admin,dc=tttech,dc=com
+                  filter: (ObjectClass=posixAccount)
+                  firstName: givenName
+                  lastName: sn
+                  email: mail
+                  username: uid
+                relationship:
+                  type: group-user
+                  membership: memberUid
+                  target: uid
+                recurringSync:
+                  recurringSync: true
+                  schedule: Interval
+                  time: '1'
+                initiator:
+                  _id: 66b212002621ad94acbd4679
+                  firstName: Nikolina
+                  lastName: Babic
+                  username: nikolina.babic@rt-rk.com
+                  profileImgURL: ''
+                  contact:
+                  - label: Default
+                    contact: nikolina.babic@rt-rk.com
+                    isDefault: true
+                    contactType: email
+                    sendNotification: true
+                    _id: 66deca906b9d411fa498a714
+                  clientName: []
+                  groups: []
+                  roles:
+                  - Admin
+                  - backupSnaps
+                  - logs11
+                  brand: default
+                  type: local
+                  receiveEmail: false
+                  defaultUser: false
+                  address: []
+                  created: '2024-08-06T12:07:28.699Z'
+                  __v: 0
+                  auth:
+                    _id: 66b212002621ad94acbd467e
+                    identity: nikolina.babic@rt-rk.com
+                    activated: '2024-08-06T12:08:07.982Z'
+                    mfaEnabled: true
+                  id: 66b212002621ad94acbd4679
+                  openSearchRoles: node_log_viewer,kibanauser,server_log_viewer,audit_log_viewer
+                  sessionID: 66b212002621ad94acbd4679-7f8c8ea76b218331bf8278c270ff68ac33eb21115562e93862231f705e23da2d
+                urlInfo:
+                  method: PUT
+                  originalUrl: /nerve/ldap/testconn
+        '204':
+          description: No default LDAP configuration found
+        '400':
+          description: LDAP server is not available
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '400'
+                errorCode: nerve_ldap_061
+                message: LDAP server is not available
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: LDAP server does not exist
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '404'
+                errorCode: nerve_ldap_009
+                message: Ldap configuration file does not exist
+  /nerve/ldap:
+    get:
+      summary: Retrieve LDAP configuration details
+      description: This endpoint returns essential details of LDAP configurations, specifically the filename and the corresponding LDAP name for each configuration.
+      operationId: get_ldap_config_details
+      tags:
+      - LDAP
+      x-permissions:
+      - LDAP:GET_ALL
+      responses:
+        '200':
+          description: Successfully returns the filename and LDAP name for the configurations
+          content:
+            application/json:
+              schema:
+                type: object
+                description: LDAP configuration details
+                properties:
+                  ldapConfiguration:
+                    type: array
+                    description: List of LDAP configurations
+                    minItems: 0
+                    maxItems: 1001
+                    items:
+                      type: object
+                      description: Contains the filename and LDAP name of the configurations
+                      properties:
+                        filename:
+                          description: The name of the LDAP configuration
+                          type: string
+                          minLength: 0
+                          maxLength: 1001
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                        ldapName:
+                          type: string
+                          description: The name of the LDAP configuration
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                          minLength: 1
+                          maxLength: 1001
+              example:
+                ldapConfiguration:
+                - filename: testConnection.yaml
+                  ldapName: ldapConnection
+        '400':
+          description: LDAP server is not available
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '400'
+                errorCode: nerve_ldap_061
+                message: LDAP server is not available
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: LDAP server does not exist
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '404'
+                errorCode: nerve_ldap_009
+                message: Ldap configuration file does not exist
+    post:
+      summary: Create LDAP connections
+      description: Used to create LDAP connection.
+      operationId: create_ldap_connections
+      tags:
+      - LDAP
+      requestBody:
+        description: Defines LDAP connections
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: LDAP configuration details
+              required:
+              - name
+              - port
+              - bindDN
+              - relationship
+              - url
+              - groups
+              - users
+              - tls
+              properties:
+                fileName:
+                  description: The name of the LDAP configuration
+                  type: string
+                  minLength: 0
+                  maxLength: 1001
+                  pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                name:
+                  type: string
+                  description: The name of the LDAP configuration
+                  pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                  minLength: 1
+                  maxLength: 1001
+                url:
+                  description: The IP address or the hostname of the LDAP server
+                  minLength: 1
+                  maxLength: 1001
+                  anyOf:
+                  - type: string
+                    description: The IP address value
+                    minLength: 0
+                    maxLength: 255
+                    pattern: (\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}
+                  - type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                port:
+                  description: The port of the LDAP server
+                  anyOf:
+                  - type: integer
+                    format: int32
+                    minimum: 1
+                    maximum: 65535
+                  - type: string
+                    pattern: ^\d+$
+                active:
+                  type: boolean
+                  description: The active status of the LDAP configuration
+                  example: false
+                bindDN:
+                  description: Bind distinguished name for LDAP authentication
+                  minLength: 1
+                  maxLength: 1001
+                  example: cn=admin,dc=tttech,dc=com
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                password:
+                  minLength: 0
+                  maxLength: 1001
+                  description: The bind password for LDAP authentication, cannot be changed or reset
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                tls:
+                  type: boolean
+                  description: Indicates if TLS should be used
+                  example: false
+                recurringSync:
+                  type: object
+                  description: Recurring synchronization settings
+                  properties:
+                    recurringSync:
+                      type: boolean
+                      description: The recurring sync status
+                      example: true
+                    schedule:
+                      description: The schedule type of the recurring sync
+                      enum:
+                      - Interval
+                      - Starting time
+                      example: Interval
+                    time:
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                      minLength: 1
+                      maxLength: 1001
+                      description: The time interval for recurring sync
+                relationship:
+                  type: object
+                  description: The relationship between the groups and the users
+                  required:
+                  - type
+                  - membership
+                  - target
+                  properties:
+                    type:
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                      description: Type of relationship between users and groups
+                      minLength: 1
+                      maxLength: 1001
+                      example: group-user
+                    membership:
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                      description: Attribute that defines the membership of a user in a group
+                      minLength: 1
+                      maxLength: 1001
+                      example: memberUid
+                    target:
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                      description: The target of the relationship
+                      minLength: 1
+                      maxLength: 1001
+                      example: uid
+                users:
+                  allOf:
+                  - allOf:
+                    - type: object
+                      description: The LDAP user configuration. Existing users LDAP or local, cannot be edited or deleted. New users cannot be added.
+                      required:
+                      - searchBase
+                      - filter
+                      - firstName
+                      - lastName
+                      - email
+                      properties:
+                        searchBase:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The search base for the users
+                          minLength: 1
+                          maxLength: 1001
+                          example: cn=admin,dc=tttech,dc=com
+                        filter:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The LDAP filter to retrieve users
+                          minLength: 1
+                          maxLength: 1001
+                          example: (ObjectClass=posixAccount)
+                        firstName:
+                          type: string
+                          description: The first name of the user
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                          minLength: 2
+                          maxLength: 40
+                        lastName:
+                          maxLength: 40
+                          type: string
+                          description: The last name of the user
+                          example: sn
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                          minLength: 2
+                        email:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          minLength: 1
+                          maxLength: 1001
+                          description: The email of the user
+                    - type: object
+                      properties:
+                        uid:
+                          description: The LDAP attribute for the user's uid
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          minLength: 0
+                          maxLength: 1001
+                          example: uid
+                          type: string
+                  - allOf:
+                    - type: object
+                      description: The LDAP user configuration. Existing users LDAP or local, cannot be edited or deleted. New users cannot be added.
+                      required:
+                      - searchBase
+                      - filter
+                      - firstName
+                      - lastName
+                      - email
+                      properties:
+                        searchBase:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The search base for the users
+                          minLength: 1
+                          maxLength: 1001
+                          example: cn=admin,dc=tttech,dc=com
+                        filter:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The LDAP filter to retrieve users
+                          minLength: 1
+                          maxLength: 1001
+                          example: (ObjectClass=posixAccount)
+                        firstName:
+                          type: string
+                          description: The first name of the user
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                          minLength: 2
+                          maxLength: 40
+                        lastName:
+                          maxLength: 40
+                          type: string
+                          description: The last name of the user
+                          example: sn
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                          minLength: 2
+                        email:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          minLength: 1
+                          maxLength: 1001
+                          description: The email of the user
+                    - type: object
+                      required:
+                      - username
+                      properties:
+                        username:
+                          type: string
+                          description: LDAP user username, which is used for authentication instead of the email address
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                          minLength: 2
+                          maxLength: 1000
+                groups:
+                  type: object
+                  description: Group-related settings for LDAP
+                  required:
+                  - searchBase
+                  - filter
+                  - name
+                  - adminGroup
+                  - default
+                  properties:
+                    searchBase:
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                      description: The search base for the groups
+                      minLength: 1
+                      maxLength: 1001
+                      example: cn=admin,dc=tttech,dc=com
+                    filter:
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                      description: The LDAP filter to retrieve groups
+                      minLength: 1
+                      maxLength: 1001
+                      example: (ObjectClass=posixGroup)
+                    name:
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                      description: The LDAP attribute for group name
+                      minLength: 1
+                      maxLength: 1001
+                      example: cn
+                    adminGroup:
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                      description: The LDAP attribute for the admin group
+                      minLength: 1
+                      maxLength: 1001
+                      example: cn=admin,ou=groups,dc=tttech,dc=com
+                    default:
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                      description: The LDAP attribute for the default group
+                      minLength: 1
+                      maxLength: 1001
+                      example: cn=default,ou=groups,dc=tttech,dc=com
+      x-permissions:
+      - LDAP:CREATE
+      responses:
+        '200':
+          description: Returns the file name of the created LDAP connection.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Object contains the file name of the created LDAP connection
+                properties:
+                  filename:
+                    description: The name of the LDAP configuration
+                    type: string
+                    minLength: 0
+                    maxLength: 1001
+                    pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+              example:
+                filename: testConnection
+        '400':
+          description: LDAP server is not available
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '400'
+                errorCode: nerve_ldap_061
+                message: LDAP server is not available
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: LDAP server does not exist
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '404'
+                errorCode: nerve_ldap_009
+                message: Ldap configuration file does not exist
+        '429':
+          description: Triggered action is already in progress.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '429'
+                errorCode: nerve_ldap_066
+                message: Triggered action is already in progress.
+  /nerve/ldap/query/groups:
+    post:
+      summary: LDAP server for groups with desired configuration
+      description: Allows setting up LDAP configurations including server details, user and group settings, and synchronization options.
+      operationId: ldap_groups
+      tags:
+      - LDAP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: LDAP configuration parameters
+              required:
+              - ldap
+              properties:
+                ldap:
+                  type: object
+                  description: LDAP configuration details
+                  required:
+                  - relationship
+                  - groups
+                  properties:
+                    fileName:
+                      description: The name of the LDAP configuration
+                      type: string
+                      minLength: 0
+                      maxLength: 1001
+                      pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                    name:
+                      type: string
+                      description: The name of the LDAP configuration
+                      pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                      minLength: 1
+                      maxLength: 1001
+                    url:
+                      description: The IP address or the hostname of the LDAP server
+                      minLength: 1
+                      maxLength: 1001
+                      anyOf:
+                      - type: string
+                        description: The IP address value
+                        minLength: 0
+                        maxLength: 255
+                        pattern: (\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}
+                      - type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+                    port:
+                      description: The port of the LDAP server
+                      anyOf:
+                      - type: integer
+                        format: int32
+                        minimum: 1
+                        maximum: 65535
+                      - type: string
+                        pattern: ^\d+$
+                    active:
+                      type: boolean
+                      description: The active status of the LDAP configuration
+                      example: false
+                    bindDN:
+                      description: Bind distinguished name for LDAP authentication
+                      minLength: 1
+                      maxLength: 1001
+                      example: cn=admin,dc=tttech,dc=com
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                    password:
+                      minLength: 0
+                      maxLength: 1001
+                      description: The bind password for LDAP authentication, cannot be changed or reset
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                    tls:
+                      type: boolean
+                      description: Indicates if TLS should be used
+                      example: false
+                    recurringSync:
+                      type: object
+                      description: Recurring synchronization settings
+                      properties:
+                        recurringSync:
+                          type: boolean
+                          description: The recurring sync status
+                          example: true
+                        schedule:
+                          description: The schedule type of the recurring sync
+                          enum:
+                          - Interval
+                          - Starting time
+                          example: Interval
+                        time:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          minLength: 1
+                          maxLength: 1001
+                          description: The time interval for recurring sync
+                    relationship:
+                      type: object
+                      description: The relationship between the groups and the users
+                      properties:
+                        type:
+                          type: string
+                          description: Type of relationship between users and groups
+                          enum:
+                          - user-group
+                          - group-user
+                          default: user-group
+                          example: group-user
+                        membership:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: Attribute that defines the membership of a user in a group
+                          minLength: 0
+                          maxLength: 1001
+                          default: ''
+                          example: memberUid
+                        target:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The target of the relationship
+                          minLength: 0
+                          maxLength: 1001
+                          default: ''
+                          example: uid
+                    users:
+                      allOf:
+                      - allOf:
+                        - type: object
+                          description: The LDAP user configuration. Existing users LDAP or local, cannot be edited or deleted. New users cannot be added.
+                          required:
+                          - searchBase
+                          - filter
+                          - firstName
+                          - lastName
+                          - email
+                          properties:
+                            searchBase:
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              description: The search base for the users
+                              minLength: 1
+                              maxLength: 1001
+                              example: cn=admin,dc=tttech,dc=com
+                            filter:
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              description: The LDAP filter to retrieve users
+                              minLength: 1
+                              maxLength: 1001
+                              example: (ObjectClass=posixAccount)
+                            firstName:
+                              type: string
+                              description: The first name of the user
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                              minLength: 2
+                              maxLength: 40
+                            lastName:
+                              maxLength: 40
+                              type: string
+                              description: The last name of the user
+                              example: sn
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                              minLength: 2
+                            email:
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              minLength: 1
+                              maxLength: 1001
+                              description: The email of the user
+                        - type: object
+                          properties:
+                            uid:
+                              description: The LDAP attribute for the user's uid
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              minLength: 0
+                              maxLength: 1001
+                              example: uid
+                              type: string
+                      - allOf:
+                        - type: object
+                          description: The LDAP user configuration. Existing users LDAP or local, cannot be edited or deleted. New users cannot be added.
+                          required:
+                          - searchBase
+                          - filter
+                          - firstName
+                          - lastName
+                          - email
+                          properties:
+                            searchBase:
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              description: The search base for the users
+                              minLength: 1
+                              maxLength: 1001
+                              example: cn=admin,dc=tttech,dc=com
+                            filter:
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              description: The LDAP filter to retrieve users
+                              minLength: 1
+                              maxLength: 1001
+                              example: (ObjectClass=posixAccount)
+                            firstName:
+                              type: string
+                              description: The first name of the user
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                              minLength: 2
+                              maxLength: 40
+                            lastName:
+                              maxLength: 40
+                              type: string
+                              description: The last name of the user
+                              example: sn
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                              minLength: 2
+                            email:
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              minLength: 1
+                              maxLength: 1001
+                              description: The email of the user
+                        - type: object
+                          required:
+                          - username
+                          properties:
+                            username:
+                              type: string
+                              description: LDAP user username, which is used for authentication instead of the email address
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                              minLength: 2
+                              maxLength: 1000
+                    groups:
+                      type: object
+                      description: Group-related settings for LDAP
+                      properties:
+                        searchBase:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The search base for the groups
+                          minLength: 0
+                          maxLength: 1001
+                          example: cn=admin,dc=tttech,dc=com
+                        filter:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The LDAP filter to retrieve groups
+                          minLength: 0
+                          maxLength: 1001
+                          example: (ObjectClass=posixGroup)
+                        name:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The LDAP attribute for group name
+                          minLength: 0
+                          maxLength: 1001
+                          example: cn
+      x-permissions:
+      - LDAP:QUERY
+      responses:
+        '200':
+          description: A list of groups and their details.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: List of LDAP groups
+                properties:
+                  groups:
+                    type: array
+                    minItems: 0
+                    maxItems: 1001
+                    description: List of LDAP groups
+                    items:
+                      type: object
+                      properties:
+                        dn:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: Distinguished name of the group
+                          minLength: 0
+                          maxLength: 1001
+                          example: cn=Administrator,cn=admin,dc=tttech,dc=com
+                        name:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: Group name
+                          minLength: 0
+                          maxLength: 1001
+                          example: Administrator
+                        description:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          minLength: 0
+                          maxLength: 1001
+                          description: Description of the group
+                        users:
+                          type: array
+                          minItems: 0
+                          maxItems: 1001
+                          description: Users in the group
+                          items:
+                            type: string
+                            pattern: ^[\x20-\x7E\t\n\r]*$
+                            minLength: 0
+                            maxLength: 1001
+                          example:
+                          - bstojakovic
+                          - dzdrnja
+                          - zcrnojacki
+                        target:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          minLength: 0
+                          maxLength: 1001
+                          description: Target for the group
+                        mapTo:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          minLength: 0
+                          maxLength: 1001
+                          description: Mapping to a role or type
+                          example: Admin
+              example:
+                groups:
+                - dn: cn=Administrator,cn=admin,dc=tttech,dc=com
+                  name: Administrator
+                  description: ' '
+                  users:
+                  - bstojakovic
+                  - dzdrnja
+                  - zcrnojacki
+                  - imiladinovic
+                  - esheety
+                  - gpolitano
+                  target: ''
+                  mapTo: Admin
+                - dn: cn=Datapath,cn=admin,dc=tttech,dc=com
+                  name: Datapath
+                  description: ' '
+                  users:
+                  - bstojakovic
+                  - imiladinovic
+                  - imilosavljevic
+                  target: ''
+                  mapTo: User - testconn
+                - dn: cn=Logs,cn=admin,dc=tttech,dc=com
+                  name: Logs
+                  description: ' '
+                  users:
+                  - bstojakovic
+                  - imiladinovic
+                  target: ''
+                  mapTo: User - testconn
+                - dn: cn=User,cn=admin,dc=tttech,dc=com
+                  name: User
+                  description: ' '
+                  users:
+                  - mertl
+                  - esudrat
+                  - dbrajkovic
+                  - imilosavljevic
+                  target: ''
+                  mapTo: User - testconn
+        '400':
+          description: LDAP server is not available
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '400'
+                errorCode: nerve_ldap_061
+                message: LDAP server is not available
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: LDAP server does not exist
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '404'
+                errorCode: nerve_ldap_009
+                message: Ldap configuration file does not exist
+        '429':
+          description: Triggered action is already in progress.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '429'
+                errorCode: nerve_ldap_066
+                message: Triggered action is already in progress.
+        '500':
+          description: Failed to query groups.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_ldap_002
+                message: Failed to query groups.
+  /nerve/ldap/query/users:
+    post:
+      summary: LDAP server for users with desired configuration
+      description: Allows setting up LDAP configurations including server details, user and group settings, and synchronization options.
+      operationId: ldap_users
+      tags:
+      - LDAP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: LDAP configuration parameters
+              required:
+              - ldap
+              properties:
+                ldap:
+                  type: object
+                  description: LDAP configuration details
+                  required:
+                  - relationship
+                  - users
+                  properties:
+                    fileName:
+                      description: The name of the LDAP configuration
+                      type: string
+                      minLength: 0
+                      maxLength: 1001
+                      pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                    name:
+                      type: string
+                      description: The name of the LDAP configuration
+                      pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                      minLength: 1
+                      maxLength: 1001
+                    url:
+                      description: The IP address or the hostname of the LDAP server
+                      minLength: 1
+                      maxLength: 1001
+                      anyOf:
+                      - type: string
+                        description: The IP address value
+                        minLength: 0
+                        maxLength: 255
+                        pattern: (\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}
+                      - type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+                    port:
+                      description: The port of the LDAP server
+                      anyOf:
+                      - type: integer
+                        format: int32
+                        minimum: 1
+                        maximum: 65535
+                      - type: string
+                        pattern: ^\d+$
+                    active:
+                      type: boolean
+                      description: The active status of the LDAP configuration
+                      example: false
+                    bindDN:
+                      description: Bind distinguished name for LDAP authentication
+                      minLength: 1
+                      maxLength: 1001
+                      example: cn=admin,dc=tttech,dc=com
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                    password:
+                      minLength: 0
+                      maxLength: 1001
+                      description: The bind password for LDAP authentication, cannot be changed or reset
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                    tls:
+                      type: boolean
+                      description: Indicates if TLS should be used
+                      example: false
+                    recurringSync:
+                      type: object
+                      description: Recurring synchronization settings
+                      properties:
+                        recurringSync:
+                          type: boolean
+                          description: The recurring sync status
+                          example: true
+                        schedule:
+                          description: The schedule type of the recurring sync
+                          enum:
+                          - Interval
+                          - Starting time
+                          example: Interval
+                        time:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          minLength: 1
+                          maxLength: 1001
+                          description: The time interval for recurring sync
+                    relationship:
+                      type: object
+                      description: The relationship between the groups and the users
+                      properties:
+                        type:
+                          type: string
+                          description: Type of relationship between users and groups
+                          enum:
+                          - user-group
+                          - group-user
+                          default: user-group
+                          example: group-user
+                        membership:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: Attribute that defines the membership of a user in a group
+                          minLength: 0
+                          maxLength: 1001
+                          default: ''
+                          example: memberUid
+                        target:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The target of the relationship
+                          minLength: 0
+                          maxLength: 1001
+                          default: ''
+                          example: uid
+                    users:
+                      allOf:
+                      - allOf:
+                        - type: object
+                          description: The LDAP user configuration. Existing users LDAP or local, cannot be edited or deleted. New users cannot be added.
+                          required:
+                          - searchBase
+                          - filter
+                          - firstName
+                          - lastName
+                          - email
+                          properties:
+                            searchBase:
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              description: The search base for the users
+                              minLength: 1
+                              maxLength: 1001
+                              example: cn=admin,dc=tttech,dc=com
+                            filter:
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              description: The LDAP filter to retrieve users
+                              minLength: 1
+                              maxLength: 1001
+                              example: (ObjectClass=posixAccount)
+                            firstName:
+                              type: string
+                              description: The first name of the user
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                              minLength: 2
+                              maxLength: 40
+                            lastName:
+                              maxLength: 40
+                              type: string
+                              description: The last name of the user
+                              example: sn
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                              minLength: 2
+                            email:
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              minLength: 1
+                              maxLength: 1001
+                              description: The email of the user
+                        - type: object
+                          properties:
+                            uid:
+                              description: The LDAP attribute for the user's uid
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              minLength: 0
+                              maxLength: 1001
+                              example: uid
+                              type: string
+                      - allOf:
+                        - type: object
+                          description: The LDAP user configuration. Existing users LDAP or local, cannot be edited or deleted. New users cannot be added.
+                          required:
+                          - searchBase
+                          - filter
+                          - firstName
+                          - lastName
+                          - email
+                          properties:
+                            searchBase:
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              description: The search base for the users
+                              minLength: 1
+                              maxLength: 1001
+                              example: cn=admin,dc=tttech,dc=com
+                            filter:
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              description: The LDAP filter to retrieve users
+                              minLength: 1
+                              maxLength: 1001
+                              example: (ObjectClass=posixAccount)
+                            firstName:
+                              type: string
+                              description: The first name of the user
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                              minLength: 2
+                              maxLength: 40
+                            lastName:
+                              maxLength: 40
+                              type: string
+                              description: The last name of the user
+                              example: sn
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                              minLength: 2
+                            email:
+                              type: string
+                              pattern: ^[\x20-\x7E\t\n\r]*$
+                              minLength: 1
+                              maxLength: 1001
+                              description: The email of the user
+                        - type: object
+                          required:
+                          - username
+                          properties:
+                            username:
+                              type: string
+                              description: LDAP user username, which is used for authentication instead of the email address
+                              pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                              minLength: 2
+                              maxLength: 1000
+                    groups:
+                      type: object
+                      description: Group-related settings for LDAP
+                      properties:
+                        searchBase:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The search base for the groups
+                          minLength: 0
+                          maxLength: 1001
+                          example: cn=admin,dc=tttech,dc=com
+                        filter:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The LDAP filter to retrieve groups
+                          minLength: 0
+                          maxLength: 1001
+                          example: (ObjectClass=posixGroup)
+                        name:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The LDAP attribute for group name
+                          minLength: 0
+                          maxLength: 1001
+                          example: cn
+                        adminGroup:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The LDAP attribute for the admin group
+                          minLength: 0
+                          maxLength: 1001
+                          example: cn=admin,ou=groups,dc=tttech,dc=com
+                        default:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The LDAP attribute for the default group
+                          minLength: 0
+                          maxLength: 1001
+                          example: cn=default,ou=groups,dc=tttech,dc=com
+      x-permissions:
+      - LDAP:QUERY
+      responses:
+        '200':
+          description: A list of users and their details.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: List of LDAP users
+                properties:
+                  users:
+                    type: array
+                    minItems: 0
+                    maxItems: 1001
+                    description: List of LDAP users
+                    items:
+                      type: object
+                      properties:
+                        dn:
+                          description: Bind distinguished name for LDAP authentication
+                          minLength: 1
+                          maxLength: 1001
+                          example: cn=admin,dc=tttech,dc=com
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                        firstName:
+                          type: string
+                          description: The first name of the user
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                          minLength: 2
+                          maxLength: 40
+                        lastName:
+                          type: string
+                          description: The last name of the user
+                          example: sn
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                          minLength: 2
+                          maxLength: 40
+                        email:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          minLength: 1
+                          maxLength: 1001
+                          description: The email of the user
+                        username:
+                          type: string
+                          description: LDAP user username, which is used for authentication instead of the email address
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                          minLength: 2
+                          maxLength: 1000
+                        groups:
+                          type: array
+                          minItems: 0
+                          maxItems: 1001
+                          description: Groups the user belongs to
+                          items:
+                            type: string
+                            pattern: ^[\x20-\x7E\t\n\r]*$
+                            description: The name of the group
+                            minLength: 0
+                            maxLength: 1001
+                        target:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The LDAP attribute for the user's username
+                          minLength: 0
+                          maxLength: 1001
+                          example: uid
+                        uid:
+                          description: The LDAP attribute for the user's uid
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          minLength: 0
+                          maxLength: 1001
+                          example: uid
+                          type: string
+              example:
+                users:
+                - dn: cn=dzdrnja,ou=DEV,ou=RTRK,cn=admin,dc=tttech,dc=com
+                  firstName: Dragan
+                  lastName: Zdrnja
+                  email: dragan.zdrnja@rt-rk.com
+                  username: dzdrnja
+                  groups: []
+                  target: uid
+                  uid: dzdrnja
+                - dn: cn=zcrnojacki,ou=DEV,ou=RTRK,cn=admin,dc=tttech,dc=com
+                  firstName: Zivko
+                  lastName: Crnojacki
+                  email: zivko.crnojacki@rt-rk.com
+                  username: zcrnojacki
+                  groups: []
+                  target: uid
+                  uid: zcrnojacki
+                - dn: cn=bstojakovic,ou=QA,ou=RTRK,cn=admin,dc=tttech,dc=com
+                  firstName: Bojan
+                  lastName: Stojakovic
+                  email: b.stojakovic@rt-rk.com
+                  username: bstojakovic
+                  groups: []
+                  target: uid
+                  uid: bstojakovic
+        '400':
+          description: LDAP server is not available
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '400'
+                errorCode: nerve_ldap_061
+                message: LDAP server is not available
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: LDAP server does not exist
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '404'
+                errorCode: nerve_ldap_009
+                message: Ldap configuration file does not exist
+        '429':
+          description: Triggered action is already in progress.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '429'
+                errorCode: nerve_ldap_066
+                message: Triggered action is already in progress.
+        '500':
+          description: Failed to do LDAP sync.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '500'
+                errorCode: nerve_ldap_048
+                message: Failed to do LDAP sync.
+  /nerve/ldap/{name}/active:
+    patch:
+      summary: Activate or deactivate LDAP
+      description: Used to activate or deactivate LDAP configuration.
+      operationId: activate_deactivate_ldap
+      tags:
+      - LDAP
+      parameters:
+      - in: path
+        name: name
+        required: true
+        description: The name of the LDAP configuration
+        schema:
+          description: The name of the LDAP configuration
+          type: string
+          minLength: 0
+          maxLength: 1001
+          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Activate or deactivate LDAP
+              properties:
+                active:
+                  type: boolean
+                  description: Activate or deactivate LDAP
+              required:
+              - active
+      x-permissions:
+      - LDAP:SET_ACTIVE_LDAP
+      responses:
+        '200':
+          description: Returns the name of the LDAP configuration.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: The name of the LDAP configuration
+                properties:
+                  fileName:
+                    description: The name of the LDAP configuration
+                    type: string
+                    minLength: 0
+                    maxLength: 1001
+                    pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+              example:
+                fileName: testConnection
+        '400':
+          description: LDAP server is not available
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '400'
+                errorCode: nerve_ldap_061
+                message: LDAP server is not available
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: LDAP server does not exist
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '404'
+                errorCode: nerve_ldap_009
+                message: Ldap configuration file does not exist
+  /nerve/ldap/{file}:
+    put:
+      summary: Update LDAP connections
+      description: Used to update LDAP connection.
+      operationId: update_ldap_connections
+      tags:
+      - LDAP
+      parameters:
+      - in: path
+        name: file
+        required: true
+        description: The name of the LDAP configuration file
+        schema:
+          description: The name of the LDAP configuration
+          type: string
+          minLength: 0
+          maxLength: 1001
+          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+      requestBody:
+        description: Defines LDAP connections
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: LDAP configuration details
+              required:
+              - name
+              - port
+              - bindDN
+              - relationship
+              - url
+              - groups
+              - users
+              - tls
+              properties:
+                fileName:
+                  description: The name of the LDAP configuration
+                  type: string
+                  minLength: 0
+                  maxLength: 1001
+                  pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                name:
+                  type: string
+                  description: The name of the LDAP configuration
+                  pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                  minLength: 1
+                  maxLength: 1001
+                url:
+                  description: The IP address or the hostname of the LDAP server
+                  minLength: 1
+                  maxLength: 1001
+                  anyOf:
+                  - type: string
+                    description: The IP address value
+                    minLength: 0
+                    maxLength: 255
+                    pattern: (\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}
+                  - type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                port:
+                  description: The port of the LDAP server
+                  anyOf:
+                  - type: integer
+                    format: int32
+                    minimum: 1
+                    maximum: 65535
+                  - type: string
+                    pattern: ^\d+$
+                active:
+                  type: boolean
+                  description: The active status of the LDAP configuration
+                  example: false
+                bindDN:
+                  description: Bind distinguished name for LDAP authentication
+                  minLength: 1
+                  maxLength: 1001
+                  example: cn=admin,dc=tttech,dc=com
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                password:
+                  minLength: 0
+                  maxLength: 1001
+                  description: The bind password for LDAP authentication, cannot be changed or reset
+                  type: string
+                  pattern: ^[\x20-\x7E\t\n\r]*$
+                tls:
+                  type: boolean
+                  description: Indicates if TLS should be used
+                  example: false
+                recurringSync:
+                  type: object
+                  description: Recurring synchronization settings
+                  properties:
+                    recurringSync:
+                      type: boolean
+                      description: The recurring sync status
+                      example: true
+                    schedule:
+                      description: The schedule type of the recurring sync
+                      enum:
+                      - Interval
+                      - Starting time
+                      example: Interval
+                    time:
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                      minLength: 1
+                      maxLength: 1001
+                      description: The time interval for recurring sync
+                relationship:
+                  type: object
+                  description: The relationship between the groups and the users
+                  required:
+                  - type
+                  - membership
+                  - target
+                  properties:
+                    type:
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                      description: Type of relationship between users and groups
+                      minLength: 1
+                      maxLength: 1001
+                      example: group-user
+                    membership:
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                      description: Attribute that defines the membership of a user in a group
+                      minLength: 1
+                      maxLength: 1001
+                      example: memberUid
+                    target:
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                      description: The target of the relationship
+                      minLength: 1
+                      maxLength: 1001
+                      example: uid
+                users:
+                  allOf:
+                  - allOf:
+                    - type: object
+                      description: The LDAP user configuration. Existing users LDAP or local, cannot be edited or deleted. New users cannot be added.
+                      required:
+                      - searchBase
+                      - filter
+                      - firstName
+                      - lastName
+                      - email
+                      properties:
+                        searchBase:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The search base for the users
+                          minLength: 1
+                          maxLength: 1001
+                          example: cn=admin,dc=tttech,dc=com
+                        filter:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The LDAP filter to retrieve users
+                          minLength: 1
+                          maxLength: 1001
+                          example: (ObjectClass=posixAccount)
+                        firstName:
+                          type: string
+                          description: The first name of the user
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                          minLength: 2
+                          maxLength: 40
+                        lastName:
+                          maxLength: 40
+                          type: string
+                          description: The last name of the user
+                          example: sn
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                          minLength: 2
+                        email:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          minLength: 1
+                          maxLength: 1001
+                          description: The email of the user
+                    - type: object
+                      properties:
+                        uid:
+                          description: The LDAP attribute for the user's uid
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          minLength: 0
+                          maxLength: 1001
+                          example: uid
+                          type: string
+                  - allOf:
+                    - type: object
+                      description: The LDAP user configuration. Existing users LDAP or local, cannot be edited or deleted. New users cannot be added.
+                      required:
+                      - searchBase
+                      - filter
+                      - firstName
+                      - lastName
+                      - email
+                      properties:
+                        searchBase:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The search base for the users
+                          minLength: 1
+                          maxLength: 1001
+                          example: cn=admin,dc=tttech,dc=com
+                        filter:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          description: The LDAP filter to retrieve users
+                          minLength: 1
+                          maxLength: 1001
+                          example: (ObjectClass=posixAccount)
+                        firstName:
+                          type: string
+                          description: The first name of the user
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                          minLength: 2
+                          maxLength: 40
+                        lastName:
+                          maxLength: 40
+                          type: string
+                          description: The last name of the user
+                          example: sn
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                          minLength: 2
+                        email:
+                          type: string
+                          pattern: ^[\x20-\x7E\t\n\r]*$
+                          minLength: 1
+                          maxLength: 1001
+                          description: The email of the user
+                    - type: object
+                      required:
+                      - username
+                      properties:
+                        username:
+                          type: string
+                          description: LDAP user username, which is used for authentication instead of the email address
+                          pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                          minLength: 2
+                          maxLength: 1000
+                groups:
+                  type: object
+                  description: Group-related settings for LDAP
+                  required:
+                  - searchBase
+                  - filter
+                  - name
+                  - adminGroup
+                  - default
+                  properties:
+                    searchBase:
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                      description: The search base for the groups
+                      minLength: 1
+                      maxLength: 1001
+                      example: cn=admin,dc=tttech,dc=com
+                    filter:
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                      description: The LDAP filter to retrieve groups
+                      minLength: 1
+                      maxLength: 1001
+                      example: (ObjectClass=posixGroup)
+                    name:
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                      description: The LDAP attribute for group name
+                      minLength: 1
+                      maxLength: 1001
+                      example: cn
+                    adminGroup:
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                      description: The LDAP attribute for the admin group
+                      minLength: 1
+                      maxLength: 1001
+                      example: cn=admin,ou=groups,dc=tttech,dc=com
+                    default:
+                      type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                      description: The LDAP attribute for the default group
+                      minLength: 1
+                      maxLength: 1001
+                      example: cn=default,ou=groups,dc=tttech,dc=com
+      x-permissions:
+      - LDAP:EDIT
+      responses:
+        '204':
+          description: LDAP configuration updated successfully.
+        '400':
+          description: LDAP server is not available
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '400'
+                errorCode: nerve_ldap_061
+                message: LDAP server is not available
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: LDAP server does not exist
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '404'
+                errorCode: nerve_ldap_009
+                message: Ldap configuration file does not exist
+        '429':
+          description: Triggered action is already in progress.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '429'
+                errorCode: nerve_ldap_066
+                message: Triggered action is already in progress.
+  /nerve/ldap/sync:
+    post:
+      summary: Synchronization LDAP users
+      description: Used to synchronize LDAP users. Activate recurring sync to set a specific time or interval for ongoing synchronization between the Management System and the LDAP server. Additionally, this operation performs an actual synchronization of users and groups.
+      operationId: synchronize_ldap_users
+      tags:
+      - LDAP
+      requestBody:
+        description: LDAP connections
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+              - type: object
+                description: LDAP configuration details
+                required:
+                - name
+                - port
+                - bindDN
+                - relationship
+                - url
+                - groups
+                - users
+                - tls
+                properties:
+                  fileName:
+                    description: The name of the LDAP configuration
+                    type: string
+                    minLength: 0
+                    maxLength: 1001
+                    pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                  name:
+                    type: string
+                    description: The name of the LDAP configuration
+                    pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                    minLength: 1
+                    maxLength: 1001
+                  url:
+                    description: The IP address or the hostname of the LDAP server
+                    minLength: 1
+                    maxLength: 1001
+                    anyOf:
+                    - type: string
+                      description: The IP address value
+                      minLength: 0
+                      maxLength: 255
+                      pattern: (\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}
+                    - type: string
+                      pattern: ^[\x20-\x7E\t\n\r]*$
+                  port:
+                    description: The port of the LDAP server
+                    anyOf:
+                    - type: integer
+                      format: int32
+                      minimum: 1
+                      maximum: 65535
+                    - type: string
+                      pattern: ^\d+$
+                  active:
+                    type: boolean
+                    description: The active status of the LDAP configuration
+                    example: false
+                  bindDN:
+                    description: Bind distinguished name for LDAP authentication
+                    minLength: 1
+                    maxLength: 1001
+                    example: cn=admin,dc=tttech,dc=com
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                  password:
+                    minLength: 0
+                    maxLength: 1001
+                    description: The bind password for LDAP authentication, cannot be changed or reset
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+                  tls:
+                    type: boolean
+                    description: Indicates if TLS should be used
+                    example: false
+                  recurringSync:
+                    type: object
+                    description: Recurring synchronization settings
+                    properties:
+                      recurringSync:
+                        type: boolean
+                        description: The recurring sync status
+                        example: true
+                      schedule:
+                        description: The schedule type of the recurring sync
+                        enum:
+                        - Interval
+                        - Starting time
+                        example: Interval
+                      time:
+                        type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+                        minLength: 1
+                        maxLength: 1001
+                        description: The time interval for recurring sync
+                  relationship:
+                    type: object
+                    description: The relationship between the groups and the users
+                    required:
+                    - type
+                    - membership
+                    - target
+                    properties:
+                      type:
+                        type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+                        description: Type of relationship between users and groups
+                        minLength: 1
+                        maxLength: 1001
+                        example: group-user
+                      membership:
+                        type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+                        description: Attribute that defines the membership of a user in a group
+                        minLength: 1
+                        maxLength: 1001
+                        example: memberUid
+                      target:
+                        type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+                        description: The target of the relationship
+                        minLength: 1
+                        maxLength: 1001
+                        example: uid
+                  users:
+                    allOf:
+                    - allOf:
+                      - type: object
+                        description: The LDAP user configuration. Existing users LDAP or local, cannot be edited or deleted. New users cannot be added.
+                        required:
+                        - searchBase
+                        - filter
+                        - firstName
+                        - lastName
+                        - email
+                        properties:
+                          searchBase:
+                            type: string
+                            pattern: ^[\x20-\x7E\t\n\r]*$
+                            description: The search base for the users
+                            minLength: 1
+                            maxLength: 1001
+                            example: cn=admin,dc=tttech,dc=com
+                          filter:
+                            type: string
+                            pattern: ^[\x20-\x7E\t\n\r]*$
+                            description: The LDAP filter to retrieve users
+                            minLength: 1
+                            maxLength: 1001
+                            example: (ObjectClass=posixAccount)
+                          firstName:
+                            type: string
+                            description: The first name of the user
+                            pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                            minLength: 2
+                            maxLength: 40
+                          lastName:
+                            maxLength: 40
+                            type: string
+                            description: The last name of the user
+                            example: sn
+                            pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                            minLength: 2
+                          email:
+                            type: string
+                            pattern: ^[\x20-\x7E\t\n\r]*$
+                            minLength: 1
+                            maxLength: 1001
+                            description: The email of the user
+                      - type: object
+                        properties:
+                          uid:
+                            description: The LDAP attribute for the user's uid
+                            pattern: ^[\x20-\x7E\t\n\r]*$
+                            minLength: 0
+                            maxLength: 1001
+                            example: uid
+                            type: string
+                    - allOf:
+                      - type: object
+                        description: The LDAP user configuration. Existing users LDAP or local, cannot be edited or deleted. New users cannot be added.
+                        required:
+                        - searchBase
+                        - filter
+                        - firstName
+                        - lastName
+                        - email
+                        properties:
+                          searchBase:
+                            type: string
+                            pattern: ^[\x20-\x7E\t\n\r]*$
+                            description: The search base for the users
+                            minLength: 1
+                            maxLength: 1001
+                            example: cn=admin,dc=tttech,dc=com
+                          filter:
+                            type: string
+                            pattern: ^[\x20-\x7E\t\n\r]*$
+                            description: The LDAP filter to retrieve users
+                            minLength: 1
+                            maxLength: 1001
+                            example: (ObjectClass=posixAccount)
+                          firstName:
+                            type: string
+                            description: The first name of the user
+                            pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                            minLength: 2
+                            maxLength: 40
+                          lastName:
+                            maxLength: 40
+                            type: string
+                            description: The last name of the user
+                            example: sn
+                            pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                            minLength: 2
+                          email:
+                            type: string
+                            pattern: ^[\x20-\x7E\t\n\r]*$
+                            minLength: 1
+                            maxLength: 1001
+                            description: The email of the user
+                      - type: object
+                        required:
+                        - username
+                        properties:
+                          username:
+                            type: string
+                            description: LDAP user username, which is used for authentication instead of the email address
+                            pattern: ^[^\u0000-\u001f\u007f-\u009f]*$
+                            minLength: 2
+                            maxLength: 1000
+                  groups:
+                    type: object
+                    description: Group-related settings for LDAP
+                    required:
+                    - searchBase
+                    - filter
+                    - name
+                    - adminGroup
+                    - default
+                    properties:
+                      searchBase:
+                        type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+                        description: The search base for the groups
+                        minLength: 1
+                        maxLength: 1001
+                        example: cn=admin,dc=tttech,dc=com
+                      filter:
+                        type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+                        description: The LDAP filter to retrieve groups
+                        minLength: 1
+                        maxLength: 1001
+                        example: (ObjectClass=posixGroup)
+                      name:
+                        type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+                        description: The LDAP attribute for group name
+                        minLength: 1
+                        maxLength: 1001
+                        example: cn
+                      adminGroup:
+                        type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+                        description: The LDAP attribute for the admin group
+                        minLength: 1
+                        maxLength: 1001
+                        example: cn=admin,ou=groups,dc=tttech,dc=com
+                      default:
+                        type: string
+                        pattern: ^[\x20-\x7E\t\n\r]*$
+                        description: The LDAP attribute for the default group
+                        minLength: 1
+                        maxLength: 1001
+                        example: cn=default,ou=groups,dc=tttech,dc=com
+              - type: object
+                required:
+                - recurringSync
+                description: LDAP configuration details for synchronization
+      x-permissions:
+      - LDAP:SYNC
+      responses:
+        '200':
+          description: Returns the ldap configuration
+          content:
+            application/json:
+              schema:
+                type: object
+                description: The status of the LDAP configuration
+                additionalProperties: false
+                properties:
+                  success:
+                    type: boolean
+                    description: The status of the LDAP configuration
+              example:
+                success: true
+        '400':
+          description: LDAP server is not available
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '400'
+                errorCode: nerve_ldap_061
+                message: LDAP server is not available
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: LDAP server does not exist
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '404'
+                errorCode: nerve_ldap_009
+                message: Ldap configuration file does not exist
+        '429':
+          description: Triggered action is already in progress.
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                httpCode: '429'
+                errorCode: nerve_ldap_066
+                message: Triggered action is already in progress.
+components:
+  securitySchemes:
+    sessionId:
+      type: apiKey
+      in: header
+      name: sessionId
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    bearerAuth:
+      type: http
+      scheme: bearer

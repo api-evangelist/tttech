@@ -1,0 +1,1787 @@
+openapi: 3.2.0
+info:
+  version: 3.1.0
+  description: 'Nerve Management System API to manage: -labels -nodes -workloads -notifications -capabilities'
+  title: Nerve Management System DATA EXCHANGE API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+servers:
+- url: https://trynerve1.nerve.cloud
+security:
+- sessionId: []
+tags:
+- name: DATA EXCHANGE
+  description: The operations to manage node data exchange.
+paths:
+  /nerve/data-exchange/cached-data:
+    post:
+      summary: Retrieve cached data from the Cloud server
+      operationId: get_cached_data
+      description: Returns the retrieved node data values
+      tags:
+      - DATA EXCHANGE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Data parameters to retrieve cached data
+              required:
+              - dataId
+              - serialNumber
+              - fromNodeIfCacheEmpty
+              additionalProperties: false
+              properties:
+                dataId:
+                  example: wan_ip_address
+                  type: string
+                  description: Unique string that identifies data that we want to listen to
+                  minLength: 2
+                  maxLength: 129
+                  pattern: ^[a-zA-Z0-9_-]+$
+                serialNumber:
+                  description: The serial number of the node
+                  type: string
+                  maxLength: 12
+                  minLength: 12
+                  pattern: ([A-Z0-9]){12}
+                fromNodeIfCacheEmpty:
+                  type: boolean
+                  description: If there is no such data in cache, get it from Node, refresh cache and return it
+                  example: true
+      x-permissions:
+      - NODE:VIEW
+      responses:
+        '200':
+          description: Successfully retrieved node data
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Data retrieved from the node
+                additionalProperties: false
+                properties:
+                  values:
+                    type: object
+                    description: Object containing the retrieved values
+                    properties:
+                      ip_address:
+                        type: string
+                        description: The IP address value
+                        minLength: 0
+                        maxLength: 255
+                        pattern: (\b25[0-5]|\b2[0-4][0-9]|\b[01]?[0-9][0-9]?)(\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}
+                  serial:
+                    description: The serial number of the node
+                    type: string
+                    maxLength: 12
+                    minLength: 12
+                    pattern: ([A-Z0-9]){12}
+                  fromCache:
+                    type: boolean
+                    description: Whether the data was retrieved from the cache
+                  dataId:
+                    type: string
+                    description: Unique string that identifies data that we want to listen to
+                    minLength: 2
+                    maxLength: 129
+                    pattern: ^[a-zA-Z0-9_-]+$
+                  timestamp:
+                    type: integer
+                    format: int64
+                    description: Timestamp when the data was retrieved
+                    minimum: 0
+                    maximum: 4102444800000
+              example:
+                dataId: wan_ip_address
+                values:
+                  ip_address: 10.85.10.63
+                serial: NB1000000011
+                timestamp: 1719998925413
+                fromCache: true
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Node with this serial number does not exist
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_exchange_000850
+                httpCode: '404'
+                message: Node with this serial number does not exist
+        '409':
+          description: Node can not provide data
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_exchange_000853
+                httpCode: '409'
+                message: Node can not provide data
+  /nerve/data-exchange/node-data:
+    post:
+      summary: Retrieve node data from the Cloud server
+      operationId: get_node_data
+      description: Fetches node data values from the Cloud server, providing details about the workloads deployed on the node.
+      tags:
+      - DATA EXCHANGE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Data parameters to retrieve node data
+              required:
+              - dataId
+              - data
+              - serialNumber
+              - requestConfig
+              additionalProperties: false
+              properties:
+                data:
+                  oneOf:
+                  - type: integer
+                    format: int32
+                    description: Id of the deployed workload
+                    minimum: 100
+                    maximum: 1000
+                  - type: object
+                    description: Object containing the container name
+                    properties:
+                      containerName:
+                        type: string
+                        description: Docker container name
+                        minLength: 2
+                        maxLength: 100
+                        pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]+$
+                dataId:
+                  type: string
+                  description: Unique string that identifies data that we want to listen to
+                  minLength: 2
+                  maxLength: 129
+                  pattern: ^[a-zA-Z0-9_-]+$
+                  example: workloads
+                serialNumber:
+                  description: The serial number of the node
+                  type: string
+                  maxLength: 12
+                  minLength: 12
+                  pattern: ([A-Z0-9]){12}
+                requestConfig:
+                  type: object
+                  description: Configuration parameters for the request
+                  required:
+                  - forceRequest
+                  - timeout
+                  properties:
+                    forceRequest:
+                      type: boolean
+                      description: Whether to force the request to the node
+                      example: false
+                    timeout:
+                      type: integer
+                      format: int32
+                      description: How long to wait for data from Node before returning cached data
+                      minimum: 0
+                      example: 2000
+                      maximum: 86400000
+                    forceRequestNoCacheUpdate:
+                      type: boolean
+                      description: Whether to force the request without updating the cache
+                      example: false
+      x-permissions:
+      - NODE:VIEW
+      responses:
+        '200':
+          description: Successfully retrieved node data
+          content:
+            application/json:
+              schema:
+                description: Data retrieved from the node
+                anyOf:
+                - type: object
+                  properties:
+                    values:
+                      type: object
+                      description: Object containing the retrieved values
+                      anyOf:
+                      - description: Payload of the docker workload
+                        allOf:
+                        - type: object
+                          description: Basic payload of the workload
+                          required:
+                          - workloadId
+                          - status
+                          - name
+                          - type
+                          - statusChangedTimestamp
+                          - workloadVersionName
+                          properties:
+                            workloadId:
+                              description: ID (from Management System) of the entry
+                              type: string
+                              pattern: ^[0-9a-fA-F]{24}$
+                              minLength: 24
+                              maxLength: 24
+                            versionId:
+                              description: ID (from Management System) of the entry
+                              type: string
+                              pattern: ^[0-9a-fA-F]{24}$
+                              minLength: 24
+                              maxLength: 24
+                            status:
+                              type: string
+                              description: Status of workload in queue
+                              enum:
+                              - New
+                              - Reserved
+                              - Queued
+                              - Downloading
+                              - Downloaded
+                              - Installed
+                              - Removing
+                              - Removing_failed
+                            name:
+                              type: string
+                              description: Workload name
+                              minLength: 1
+                              maxLength: 40
+                              pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                            type:
+                              description: Workload type
+                              type: string
+                              enum:
+                              - docker
+                              - vm
+                              - codesys
+                              - docker-compose
+                            statusChangedTimestamp:
+                              type: integer
+                              format: int64
+                              description: Time when state of the workload has changed in milliseconds.
+                              minimum: 0
+                              maximum: 4102444800000
+                            workloadVersionName:
+                              type: string
+                              description: Version name
+                              minLength: 1
+                              maxLength: 40
+                              pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                            deployTime:
+                              type: integer
+                              format: int64
+                              description: Time when workload has been deployed in milliseconds.
+                              minimum: 0
+                              maximum: 4102444800000
+                            wiseDeviceStatus:
+                              type: integer
+                              format: int32
+                              description: 'Status of deployed workload
+
+                                - 0 *IDLE*
+
+                                - 1 *CREATING*
+
+                                - 2 *REMOVING*
+
+                                - 3 *SUSPENDING*
+
+                                - 4 *SUSPENDED*
+
+                                - 5 *STARTING*
+
+                                - 6 *RESTARTING*
+
+                                - 7 *RESUMING*
+
+                                - 8 *STARTED*
+
+                                - 9 *STOPPING*
+
+                                - 10 *STOPPED*
+
+                                - 11 *ERROR*
+
+                                - 12 *REMOVING_FAILED*
+
+                                - 13 *PARTIALLY_RUNNING*
+
+                                '
+                              minimum: 0
+                              maximum: 13
+                            deviceId:
+                              type: integer
+                              format: int32
+                              description: Id of the deployed workload
+                              minimum: 100
+                              maximum: 1000
+                        - type: object
+                          required:
+                          - envVars
+                          - ports
+                          properties:
+                            envVars:
+                              description: List of docker environment variables
+                              type: array
+                              minItems: 0
+                              maxItems: 1001
+                              items:
+                                type: string
+                                pattern: ^[a-zA-Z_][a-zA-Z0-9_]+=
+                                minLength: 1
+                                maxLength: 1000
+                            ports:
+                              type: array
+                              description: A list of port mappings
+                              minItems: 0
+                              maxItems: 1001
+                              items:
+                                type: object
+                                description: Mapping a container port to a port on the Docker host to the outside world.
+                                required:
+                                - protocol
+                                - hostPort
+                                - containerPort
+                                additionalProperties: false
+                                properties:
+                                  protocol:
+                                    type: string
+                                    description: The protocol used for the port mapping, either TCP or UDP
+                                    enum:
+                                    - tcp
+                                    - udp
+                                  hostPort:
+                                    type: string
+                                    pattern: ^\d+$
+                                    minLength: 1
+                                    maxLength: 5
+                                    description: The port number on the host machine that is mapped to the container's port
+                                  containerPort:
+                                    type: string
+                                    pattern: ^\d+$
+                                    minLength: 1
+                                    maxLength: 5
+                                    description: The port number inside the Docker container that is being exposed
+                            resources:
+                              type: object
+                              description: Current and original values of defined cpu and memory limits
+                              additionalProperties: false
+                              properties:
+                                cpu:
+                                  type: object
+                                  description: Object containing the current and original values of defined CPU
+                                  properties:
+                                    current:
+                                      description: Current values of defined CPU
+                                      anyOf:
+                                      - type: integer
+                                        format: int64
+                                        minimum: 1
+                                        maximum: 1000
+                                      - type: integer
+                                        description: Number of CPUs for VM
+                                        format: int32
+                                        minimum: 1
+                                        maximum: 1000
+                                    originally:
+                                      description: Original values of defined CPU
+                                      anyOf:
+                                      - type: integer
+                                        format: int64
+                                        minimum: 1
+                                        maximum: 1000
+                                      - type: integer
+                                        description: Number of CPUs for VM
+                                        format: int32
+                                        minimum: 1
+                                        maximum: 1000
+                                memory:
+                                  type: object
+                                  description: Object containing the current and original values of defined memory
+                                  properties:
+                                    current:
+                                      description: Current values of defined memory
+                                      type: integer
+                                      format: int64
+                                      minimum: 100000000
+                                      maximum: 20000000000
+                                    originally:
+                                      description: Original values of defined memory
+                                      type: integer
+                                      format: int64
+                                      minimum: 100000000
+                                      maximum: 20000000000
+                      - description: Payload of the codesys workload
+                        type: object
+                        required:
+                        - workloadId
+                        - status
+                        - name
+                        - type
+                        - statusChangedTimestamp
+                        - workloadVersionName
+                        properties:
+                          workloadId:
+                            description: ID (from Management System) of the entry
+                            type: string
+                            pattern: ^[0-9a-fA-F]{24}$
+                            minLength: 24
+                            maxLength: 24
+                          versionId:
+                            description: ID (from Management System) of the entry
+                            type: string
+                            pattern: ^[0-9a-fA-F]{24}$
+                            minLength: 24
+                            maxLength: 24
+                          status:
+                            type: string
+                            description: Status of workload in queue
+                            enum:
+                            - New
+                            - Reserved
+                            - Queued
+                            - Downloading
+                            - Downloaded
+                            - Installed
+                            - Removing
+                            - Removing_failed
+                          name:
+                            type: string
+                            description: Workload name
+                            minLength: 1
+                            maxLength: 40
+                            pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                          type:
+                            description: Workload type
+                            type: string
+                            enum:
+                            - docker
+                            - vm
+                            - codesys
+                            - docker-compose
+                          statusChangedTimestamp:
+                            type: integer
+                            format: int64
+                            description: Time when state of the workload has changed in milliseconds.
+                            minimum: 0
+                            maximum: 4102444800000
+                          workloadVersionName:
+                            type: string
+                            description: Version name
+                            minLength: 1
+                            maxLength: 40
+                            pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                          deployTime:
+                            type: integer
+                            format: int64
+                            description: Time when workload has been deployed in milliseconds.
+                            minimum: 0
+                            maximum: 4102444800000
+                          wiseDeviceStatus:
+                            type: integer
+                            format: int32
+                            description: 'Status of deployed workload
+
+                              - 0 *IDLE*
+
+                              - 1 *CREATING*
+
+                              - 2 *REMOVING*
+
+                              - 3 *SUSPENDING*
+
+                              - 4 *SUSPENDED*
+
+                              - 5 *STARTING*
+
+                              - 6 *RESTARTING*
+
+                              - 7 *RESUMING*
+
+                              - 8 *STARTED*
+
+                              - 9 *STOPPING*
+
+                              - 10 *STOPPED*
+
+                              - 11 *ERROR*
+
+                              - 12 *REMOVING_FAILED*
+
+                              - 13 *PARTIALLY_RUNNING*
+
+                              '
+                            minimum: 0
+                            maximum: 13
+                          deviceId:
+                            type: integer
+                            format: int32
+                            description: Id of the deployed workload
+                            minimum: 100
+                            maximum: 1000
+                      - description: Payload of the vm workload
+                        allOf:
+                        - type: object
+                          description: Basic payload of the workload
+                          required:
+                          - workloadId
+                          - status
+                          - name
+                          - type
+                          - statusChangedTimestamp
+                          - workloadVersionName
+                          properties:
+                            workloadId:
+                              description: ID (from Management System) of the entry
+                              type: string
+                              pattern: ^[0-9a-fA-F]{24}$
+                              minLength: 24
+                              maxLength: 24
+                            versionId:
+                              description: ID (from Management System) of the entry
+                              type: string
+                              pattern: ^[0-9a-fA-F]{24}$
+                              minLength: 24
+                              maxLength: 24
+                            status:
+                              type: string
+                              description: Status of workload in queue
+                              enum:
+                              - New
+                              - Reserved
+                              - Queued
+                              - Downloading
+                              - Downloaded
+                              - Installed
+                              - Removing
+                              - Removing_failed
+                            name:
+                              type: string
+                              description: Workload name
+                              minLength: 1
+                              maxLength: 40
+                              pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                            type:
+                              description: Workload type
+                              type: string
+                              enum:
+                              - docker
+                              - vm
+                              - codesys
+                              - docker-compose
+                            statusChangedTimestamp:
+                              type: integer
+                              format: int64
+                              description: Time when state of the workload has changed in milliseconds.
+                              minimum: 0
+                              maximum: 4102444800000
+                            workloadVersionName:
+                              type: string
+                              description: Version name
+                              minLength: 1
+                              maxLength: 40
+                              pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                            deployTime:
+                              type: integer
+                              format: int64
+                              description: Time when workload has been deployed in milliseconds.
+                              minimum: 0
+                              maximum: 4102444800000
+                            wiseDeviceStatus:
+                              type: integer
+                              format: int32
+                              description: 'Status of deployed workload
+
+                                - 0 *IDLE*
+
+                                - 1 *CREATING*
+
+                                - 2 *REMOVING*
+
+                                - 3 *SUSPENDING*
+
+                                - 4 *SUSPENDED*
+
+                                - 5 *STARTING*
+
+                                - 6 *RESTARTING*
+
+                                - 7 *RESUMING*
+
+                                - 8 *STARTED*
+
+                                - 9 *STOPPING*
+
+                                - 10 *STOPPED*
+
+                                - 11 *ERROR*
+
+                                - 12 *REMOVING_FAILED*
+
+                                - 13 *PARTIALLY_RUNNING*
+
+                                '
+                              minimum: 0
+                              maximum: 13
+                            deviceId:
+                              type: integer
+                              format: int32
+                              description: Id of the deployed workload
+                              minimum: 100
+                              maximum: 1000
+                        - type: object
+                          required:
+                          - resources
+                          properties:
+                            resources:
+                              type: object
+                              description: Current and original values of defined cpu and memory limits
+                              additionalProperties: false
+                              properties:
+                                cpu:
+                                  type: object
+                                  description: Object containing the current and original values of defined CPU
+                                  properties:
+                                    current:
+                                      description: Current values of defined CPU
+                                      anyOf:
+                                      - type: integer
+                                        format: int64
+                                        minimum: 1
+                                        maximum: 1000
+                                      - type: integer
+                                        description: Number of CPUs for VM
+                                        format: int32
+                                        minimum: 1
+                                        maximum: 1000
+                                    originally:
+                                      description: Original values of defined CPU
+                                      anyOf:
+                                      - type: integer
+                                        format: int64
+                                        minimum: 1
+                                        maximum: 1000
+                                      - type: integer
+                                        description: Number of CPUs for VM
+                                        format: int32
+                                        minimum: 1
+                                        maximum: 1000
+                                memory:
+                                  type: object
+                                  description: Object containing the current and original values of defined memory
+                                  properties:
+                                    current:
+                                      description: Current values of defined memory
+                                      type: integer
+                                      format: int64
+                                      minimum: 100000000
+                                      maximum: 20000000000
+                                    originally:
+                                      description: Original values of defined memory
+                                      type: integer
+                                      format: int64
+                                      minimum: 100000000
+                                      maximum: 20000000000
+                      - description: Payload of the compose workload
+                        allOf:
+                        - type: object
+                          description: Basic payload of the workload
+                          required:
+                          - workloadId
+                          - status
+                          - name
+                          - type
+                          - statusChangedTimestamp
+                          - workloadVersionName
+                          properties:
+                            workloadId:
+                              description: ID (from Management System) of the entry
+                              type: string
+                              pattern: ^[0-9a-fA-F]{24}$
+                              minLength: 24
+                              maxLength: 24
+                            versionId:
+                              description: ID (from Management System) of the entry
+                              type: string
+                              pattern: ^[0-9a-fA-F]{24}$
+                              minLength: 24
+                              maxLength: 24
+                            status:
+                              type: string
+                              description: Status of workload in queue
+                              enum:
+                              - New
+                              - Reserved
+                              - Queued
+                              - Downloading
+                              - Downloaded
+                              - Installed
+                              - Removing
+                              - Removing_failed
+                            name:
+                              type: string
+                              description: Workload name
+                              minLength: 1
+                              maxLength: 40
+                              pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                            type:
+                              description: Workload type
+                              type: string
+                              enum:
+                              - docker
+                              - vm
+                              - codesys
+                              - docker-compose
+                            statusChangedTimestamp:
+                              type: integer
+                              format: int64
+                              description: Time when state of the workload has changed in milliseconds.
+                              minimum: 0
+                              maximum: 4102444800000
+                            workloadVersionName:
+                              type: string
+                              description: Version name
+                              minLength: 1
+                              maxLength: 40
+                              pattern: (?=.*[^ ].*)(?=(^[^\u0000-\u001f\u007f-\u009f]*$))
+                            deployTime:
+                              type: integer
+                              format: int64
+                              description: Time when workload has been deployed in milliseconds.
+                              minimum: 0
+                              maximum: 4102444800000
+                            wiseDeviceStatus:
+                              type: integer
+                              format: int32
+                              description: 'Status of deployed workload
+
+                                - 0 *IDLE*
+
+                                - 1 *CREATING*
+
+                                - 2 *REMOVING*
+
+                                - 3 *SUSPENDING*
+
+                                - 4 *SUSPENDED*
+
+                                - 5 *STARTING*
+
+                                - 6 *RESTARTING*
+
+                                - 7 *RESUMING*
+
+                                - 8 *STARTED*
+
+                                - 9 *STOPPING*
+
+                                - 10 *STOPPED*
+
+                                - 11 *ERROR*
+
+                                - 12 *REMOVING_FAILED*
+
+                                - 13 *PARTIALLY_RUNNING*
+
+                                '
+                              minimum: 0
+                              maximum: 13
+                            deviceId:
+                              type: integer
+                              format: int32
+                              description: Id of the deployed workload
+                              minimum: 100
+                              maximum: 1000
+                        - type: object
+                          required:
+                          - servicesInformation
+                          - configurationUpdateInfo
+                          properties:
+                            servicesInformation:
+                              type: array
+                              description: Information about services defined within compose workload
+                              minItems: 1
+                              maxItems: 1001
+                              items:
+                                type: object
+                                required:
+                                - containerName
+                                - state
+                                - message
+                                - timestamp
+                                properties:
+                                  containerName:
+                                    type: string
+                                    description: Docker container name
+                                    minLength: 2
+                                    maxLength: 100
+                                    pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]+$
+                                  state:
+                                    type: integer
+                                    format: int32
+                                    description: Status enumeration that corresponds to the state of individual containers in compose workload
+                                    minimum: 0
+                                    maximum: 12
+                                  message:
+                                    type: string
+                                    description: message describing state of individual containers
+                                    enum:
+                                    - container_running
+                                    - container_created
+                                    - container_restarting
+                                    - container_paused
+                                    - container_exited
+                                    - container_dead
+                                    - container_starting
+                                    - container_stopping
+                                    - container_pausing
+                                    - container_resuming
+                                  timestamp:
+                                    description: Timestamp of the last state change in Unix epoch format
+                                    type: integer
+                                    format: int64
+                                    minimum: 0
+                                    maximum: 4102444800000
+                            configurationUpdateInfo:
+                              type: array
+                              minItems: 0
+                              maxItems: 1001
+                              description: List of configuration storages
+                              items:
+                                type: object
+                                description: Configuration storage information for docker workload
+                                required:
+                                - restartOnConfigurationUpdate
+                                - path
+                                - name
+                                - serviceName
+                                properties:
+                                  restartOnConfigurationUpdate:
+                                    type: boolean
+                                    description: Indicator if container will be restarted when applying configuration
+                                    default: false
+                                  name:
+                                    type: string
+                                    description: 'The docker volume name. The name is extracted from docker-compose file. Volume name can only contain numbers, letters, _ and -. NOTE: For now only volume name is allowed. Bind mount points are not allowed.'
+                                    pattern: ^[A-z0-9-.]*$
+                                    minLength: 1
+                                    maxLength: 1001
+                                  path:
+                                    type: string
+                                    description: Container destination path which is mounted to specified volume
+                                    pattern: ^[A-z0-9/.-]*$
+                                    minLength: 1
+                                    maxLength: 1001
+                                  serviceName:
+                                    type: string
+                                    description: The name of the service defined in the docker-compose file. Service name can only contain numbers, letters,_ and -.
+                                    pattern: ^[a-zA-Z0-9][a-zA-Z0-9_-]*$
+                                    minLength: 1
+                                    maxLength: 40
+                    fromCache:
+                      type: boolean
+                      description: Whether the data was retrieved from the cache
+                    dataId:
+                      type: string
+                      description: Unique string that identifies data that we want to listen to
+                      minLength: 2
+                      maxLength: 129
+                      pattern: ^[a-zA-Z0-9_-]+$
+                    timestamp:
+                      type: integer
+                      format: int64
+                      description: Timestamp when the data was retrieved
+                      minimum: 0
+                      maximum: 4102444800000
+                - type: object
+                  description: Object containing the output from the 'docker inspect' command
+              example:
+                dataId: workload
+                values:
+                  name: docker-nginx
+                  workloadId: 66debeb7e73383655702743a
+                  versionId: 66debeb7e73383655702743b
+                  deployTime: 1725874401321
+                  workloadVersionName: version1
+                  type: docker
+                  status: Installed
+                  deviceId: 170
+                  wiseDeviceStatus: 8
+                  statusChangedTimestamp: 1725874440193
+                  ports:
+                  - hostPort: '8080'
+                    containerPort: '80'
+                    protocol: tcp
+                  envVars:
+                  - VARIABLE=value
+                timestamp: 1725958241775
+                fromCache: false
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Node with this serial number does not exist
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_exchange_000850
+                httpCode: '404'
+                message: Node with this serial number does not exist
+        '409':
+          description: Node can not provide data
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_exchange_000853
+                httpCode: '409'
+                message: Node can not provide data
+  /nerve/data-exchange/set-node-data:
+    post:
+      summary: Update node data from the Cloud server
+      operationId: set_node_data
+      description: Updates the node's data from the Cloud server and adjusts the logging level of the selected node
+      tags:
+      - DATA EXCHANGE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Data parameters to set node data
+              required:
+              - dataId
+              - data
+              - serialNumber
+              - timeout
+              additionalProperties: false
+              properties:
+                dataId:
+                  type: string
+                  description: Unique string that identifies data that we want to listen to
+                  minLength: 2
+                  maxLength: 129
+                  pattern: ^[a-zA-Z0-9_-]+$
+                  example: node_logging
+                serialNumber:
+                  description: The serial number of the node
+                  type: string
+                  maxLength: 12
+                  minLength: 12
+                  pattern: ([A-Z0-9]){12}
+                timeout:
+                  type: integer
+                  format: int32
+                  description: How long to wait for data from Node before returning cached data
+                  minimum: 0
+                  example: 2000
+                  maximum: 86400000
+                data:
+                  type: object
+                  description: Data to be set on the node
+                  required:
+                  - command
+                  properties:
+                    timeout:
+                      type: integer
+                      format: int32
+                      description: How long to wait for data from Node before returning cached data
+                      minimum: 0
+                      example: 2000
+                      maximum: 86400000
+                    command:
+                      type: string
+                      description: Command to be executed on the node
+                      enum:
+                      - set_loggers
+                    params:
+                      type: object
+                      description: Parameters for the command
+                      additionalProperties: false
+                      properties:
+                        timeout:
+                          type: integer
+                          format: int64
+                          description: Timeout for the command execution in milliseconds
+                          minimum: 0
+                          maximum: 86400000
+                          example: 5000
+                        ovdm:
+                          type: string
+                          description: Logging level for OVDM
+                          enum:
+                          - info
+                          - debug
+                          - warn
+                          - error
+                        libvirt_ctl:
+                          type: string
+                          description: Logging level for libvirts
+                          enum:
+                          - '10'
+                          - '20'
+                          - '30'
+                          - '40'
+                          - '50'
+                        codesys_ctl:
+                          type: string
+                          description: Logging level for Codesys
+                          enum:
+                          - '10'
+                          - '20'
+                          - '30'
+                          - '40'
+                          - '50'
+                        vm_display_ctl:
+                          type: string
+                          description: Logging level for VM display
+                          enum:
+                          - '10'
+                          - '20'
+                          - '30'
+                          - '40'
+                          - '50'
+      x-permissions:
+      - NODE:SET_DATA
+      responses:
+        '200':
+          description: Successfully set node data
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Data retrieved from the node
+                additionalProperties: false
+                properties:
+                  dataId:
+                    type: string
+                    description: Unique string that identifies data that we want to listen to
+                    minLength: 2
+                    maxLength: 129
+                    pattern: ^[a-zA-Z0-9_-]+$
+                  timestamp:
+                    type: integer
+                    format: int64
+                    description: Timestamp when the data was retrieved
+                    minimum: 0
+                    maximum: 4102444800000
+              example:
+                dataId: node_logging
+                timestamp: 1662464757565
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Node with this serial number does not exist
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_exchange_000850
+                httpCode: '404'
+                message: Node with this serial number does not exist
+        '409':
+          description: Node can not provide data
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_exchange_000853
+                httpCode: '409'
+                message: Node can not provide data
+  /nerve/data-exchange/keep-emitting-updates:
+    post:
+      summary: Instruct the node to resume emitting updates
+      operationId: keep_emitting_updates
+      description: Sends a request to the node to continue emitting updates
+      tags:
+      - DATA EXCHANGE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Parameters necessary to resume emitting updates
+              required:
+              - dataId
+              - serialNumber
+              - emitConfig
+              additionalProperties: false
+              properties:
+                dataId:
+                  type: string
+                  description: Unique string that identifies data that we want to listen to
+                  minLength: 2
+                  maxLength: 129
+                  pattern: ^[a-zA-Z0-9_-]+$
+                  example: system_stats
+                serialNumber:
+                  description: The serial number of the node
+                  type: string
+                  maxLength: 12
+                  minLength: 12
+                  pattern: ([A-Z0-9]){12}
+                emitConfig:
+                  type: object
+                  description: Configuration parameters for the emission process.
+                  required:
+                  - dataInterval
+                  - watchdog
+                  properties:
+                    dataInterval:
+                      type: integer
+                      format: int64
+                      description: Interval in milliseconds for emitting updates.
+                      minimum: 0
+                      example: 1000
+                      maximum: 86400000
+                    watchdog:
+                      type: integer
+                      format: int64
+                      description: Watchdog timeout in milliseconds to ensure node responsiveness.
+                      minimum: 0
+                      example: 1000
+                      maximum: 86400000
+      x-permissions:
+      - NODE:VIEW
+      responses:
+        '200':
+          description: Updates are being emitted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Data retrieved from the node
+                additionalProperties: false
+                properties:
+                  message:
+                    type: string
+                    description: Confirmation message indicating successful operation.
+                    enum:
+                    - Message has been published...
+              example:
+                message: Message has been published...
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Node with this serial number does not exist
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_exchange_000850
+                httpCode: '404'
+                message: Node with this serial number does not exist
+        '409':
+          description: Node can not provide data
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_exchange_000853
+                httpCode: '409'
+                message: Node can not provide data
+  /nerve/data-exchange/start-emitting-updates:
+    post:
+      summary: Instruct the node to begin emitting updates
+      operationId: start_emitting_updates
+      description: Sends a request to the node to initiate the emission of updates.
+      tags:
+      - DATA EXCHANGE
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Parameters required for emitting updates.
+              required:
+              - dataId
+              - serialNumber
+              - emitConfig
+              additionalProperties: false
+              properties:
+                dataId:
+                  type: string
+                  description: Unique string that identifies data that we want to listen to
+                  minLength: 2
+                  maxLength: 129
+                  pattern: ^[a-zA-Z0-9_-]+$
+                  example: system_stats
+                serialNumber:
+                  description: The serial number of the node
+                  type: string
+                  maxLength: 12
+                  minLength: 12
+                  pattern: ([A-Z0-9]){12}
+                emitConfig:
+                  type: object
+                  description: Configuration parameters for the emission process.
+                  required:
+                  - dataInterval
+                  - watchdog
+                  properties:
+                    dataInterval:
+                      type: integer
+                      format: int64
+                      description: Interval in milliseconds for emitting updates.
+                      example: 1000
+                      minimum: 0
+                      maximum: 86400000
+                    watchdog:
+                      type: integer
+                      format: int64
+                      description: Watchdog timeout in milliseconds to ensure node responsiveness.
+                      example: 1000
+                      minimum: 0
+                      maximum: 86400000
+      x-permissions:
+      - NODE:VIEW
+      responses:
+        '200':
+          description: Updates are being emitted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Data retrieved from the node
+                additionalProperties: false
+                properties:
+                  message:
+                    type: string
+                    description: Confirmation message indicating successful operation.
+                    enum:
+                    - Node has successfully handled the command and started to emit updates.
+              example:
+                message: Node has successfully handled the command and started to emit updates.
+        '400':
+          description: Route params validation error
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: '00006'
+                httpCode: '400'
+                message: Route params validation error
+        '403':
+          description: You are not authorized to perform this operation
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              examples:
+                not_authorized:
+                  value:
+                    errorCode: '00003'
+                    httpCode: '403'
+                    message: You are not authorized
+        '404':
+          description: Node with this serial number does not exist
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_exchange_000850
+                httpCode: '404'
+                message: Node with this serial number does not exist
+        '409':
+          description: Node can not provide data
+          content:
+            application/json:
+              schema:
+                description: Generic error response returned from the server in case of a failed operation.
+                properties:
+                  errorCode:
+                    description: String that is used as a key for appropriate translation on the front-end application.
+                    type: string
+                    minLength: 4
+                    maxLength: 100
+                    pattern: ^[a-zA-Z0-9_-]*$
+                  httpCode:
+                    description: Http error code assigned to the error.
+                    type: string
+                    minLength: 3
+                    maxLength: 3
+                    pattern: ^[0-9]*$
+                  message:
+                    description: Error message in English.
+                    minLength: 5
+                    maxLength: 512
+                    type: string
+                    pattern: ^[\x20-\x7E\t\n\r]*$
+              example:
+                errorCode: nerve_exchange_000853
+                httpCode: '409'
+                message: Node can not provide data
+components:
+  securitySchemes:
+    sessionId:
+      type: apiKey
+      in: header
+      name: sessionId
+    basicAuth:
+      type: http
+      scheme: basic
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    bearerAuth:
+      type: http
+      scheme: bearer

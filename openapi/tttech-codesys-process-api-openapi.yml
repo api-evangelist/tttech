@@ -1,0 +1,72 @@
+openapi: 3.2.0
+info:
+  version: 2.10.0
+  description: 'Nerve OVDM API to manage:
+
+    - node configuration
+
+    - system configuration
+
+    - system network configuration
+
+    - workloads
+
+    - remote connections
+
+    - dna'
+  title: Nerve Node CODESYS PROCESS API
+  contact:
+    name: Nerve support
+    email: support@tttech-industrial.com
+security:
+- cookieAuth: []
+tags:
+- name: CODESYS PROCESS
+paths:
+  /api/codesys-process/restart:
+    get:
+      summary: Restart the CODESYS application
+      tags:
+      - CODESYS PROCESS
+      x-permissions:
+      - WORKLOAD_CODESYS:RESTART
+      description: Restart the CODESYS application after the license has been activated.
+      operationId: restart_codesys
+      responses:
+        '200':
+          description: The CODESYS application has been successfully restarted after the license activation.
+        '404':
+          description: The resource is temporarily unavailable. The node cannot reach the Codesys controller.
+          content:
+            application/json:
+              schema:
+                type: object
+                description: Description of error associated with status code.
+                required:
+                - status
+                - msg
+                additionalProperties: false
+                properties:
+                  status:
+                    type: integer
+                    description: HTTP status code
+                  msg:
+                    type: string
+                    minLength: 1
+                    maxLength: 1001
+                    description: Error message
+                    pattern: .*
+              examples:
+                codesys_unavaliable:
+                  value:
+                    status: 404
+                    msg: Unable to get Codesys rpc.
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: header
+      name: cookie
+    basicAuth:
+      type: http
+      scheme: basic
