@@ -2507,7 +2507,7 @@ paths:
     post:
       tags:
       - Auth
-      operationId: login
+      operationId: postApiAuthLogin
       summary: Log in user
       description: Log in user and set authorization cookie.
       security: []
@@ -2698,6 +2698,8 @@ paths:
                     description: Response message
                     enum:
                     - auth_brute_force_too_many_failed_requests
+      x-operation-id-source: normalized
+      x-operation-id-original: login
   /api/auth/logged-user:
     get:
       tags:
@@ -2866,7 +2868,7 @@ paths:
     get:
       tags:
       - Auth
-      operationId: logout
+      operationId: getApiAuthLogout
       summary: Logs out user
       description: Logs out currently logged in user.
       x-permissions:
@@ -2981,6 +2983,8 @@ paths:
                     msg: Forbidden
       security:
       - cookieAuth: []
+      x-operation-id-source: normalized
+      x-operation-id-original: logout
 components:
   securitySchemes:
     sessionId:

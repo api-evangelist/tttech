@@ -1891,7 +1891,7 @@ paths:
       - DNA:APPLY
       summary: Apply target configuration
       description: Used to update the existing configuration of the selected node by using configuration file.
-      operationId: apply_dna_configuration
+      operationId: putApiDnaTarget
       parameters:
       - name: continueInCaseOfRestart
         in: query
@@ -2195,13 +2195,15 @@ paths:
                     pattern: .*
       security:
       - cookieAuth: []
+      x-operation-id-source: normalized
+      x-operation-id-original: apply_dna_configuration
   /api/dna/status:
     get:
       tags:
       - DNA
       summary: Get configuration status
       description: Used to get the current status of DNA configuration.
-      operationId: dna_configuration_status
+      operationId: getApiDnaStatus
       x-permissions:
       - DNA:STATUS
       responses:
@@ -2456,13 +2458,15 @@ paths:
                     pattern: .*
       security:
       - cookieAuth: []
+      x-operation-id-source: normalized
+      x-operation-id-original: dna_configuration_status
   /api/dna/target/cancel:
     patch:
       tags:
       - DNA
       summary: Cancel DNA configuration in progress
       description: Used to cancel the DNA configuration operation which is in progress.
-      operationId: cancel_dna_configuration
+      operationId: patchApiDnaTargetCancel
       x-permissions:
       - DNA:CANCEL
       responses:
@@ -2692,13 +2696,15 @@ paths:
                     pattern: .*
       security:
       - cookieAuth: []
+      x-operation-id-source: normalized
+      x-operation-id-original: cancel_dna_configuration
   /api/dna/current:
     get:
       tags:
       - DNA
       summary: Get current node configuration
       description: Used to get the current node configuration.
-      operationId: dna_current_configuration
+      operationId: getApiDnaCurrent
       x-permissions:
       - DNA:CURRENT
       responses:
@@ -2879,13 +2885,15 @@ paths:
                     msg: Forbidden
       security:
       - cookieAuth: []
+      x-operation-id-source: normalized
+      x-operation-id-original: dna_current_configuration
   /api/dna/target/re-apply:
     put:
       tags:
       - DNA
       summary: Re-apply target configuration
       description: Used to re-apply the target configuration which was previously uploaded to the node
-      operationId: re_apply_dna_configuration
+      operationId: putApiDnaTargetReApply
       parameters:
       - name: continueInCaseOfRestart
         in: query
@@ -3118,6 +3126,8 @@ paths:
                     msg: Node is not connected to the cloud
       security:
       - cookieAuth: []
+      x-operation-id-source: normalized
+      x-operation-id-original: re_apply_dna_configuration
 components:
   securitySchemes:
     sessionId:
