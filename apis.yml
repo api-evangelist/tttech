@@ -769,6 +769,9 @@ apis:
   - type: Documentation
     url: https://docs.nerve.cloud/developer_guide/ms-api/#nerve-node-api
 common:
+- type: CapabilityMap
+  url: capabilities/tttech-capability-edges.yml
+  name: TTTech Business Capability Map
 - type: Overlay
   url: overlays/tttech-nerve-management-system-overlay.yaml
 - type: Overlay

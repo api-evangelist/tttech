@@ -1,0 +1,67 @@
+slug: tttech
+provider: TTTech
+generated_by: planning/capability-mapping/scripts/classify_capabilities.py
+model: claude-opus-5
+frame:
+- Software & Technology
+min_confidence: 0.7
+capability_model:
+  source: https://github.com/vincentmakes/turbo-ea-capabilities
+  license: CC-BY-4.0
+  attribution: Turbo EA Capabilities by Vincent Verdet — Turbo EA, https://github.com/vincentmakes/turbo-ea-capabilities,
+    CC BY 4.0
+  notice: NOTICE
+edge_count: 5
+edges:
+- tag: LDAP
+  spec_file: tttech-ldap-api-openapi.yml
+  capability_id: BC-620.20
+  capability_id_l1: BC-620
+  capability_name: Identity & Access Management
+  confidence: 0.85
+  evidence: Create LDAP connections / LDAP server for users with desired configuration / Synchronization
+    LDAP users
+  reason: Directory integration, user and group query, and user synchronisation are identity and access
+    management (federation, joiners-movers-leavers) for the platform.
+- tag: Node
+  spec_file: tttech-node-api-openapi.yml
+  capability_id: BC-600.50
+  capability_id_l1: BC-600
+  capability_name: IT Infrastructure Management
+  confidence: 0.75
+  evidence: POST /nerve/node create_node 'Create a node'; DELETE 'Delete the selected node'; POST /nerve/node/{serialNumber}/reboot
+    'Reboot the selected node'; 'Get list of deployed workloads on the selected node'
+  reason: The operations register, delete, reboot and configure edge compute devices (nodes) and inspect
+    workloads deployed on them — lifecycle management of compute infrastructure, i.e. IT Infrastructure
+    Management. Not an industry-specific capability; Nerve is a device/edge infrastructure platform.
+- tag: Node V2
+  spec_file: tttech-node-v2-api-openapi.yml
+  capability_id: BC-600.50
+  capability_id_l1: BC-600
+  capability_name: IT Infrastructure Management
+  confidence: 0.7
+  evidence: '''Removes unused Docker images from the Node''; ''Get a list of all volumes from the selected
+    node''; ''Delete a volume from the selected node'''
+  reason: Operations manage container images, storage volumes, local user accounts and logging configuration
+    on edge compute devices — administration of compute/storage infrastructure. Mapped to IT Infrastructure
+    Management; some spill into IT operations but the objects are infrastructure resources.
+- tag: Users
+  spec_file: tttech-users-api-openapi.yml
+  capability_id: BC-620.20
+  capability_id_l1: BC-620
+  capability_name: Identity & Access Management
+  confidence: 0.7
+  evidence: '''Get a list of all users from the database''; ''Delete all users, or delete a specific user
+    from the database''; ''Change user password'''
+  reason: Local user account listing, deletion and password change on the node — account and credential
+    administration, i.e. Identity & Access Management. Small surface, so confidence moderate.
+- tag: Workload
+  spec_file: tttech-workload-api-openapi.yml
+  capability_id: BC-600.40
+  capability_id_l1: BC-600
+  capability_name: IT Operations Management
+  confidence: 0.7
+  evidence: POST /nerve/workload/controller — "Control life-cycle and workflow of the deployed workload"
+  reason: Explicit lifecycle control (start/stop/undeploy) of workloads already deployed to edge nodes,
+    plus workload deletion — unambiguously day-to-day IT operations of the managed device fleet rather
+    than any business-domain capability.
